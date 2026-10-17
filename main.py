@@ -38,7 +38,7 @@ from modules.premium.commands import (
     successful_payment_callback,
     send_stars_invoice,
 )
-from modules.management.commands import MANAGEMENT_COMMANDS, handle_prefix_command
+from modules.management.commands import MANAGEMENT_COMMANDS, handle_prefix_command, cmd_welcome
 from modules.ai.chatbot import chatbot_handler, dm_chatbot_handler, cmd_chatbot
 from modules.social.whisper import inline_whisper_handler, whisper_callback_handler
 
@@ -128,6 +128,11 @@ async def _send_verify_prompt(bot, chat, member):
     if bot_id and member.id == bot_id:
         return
     if getattr(member, "is_bot", False):
+        return
+
+    from modules.utils.storage import get_group
+    grp = get_group(chat.id)
+    if not grp.get("welcome_enabled", True):
         return
 
     key = f"{chat.id}:{member.id}"
@@ -329,6 +334,7 @@ def _collect_handlers():
     all_handlers["pfp"] = pfp
     all_handlers["profile"] = pfp
     all_handlers["chatbot"] = cmd_chatbot
+    all_handlers["welcome"] = cmd_welcome
     # /start handler
     async def _start_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Default: treat as verify_join flow (existing DM welcome logic)
@@ -405,6 +411,53 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if data.startswith("sg_"):
         from modules.games.secret_game import secret_game_callback_handler
         await secret_game_callback_handler(update, context)
+        return
+
+    if data.startswith("welcome_toggle:"):
+        parts = data.split(":")
+        try:
+            target_chat_id = int(parts[1])
+            target_state = (parts[2] == "on")
+        except Exception:
+            await query.answer("⚠️ Invalid request.", show_alert=True)
+            return
+
+        caller = query.from_user
+        from modules.utils.db import is_sudo_user
+        is_admin = False
+        try:
+            admins = await context.bot.get_chat_administrators(target_chat_id)
+            is_admin = any(m.user.id == caller.id for m in admins)
+        except Exception:
+            pass
+        if not is_admin and not is_sudo_user(caller.id):
+            await query.answer("⚠️ Only group administrators can change welcome settings!", show_alert=True)
+            return
+
+        from modules.utils.storage import update_group
+        update_group(target_chat_id, welcome_enabled=target_state)
+
+        status_str = "🟢 <b>Eɴᴀʙʟᴇᴅ</b>" if target_state else "🔴 <b>Dɪꜱᴀʙʟᴇᴅ</b>"
+        btn_text = "🔴 Dɪꜱᴀʙʟᴇ Wᴇʟᴄᴏᴍᴇ" if target_state else "🟢 Eɴᴀʙʟᴇ Wᴇʟᴄᴏᴍᴇ"
+        next_target = "off" if target_state else "on"
+        kb = InlineKeyboardMarkup([
+            [InlineKeyboardButton(btn_text, callback_data=f"welcome_toggle:{target_chat_id}:{next_target}")]
+        ])
+        chat_title = html.escape(query.message.chat.title if query.message and query.message.chat else "ᴛʜɪꜱ ɢʀᴏᴜᴘ")
+        msg_text = (
+            f"💓 <b>Wᴇʟᴄᴏᴍᴇ Sᴇᴛᴛɪɴɢꜱ ꜰᴏʀ</b> <i>{chat_title}</i>\n\n"
+            f"⚙️ <b>Sᴛᴀᴛᴜꜱ:</b> {status_str}\n\n"
+            "✨ <b>Uꜱᴀɢᴇ:</b>\n"
+            "• <code>/welcome on</code> or <code>/welcome enable</code> — Turn on welcome messages\n"
+            "• <code>/welcome off</code> or <code>/welcome disable</code> — Turn off welcome messages\n\n"
+            "<i>Or tap the button below to toggle:</i>"
+        )
+        try:
+            await query.edit_message_text(msg_text, reply_markup=kb, parse_mode="HTML")
+        except Exception:
+            pass
+        action_word = "enabled" if target_state else "disabled"
+        await query.answer(f"✅ Welcome messages {action_word}!", show_alert=False)
         return
 
 

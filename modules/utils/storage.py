@@ -322,11 +322,16 @@ def get_group(chat_id: int) -> Dict[str, Any]:
     if db_data is not None:
         if "chatbot_enabled" not in db_data:
             db_data["chatbot_enabled"] = True
+        if "welcome_enabled" not in db_data:
+            db_data["welcome_enabled"] = True
         return db_data
     settings = load_group_settings()
     cid = str(chat_id)
     if cid not in settings:
-        settings[cid] = {"economy_enabled": True, "chatbot_enabled": True}
+        settings[cid] = {"economy_enabled": True, "chatbot_enabled": True, "welcome_enabled": True}
+        save_group_settings(settings)
+    elif "welcome_enabled" not in settings[cid]:
+        settings[cid]["welcome_enabled"] = True
         save_group_settings(settings)
     db_save_group(chat_id, settings[cid])
     return settings[cid]
@@ -336,7 +341,7 @@ def update_group(chat_id: int, **kwargs) -> Dict[str, Any]:
     settings = load_group_settings()
     cid = str(chat_id)
     if cid not in settings:
-        settings[cid] = {"economy_enabled": True, "chatbot_enabled": True}
+        settings[cid] = {"economy_enabled": True, "chatbot_enabled": True, "welcome_enabled": True}
     db_data = db_load_group(chat_id)
     if db_data:
         settings[cid].update(db_data)

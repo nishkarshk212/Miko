@@ -744,9 +744,68 @@ async def cmd_delete_msg(update: Update, context: ContextTypes.DEFAULT_TYPE):
         pass
 
 
+async def cmd_welcome(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat = update.effective_chat
+    user = update.effective_user
+    msg = update.effective_message
+    if not chat or chat.type == "private":
+        if msg:
+            await msg.reply_text("🛡️ <i>Please run this command in a group chat!</i>", parse_mode="HTML")
+        return
+
+    from modules.utils.db import is_sudo_user
+    admin = await _is_admin(chat.id, user.id, context) or is_sudo_user(user.id)
+    if not admin:
+        if msg:
+            await msg.reply_text("⚠️ <i>Only group administrators can change welcome settings!</i>", parse_mode="HTML")
+        return
+
+    from modules.utils.storage import get_group, update_group
+    grp = get_group(chat.id)
+    current_status = grp.get("welcome_enabled", True)
+
+    args = context.args or []
+    if args:
+        sub = args[0].lower().strip()
+        if sub in ("on", "enable", "activate", "true", "yes"):
+            update_group(chat.id, welcome_enabled=True)
+            text = (
+                "🌸 <b>Wᴇʟᴄᴏᴍᴇ Mᴇꜱꜱᴀɢᴇꜱ Aʀᴇ Nᴏᴡ Eɴᴀʙʟᴇᴅ!</b> 💓\n\n"
+                "✨ <i>Miko will now greet new members when they join this group!</i>"
+            )
+            await msg.reply_text(text, parse_mode="HTML")
+            return
+        elif sub in ("off", "disable", "deactivate", "false", "no"):
+            update_group(chat.id, welcome_enabled=False)
+            text = (
+                "🚫 <b>Wᴇʟᴄᴏᴍᴇ Mᴇꜱꜱᴀɢᴇꜱ Aʀᴇ Nᴏᴡ Dɪꜱᴀʙʟᴇᴅ!</b> 💤\n\n"
+                "✨ <i>Miko will no longer send welcome greetings in this group.</i>"
+            )
+            await msg.reply_text(text, parse_mode="HTML")
+            return
+
+    status_str = "🟢 <b>Eɴᴀʙʟᴇᴅ</b>" if current_status else "🔴 <b>Dɪꜱᴀʙʟᴇᴅ</b>"
+    btn_text = "🔴 Dɪꜱᴀʙʟᴇ Wᴇʟᴄᴏᴍᴇ" if current_status else "🟢 Eɴᴀʙʟᴇ Wᴇʟᴄᴏᴍᴇ"
+    new_target = "off" if current_status else "on"
+    kb = InlineKeyboardMarkup([
+        [InlineKeyboardButton(btn_text, callback_data=f"welcome_toggle:{chat.id}:{new_target}")]
+    ])
+    chat_title = html_lib.escape(chat.title or "ᴛʜɪꜱ ɢʀᴏᴜᴘ")
+    msg_text = (
+        f"💓 <b>Wᴇʟᴄᴏᴍᴇ Sᴇᴛᴛɪɴɢꜱ ꜰᴏʀ</b> <i>{chat_title}</i>\n\n"
+        f"⚙️ <b>Sᴛᴀᴛᴜꜱ:</b> {status_str}\n\n"
+        "✨ <b>Uꜱᴀɢᴇ:</b>\n"
+        "• <code>/welcome on</code> or <code>/welcome enable</code> — Turn on welcome messages\n"
+        "• <code>/welcome off</code> or <code>/welcome disable</code> — Turn off welcome messages\n\n"
+        "<i>Or tap the button below to toggle:</i>"
+    )
+    await msg.reply_text(msg_text, reply_markup=kb, parse_mode="HTML")
+
+
 async def cmd_mgmt_help(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = (
         "✅ <b>Manage your group with some amazing group management commands of miko!</b>\n\n"
+        "<code>.welcome [on/off]</code> - Enable or disable welcome greetings\n\n"
         "<code>.res &lt;user&gt; +-power_name</code> - restrict a member with given power\n\n"
         "<code>.add &lt;user&gt; &lt;power&gt;</code> - add given power for an admin\n"
         "<code>.remove &lt;user&gt; &lt;power&gt;</code> - remove given power for an admin\n\n"
@@ -849,6 +908,8 @@ async def handle_prefix_command(update: Update, context: ContextTypes.DEFAULT_TY
         await sudolist_cmd(update, context)
     elif cmd in ("help", "ghelp", "mgmt"):
         await cmd_mgmt_help(update, context)
+    elif cmd == "welcome":
+        await cmd_welcome(update, context)
 
 
 from modules.management.broadcast import broadcast_cmd
@@ -888,4 +949,5 @@ MANAGEMENT_COMMANDS = {
     "giveprem": addprem_cmd,
     "addfund": addfund_cmd,
     "addfunds": addfund_cmd,
+    "welcome": cmd_welcome,
 }

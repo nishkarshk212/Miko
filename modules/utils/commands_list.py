@@ -46,6 +46,7 @@ BOT_COMMANDS = [
     BotCommand("setintro", "Set Your Intro Text"),
     BotCommand("open", "Open Gaming Commands"),
     BotCommand("close", "Close Gaming Commands"),
+    BotCommand("welcome", "Enable or disable welcome greetings (/welcome on/off)"),
     BotCommand("couples", "Choose Random Couples"),
     BotCommand("crush", "Reply To Someone"),
     BotCommand("love", "Reply To Someone"),
