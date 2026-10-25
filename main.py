@@ -236,6 +236,7 @@ async def on_my_chat_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Check if bot was newly added to group (welcome message)
     if old_status not in ("member", "administrator") and new_status in ("member", "administrator"):
+        adder = getattr(result, "from_user", None) or getattr(update, "effective_user", None)
         adder_name = adder.first_name if adder and adder.first_name else "Λᴅᴠᴀʏ"
         bot_add_msg = (
             f"<b>👀 Hii {html.escape(adder_name)} ࿐\n\n"
