@@ -764,10 +764,15 @@ async def cmd_welcome(update: Update, context: ContextTypes.DEFAULT_TYPE):
     grp = get_group(chat.id)
     current_status = grp.get("welcome_enabled", True)
 
-    args = context.args or []
+    args = list(context.args) if context.args else []
+    if not args and msg and msg.text:
+        tokens = msg.text.strip().split()
+        if len(tokens) > 1:
+            args = tokens[1:]
+
     if args:
         sub = args[0].lower().strip()
-        if sub in ("on", "enable", "activate", "true", "yes"):
+        if sub in ("on", "enable", "activate", "true", "yes", "1"):
             update_group(chat.id, welcome_enabled=True)
             text = (
                 "🌸 <b>Wᴇʟᴄᴏᴍᴇ Mᴇꜱꜱᴀɢᴇꜱ Aʀᴇ Nᴏᴡ Eɴᴀʙʟᴇᴅ!</b> 💓\n\n"
@@ -775,12 +780,27 @@ async def cmd_welcome(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
             await msg.reply_text(text, parse_mode="HTML")
             return
-        elif sub in ("off", "disable", "deactivate", "false", "no"):
+        elif sub in ("off", "disable", "deactivate", "false", "no", "0"):
             update_group(chat.id, welcome_enabled=False)
             text = (
                 "🚫 <b>Wᴇʟᴄᴏᴍᴇ Mᴇꜱꜱᴀɢᴇꜱ Aʀᴇ Nᴏᴡ Dɪꜱᴀʙʟᴇᴅ!</b> 💤\n\n"
                 "✨ <i>Miko will no longer send welcome greetings in this group.</i>"
             )
+            await msg.reply_text(text, parse_mode="HTML")
+            return
+        elif sub in ("toggle", "switch"):
+            new_target = not current_status
+            update_group(chat.id, welcome_enabled=new_target)
+            if new_target:
+                text = (
+                    "🌸 <b>Wᴇʟᴄᴏᴍᴇ Mᴇꜱꜱᴀɢᴇꜱ Aʀᴇ Nᴏᴡ Eɴᴀʙʟᴇᴅ!</b> 💓\n\n"
+                    "✨ <i>Miko will now greet new members when they join this group!</i>"
+                )
+            else:
+                text = (
+                    "🚫 <b>Wᴇʟᴄᴏᴍᴇ Mᴇꜱꜱᴀɢᴇꜱ Aʀᴇ Nᴏᴡ Dɪꜱᴀʙʟᴇᴅ!</b> 💤\n\n"
+                    "✨ <i>Miko will no longer send welcome greetings in this group.</i>"
+                )
             await msg.reply_text(text, parse_mode="HTML")
             return
 
@@ -805,7 +825,7 @@ async def cmd_welcome(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def cmd_mgmt_help(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = (
         "✅ <b>Manage your group with some amazing group management commands of miko!</b>\n\n"
-        "<code>.welcome [on/off]</code> - Enable or disable welcome greetings\n\n"
+        "<code>/welcome [on/off]</code> - Enable or disable welcome greetings\n\n"
         "<code>.res &lt;user&gt; +-power_name</code> - restrict a member with given power\n\n"
         "<code>.add &lt;user&gt; &lt;power&gt;</code> - add given power for an admin\n"
         "<code>.remove &lt;user&gt; &lt;power&gt;</code> - remove given power for an admin\n\n"
