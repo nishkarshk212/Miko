@@ -39,7 +39,7 @@ async def ping_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"⏳ <b>Uᴘᴛɪᴍᴇ:</b> <code>{uptime}</code>\n"
         f"🍃 <b>Dᴀᴛᴀʙᴀꜱᴇ:</b> <code>MongoDB + Redis Online</code>\n"
         f"🤖 <b>Pʏᴛʜᴏɴ:</b> <code>v{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}</code>\n\n"
-        "✨ <i>ᴍɪᴋᴏ ɪꜱ ꜱᴍᴏᴏᴛʜ ᴀɴᴅ ʀᴇᴀᴅʏ!</i>"
+        "✨ <i>ʀᴀᴅʜᴀ ɪꜱ ꜱᴍᴏᴏᴛʜ ᴀɴᴅ ʀᴇᴀᴅʏ!</i>"
     )
 
     try:

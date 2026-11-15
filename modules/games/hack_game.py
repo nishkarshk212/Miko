@@ -208,7 +208,7 @@ async def cmd_guess(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"👑 <b>Hacker:</b> <a href=\"tg://user?id={user.id}\">{html.escape(user.first_name or 'User')}</a>\n"
             f"🔑 <b>Password:</b> <code>{guess_str}</code>\n"
             f"💰 <b>Total Won:</b> ${prize}\n\n"
-            f"Congratulations on cracking Miko's mainframe! 🌸",
+            f"Congratulations on cracking Radha's mainframe! 🌸",
             parse_mode="HTML",
         )
     else:

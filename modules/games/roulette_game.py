@@ -25,7 +25,7 @@ async def cmd_roulette(update: Update, context: ContextTypes.DEFAULT_TYPE):
     args = context.args or []
     if len(args) < 2:
         await update.message.reply_text(
-            "🎰 <b>ᴍɪᴋᴏ ʀᴏᴜʟᴇᴛᴛᴇ ɢᴀᴍᴇ</b>\n\n"
+            "🎰 <b>ʀᴀᴅʜᴀ ʀᴏᴜʟᴇᴛᴛᴇ ɢᴀᴍᴇ</b>\n\n"
             "⚠️ Uꜱᴀɢᴇ: <code>/roulette &lt;amount&gt; &lt;players_count&gt;</code>\n"
             "Example: <code>/roulette 1000 4</code>",
             parse_mode="HTML",
@@ -70,12 +70,12 @@ async def cmd_roulette(update: Update, context: ContextTypes.DEFAULT_TYPE):
     USER_ROULETTE_MAP[user.id] = chat_id
 
     await update.message.reply_text(
-        "🎰 <b>ɪɴᴛʀᴏᴅᴜᴄɪɴɢ ᴍɪᴋᴏ ʀᴏᴜʟᴇᴛᴛᴇ ɢᴀᴍᴇ</b> 🎰\n\n"
+        "🎰 <b>ɪɴᴛʀᴏᴅᴜᴄɪɴɢ ʀᴀᴅʜᴀ ʀᴏᴜʟᴇᴛᴛᴇ ɢᴀᴍᴇ</b> 🎰\n\n"
         f"💰 <b>Entry Fee:</b> ${amount}\n"
         f"👥 <b>Max Players:</b> {players_count}\n"
         f"👑 <b>Host:</b> {html.escape(user.first_name or 'User')}\n\n"
         f"🔹 /join {amount} - Join the Roulette game\n"
-        f"🔹 /bid &lt;amount&gt; - Place your bid during rounds in Miko's DM or here\n\n"
+        f"🔹 /bid &lt;amount&gt; - Place your bid during rounds in Radha's DM or here\n\n"
         f"Type <code>/join {amount}</code> to enter!",
         parse_mode="HTML",
     )
@@ -127,7 +127,7 @@ async def cmd_join(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(
             f"🎉 <b>Lobby Full! Starting Round 1/{game['total_rounds']}!</b>\n\n"
             f"🎯 <b>Rule:</b> Lowest bidder in this round will be ELIMINATED!\n"
-            f"💬 Send your secret bid now via: <code>/bid &lt;amount&gt;</code> (DM Miko or in group)!",
+            f"💬 Send your secret bid now via: <code>/bid &lt;amount&gt;</code> (DM Radha or in group)!",
             parse_mode="HTML",
         )
 

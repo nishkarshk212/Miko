@@ -3,7 +3,7 @@ from telegram import BotCommand
 ADVAY_NAME = "Λᴅᴠᴀʏ"
 
 BOT_COMMANDS = [
-    BotCommand("start", "Talk To Miko"),
+    BotCommand("start", "Talk To Radha"),
     BotCommand("pay", "Baka Premium Access Portal"),
     BotCommand("spay", "Buy VIP Premium with Stars (/spay user_id)"),
     BotCommand("gifts", "View Your NFT Collectible Gifts"),
@@ -23,7 +23,9 @@ BOT_COMMANDS = [
     BotCommand("claim", "Claim Group Reward"),
     BotCommand("coupons", "Know About Coupon Commands"),
     BotCommand("economy", "All Global Economy Commands"),
-    BotCommand("game", "Check All Miko Mini Games"),
+    BotCommand("game", "Check All Radha Mini Games"),
+    BotCommand("wordseek", "Start WordSeek Wordle Game (/wordseek <4|5|6>)"),
+    BotCommand("endseek", "End Active WordSeek Game"),
     BotCommand("roulette", "start the roulette game"),
     BotCommand("friends", "Check all friendship commands"),
     BotCommand("addf", "Reply To Add A Friend (/addf <tag>)"),

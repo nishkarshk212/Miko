@@ -354,11 +354,11 @@ async def start_poker_game(chat_id: int, context: ContextTypes.DEFAULT_TYPE):
     if dm_failed_users:
         failed_names = ", ".join([html.escape(game["player_names"].get(u, "Player")) for u in dm_failed_users])
         kb_pm = InlineKeyboardMarkup([
-            [InlineKeyboardButton("💬 Start Miko In PM", url=f"https://t.me/{bot_info.username}?start=start")]
+            [InlineKeyboardButton("💬 Start Radha In PM", url=f"https://t.me/{bot_info.username}?start=start")]
         ])
         await bot.send_message(
             chat_id=chat_id,
-            text=f"⚠️ <b>{failed_names}</b>, please start Miko in private PM to view your secret cards!",
+            text=f"⚠️ <b>{failed_names}</b>, please start Radha in private PM to view your secret cards!",
             parse_mode="HTML",
             reply_markup=kb_pm,
         )

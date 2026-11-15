@@ -482,7 +482,7 @@ async def couples(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "❤️ <b>Tᴏᴅᴀʏꜱ Cᴜᴛᴇ Cᴏᴜᴘʟᴇ</b> ❤️\n\n"
         f"{m1} 💞 {m2}\n\n"
         "Lᴏᴠᴇ Iꜱ Iɴ Tʜᴇ Aɪʀ ❤️\n\n"
-        "~ Fʀᴏᴍ ᴍɪᴋᴏ Wɪᴛʜ Lᴏᴠᴇ 💋"
+        "~ Fʀᴏᴍ ʀᴀᴅʜᴀ Wɪᴛʜ Lᴏᴠᴇ 💋"
     )
     photo_url = "https://i.ibb.co/KcTmzLDJ/When-Two-Hearts-Talk-The-World-Goes-Quiet.jpg"
     try:
@@ -1829,8 +1829,8 @@ async def own(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         def get_pack_info(v: int):
             v_str = f"_v{v}" if v > 1 else ""
-            p_name = f"miko_{base_suffix}{v_str}_by_{bot_username}"
-            p_title = f"{user.first_name}'s Miko {type_label} Pack" + (f" Vol {v}" if v > 1 else "")
+            p_name = f"radha_{base_suffix}{v_str}_by_{bot_username}"
+            p_title = f"{user.first_name}'s Radha {type_label} Pack" + (f" Vol {v}" if v > 1 else "")
             return p_name, p_title
 
         start_vol = target_vol if target_vol is not None else 1
@@ -1931,10 +1931,10 @@ async def own(update: Update, context: ContextTypes.DEFAULT_TYPE):
         err_str = str(e)
         if "PEER_ID_INVALID" in err_str or "USER_NOT_MUTUAL_CONTACT" in err_str or "bot can't initiate conversation" in err_str.lower():
             kb = InlineKeyboardMarkup([
-                [InlineKeyboardButton("💬 Start Miko In PM", url=f"https://t.me/{bot_username}?start=start")]
+                [InlineKeyboardButton("💬 Start Radha In PM", url=f"https://t.me/{bot_username}?start=start")]
             ])
             await wait_msg.edit_text(
-                "⚠️ <b>Pʟᴇᴀꜱᴇ ꜱᴛᴀʀᴛ Mɪᴋᴏ ɪɴ PM ꜰɪʀꜱᴛ ᴛᴏ ᴄʀᴇᴀᴛᴇ ʏᴏᴜʀ ᴏᴡɴ ᴘᴀᴄᴋ!</b>",
+                "⚠️ <b>Pʟᴇᴀꜱᴇ ꜱᴛᴀʀᴛ Rᴀᴅʜᴀ ɪɴ PM ꜰɪʀꜱᴛ ᴛᴏ ᴄʀᴇᴀᴛᴇ ʏᴏᴜʀ ᴏᴡɴ ᴘᴀᴄᴋ!</b>",
                 parse_mode="HTML",
                 reply_markup=kb,
             )
@@ -2023,10 +2023,10 @@ async def clone_pack(update: Update, context: ContextTypes.DEFAULT_TYPE):
             err_str = str(e)
             if "PEER_ID_INVALID" in err_str or "USER_NOT_MUTUAL_CONTACT" in err_str or "bot can't initiate conversation" in err_str.lower():
                 kb = InlineKeyboardMarkup([
-                    [InlineKeyboardButton("💬 Start Miko In PM", url=f"https://t.me/{bot_username}?start=start")]
+                    [InlineKeyboardButton("💬 Start Radha In PM", url=f"https://t.me/{bot_username}?start=start")]
                 ])
                 await wait_msg.edit_text(
-                    "⚠️ <b>Pʟᴇᴀꜱᴇ ꜱᴛᴀʀᴛ Mɪᴋᴏ ɪɴ PM ꜰɪʀꜱᴛ ᴛᴏ ᴄʀᴇᴀᴛᴇ ʏᴏᴜʀ ᴏᴡɴ ᴘᴀᴄᴋ!</b>",
+                    "⚠️ <b>Pʟᴇᴀꜱᴇ ꜱᴛᴀʀᴛ Rᴀᴅʜᴀ ɪɴ PM ꜰɪʀꜱᴛ ᴛᴏ ᴄʀᴇᴀᴛᴇ ʏᴏᴜʀ ᴏᴡɴ ᴘᴀᴄᴋ!</b>",
                     parse_mode="HTML",
                     reply_markup=kb,
                 )
@@ -2085,7 +2085,7 @@ async def clone_pack(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def del_sticker(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Delete a sticker from your Miko sticker pack."""
+    """Delete a sticker from your Radha sticker pack."""
     replied = update.message.reply_to_message if update.message else None
     if not replied or not replied.sticker:
         await update.message.reply_text(
@@ -2108,13 +2108,13 @@ async def del_sticker(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         err_msg = str(e).lower()
         if "stickerset_invalid" in err_msg or "not part of" in err_msg or "forbidden" in err_msg:
-            await update.message.reply_text("❌ You can only delete stickers from packs created by Miko Bot.")
+            await update.message.reply_text("❌ You can only delete stickers from packs created by Radha Bot.")
         else:
             await update.message.reply_text(f"❌ Failed to delete sticker: {e}")
 
 
 async def mypacks_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """List all user sticker packs created with Miko."""
+    """List all user sticker packs created with Radha."""
     user = update.effective_user
     bot = context.bot
     bot_info = await bot.get_me()
@@ -2130,21 +2130,22 @@ async def mypacks_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ]
 
     for type_code, type_lbl, suffix in types:
-        for v in range(1, 11):
-            v_str = f"_v{v}" if v > 1 else ""
-            p_name = f"miko_{suffix}{v_str}_by_{bot_username}"
-            try:
-                s_set = await bot.get_sticker_set(p_name)
-                if s_set:
-                    found_packs.append({
-                        "name": p_name,
-                        "title": s_set.title,
-                        "count": len(s_set.stickers),
-                        "type": type_lbl,
-                    })
-            except Exception:
-                if v > 1:
-                    break
+        for prefix in ("radha_", "miko_"):
+            for v in range(1, 11):
+                v_str = f"_v{v}" if v > 1 else ""
+                p_name = f"{prefix}{suffix}{v_str}_by_{bot_username}"
+                try:
+                    s_set = await bot.get_sticker_set(p_name)
+                    if s_set:
+                        found_packs.append({
+                            "name": p_name,
+                            "title": s_set.title,
+                            "count": len(s_set.stickers),
+                            "type": type_lbl,
+                        })
+                except Exception:
+                    if v > 1:
+                        break
 
     if not found_packs:
         await wait_msg.edit_text(
@@ -2154,7 +2155,7 @@ async def mypacks_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
 
-    text = "📦 <b>Yᴏᴜʀ Mɪᴋᴏ Sᴛɪᴄᴋᴇʀ Pᴀᴄᴋꜱ:</b>\n\n"
+    text = "📦 <b>Yᴏᴜʀ Rᴀᴅʜᴀ Sᴛɪᴄᴋᴇʀ Pᴀᴄᴋꜱ:</b>\n\n"
     buttons = []
     for idx, p in enumerate(found_packs, start=1):
         text += f"{idx}. <b>{html_lib.escape(p['title'])}</b>\n   └ 🎨 <i>{p['type']}</i> • 🔢 <code>{p['count']} stickers</code>\n\n"

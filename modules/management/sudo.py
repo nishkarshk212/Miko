@@ -122,7 +122,7 @@ async def sudolist_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     owner_id = get_owner_id()
     sudo_ids = get_sudo_users()
 
-    lines = ["👑 <b>Miko Sudoers & Owner List:</b>\n"]
+    lines = ["👑 <b>Radha Sudoers & Owner List:</b>\n"]
     lines.append(f"<b>⭐️ Owner:</b> <code>{owner_id}</code>")
 
     lines.append("\n<b>⚡ Sudo Users:</b>")

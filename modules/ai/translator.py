@@ -119,8 +119,8 @@ async def ai_translate(text: str, target_lang: str) -> Tuple[str, str, str]:
                         "Authorization": f"Bearer {OPENROUTER_API_KEY}",
                         "Content-Type": "application/json",
                         "HTTP-Referer": "https://telegram.org",
-                        "X-Title": "Miko Bot",
-                        "User-Agent": "MikoBot/1.0",
+                        "X-Title": "Radha Bot",
+                        "User-Agent": "RadhaBot/1.0",
                     },
                 )
                 loop = asyncio.get_running_loop()

@@ -78,12 +78,14 @@ async def puzzle(update, context):
     await update.message.reply_text(text, parse_mode="HTML")
 
 
+from modules.games.wordseek_game import cmd_wordseek, cmd_endseek
+
 async def game_menu(update, context):
     kb = InlineKeyboardMarkup([
-        [InlineKeyboardButton("🧚 Open Miko Mini Games", url="https://t.me/i_mikoo/3")]
+        [InlineKeyboardButton("🧚 Open Radha Mini Games", url="https://t.me/i_mikoo/3")]
     ])
     await update.message.reply_text(
-        "🎮 Cʟɪᴄᴋ Tʜᴇ Bᴜᴛᴛᴏɴ Bᴇʟᴏᴡ Tᴏ Kɴᴏᴡ Aʙᴏᴜᴛ Mɪᴋᴏ Mɪɴɪ Gᴀᴍᴇꜱ.",
+        "🎮 Cʟɪᴄᴋ Tʜᴇ Bᴜᴛᴛᴏɴ Bᴇʟᴏᴡ Tᴏ Kɴᴏᴡ Aʙᴏᴜᴛ Rᴀᴅʜᴀ Mɪɴɪ Gᴀᴍᴇꜱ.",
         reply_markup=kb,
     )
 
@@ -93,7 +95,7 @@ async def economy_menu(update, context):
         [InlineKeyboardButton("🧚 Oᴘᴇɴ Eᴄᴏɴᴏᴍʏ Gᴜɪᴅᴇ", url="https://t.me/i_mikoo/2")]
     ])
     await update.message.reply_text(
-        "🎮 Cʟɪᴄᴋ Tʜᴇ Bᴜᴛᴛᴏɴ Bᴇʟᴏᴡ Tᴏ Kɴᴏᴡ Aʙᴏᴜᴛ Mɪᴋᴏ Eᴄᴏɴᴏᴍʏ Gᴀᴍᴇ.",
+        "🎮 Cʟɪᴄᴋ Tʜᴇ Bᴜᴛᴛᴏɴ Bᴇʟᴏᴡ Tᴏ Kɴᴏᴡ Aʙᴏᴜᴛ Rᴀᴅʜᴀ Eᴄᴏɴᴏᴍʏ Gᴀᴍᴇ.",
         reply_markup=kb,
     )
 
@@ -216,6 +218,12 @@ HANDLERS = {
 
     # Unified Join
     "join": cmd_unified_join,
+
+    # WordSeek Wordle Game
+    "wordseek": cmd_wordseek,
+    "seek": cmd_wordseek,
+    "endseek": cmd_endseek,
+    "new": cmd_wordseek,
 
     # Fun Minis
     "ludo": ludo,

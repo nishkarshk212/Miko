@@ -543,7 +543,7 @@ async def cmd_demote_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     gdata["baka_promoted"] = []
     _save_group_mgmt(chat.id, gdata)
-    await update.message.reply_text(f"🔽 Demoted {count} Miko-promoted admins!")
+    await update.message.reply_text(f"🔽 Demoted {count} Radha-promoted admins!")
 
 
 async def cmd_title(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -776,7 +776,7 @@ async def cmd_welcome(update: Update, context: ContextTypes.DEFAULT_TYPE):
             update_group(chat.id, welcome_enabled=True)
             text = (
                 "🌸 <b>Wᴇʟᴄᴏᴍᴇ Mᴇꜱꜱᴀɢᴇꜱ Aʀᴇ Nᴏᴡ Eɴᴀʙʟᴇᴅ!</b> 💓\n\n"
-                "✨ <i>Miko will now greet new members when they join this group!</i>"
+                "✨ <i>Radha will now greet new members when they join this group!</i>"
             )
             await msg.reply_text(text, parse_mode="HTML")
             return
@@ -784,7 +784,7 @@ async def cmd_welcome(update: Update, context: ContextTypes.DEFAULT_TYPE):
             update_group(chat.id, welcome_enabled=False)
             text = (
                 "🚫 <b>Wᴇʟᴄᴏᴍᴇ Mᴇꜱꜱᴀɢᴇꜱ Aʀᴇ Nᴏᴡ Dɪꜱᴀʙʟᴇᴅ!</b> 💤\n\n"
-                "✨ <i>Miko will no longer send welcome greetings in this group.</i>"
+                "✨ <i>Radha will no longer send welcome greetings in this group.</i>"
             )
             await msg.reply_text(text, parse_mode="HTML")
             return
@@ -794,12 +794,12 @@ async def cmd_welcome(update: Update, context: ContextTypes.DEFAULT_TYPE):
             if new_target:
                 text = (
                     "🌸 <b>Wᴇʟᴄᴏᴍᴇ Mᴇꜱꜱᴀɢᴇꜱ Aʀᴇ Nᴏᴡ Eɴᴀʙʟᴇᴅ!</b> 💓\n\n"
-                    "✨ <i>Miko will now greet new members when they join this group!</i>"
+                    "✨ <i>Radha will now greet new members when they join this group!</i>"
                 )
             else:
                 text = (
                     "🚫 <b>Wᴇʟᴄᴏᴍᴇ Mᴇꜱꜱᴀɢᴇꜱ Aʀᴇ Nᴏᴡ Dɪꜱᴀʙʟᴇᴅ!</b> 💤\n\n"
-                    "✨ <i>Miko will no longer send welcome greetings in this group.</i>"
+                    "✨ <i>Radha will no longer send welcome greetings in this group.</i>"
                 )
             await msg.reply_text(text, parse_mode="HTML")
             return
@@ -824,14 +824,14 @@ async def cmd_welcome(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def cmd_mgmt_help(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = (
-        "✅ <b>Manage your group with some amazing group management commands of miko!</b>\n\n"
+        "✅ <b>Manage your group with some amazing group management commands of Radha!</b>\n\n"
         "<code>/welcome [on/off]</code> - Enable or disable welcome greetings\n\n"
         "<code>.res &lt;user&gt; +-power_name</code> - restrict a member with given power\n\n"
         "<code>.add &lt;user&gt; &lt;power&gt;</code> - add given power for an admin\n"
         "<code>.remove &lt;user&gt; &lt;power&gt;</code> - remove given power for an admin\n\n"
         "<code>.promote &lt;user&gt; 0/1/2/3</code> - Promote user to admin\n"
         "<code>.demote &lt;user&gt;</code> - Demote admin\n\n"
-        "<code>.demote_all</code> - demote all miko promoted admins\n\n"
+        "<code>.demote_all</code> - demote all Radha promoted admins\n\n"
         "<code>.title &lt;user&gt; &lt;title&gt;</code> - Set custom title\n\n"
         "<code>.warns &lt;user&gt;</code> - Get all warnings\n"
         "<code>.warn &lt;user&gt;</code> - Warn a user (3 = ban)\n"

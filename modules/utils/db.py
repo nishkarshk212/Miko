@@ -1,177 +1,131 @@
 from __future__ import annotations
 
 import os
-import ssl
 import json
-import asyncio
+import sqlite3
+import threading
 from typing import Optional, Dict, Any, List, Set
-
-import redis
-import pymongo
 from dotenv import load_dotenv
 
 load_dotenv()
 
-REDIS_URL = os.getenv(
-    "REDIS_URL",
-    "rediss://:pd5c00029f6c1c29ede4dd8c868cd594d149a84816fc103e47d7aa6c02ed24a23@ec2-184-193-54-112.compute-1.amazonaws.com:12950",
-)
-MONGO_URL = os.getenv(
-    "MONGO_URL",
-    "mongodb+srv://lily_music:Nishkarsh123@lilymusic.3bdrl7s.mongodb.net/?appName=lilymusic",
-)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+DB_PATH = os.getenv("SQLITE_DB_PATH", os.path.join(BASE_DIR, "radha_data.db"))
 
-# Redis client
-_redis_client: Optional[redis.Redis] = None
-try:
-    if REDIS_URL.startswith("rediss://"):
-        _redis_client = redis.from_url(REDIS_URL, ssl_cert_reqs=None, decode_responses=True)
-    else:
-        _redis_client = redis.from_url(REDIS_URL, decode_responses=True)
-    _redis_client.ping()
-    print("✅ Connected to Redis successfully!")
-except Exception as e:
-    print(f"⚠️ Redis connection warning: {e}")
-    _redis_client = None
-
-# Mongo client
-_mongo_db: Optional[pymongo.database.Database] = None
-try:
-    _mongo_client = pymongo.MongoClient(MONGO_URL, serverSelectionTimeoutMS=5000)
-    _mongo_db = _mongo_client.get_database("miko_bot")
-    print("✅ Connected to MongoDB successfully!")
-except Exception as e:
-    print(f"⚠️ MongoDB connection warning: {e}")
-    _mongo_db = None
+_local = threading.local()
 
 
-def get_redis_client() -> Optional[redis.Redis]:
-    return _redis_client
+def _get_conn() -> sqlite3.Connection:
+    if not hasattr(_local, "conn") or _local.conn is None:
+        conn = sqlite3.connect(DB_PATH, timeout=30.0, check_same_thread=False)
+        conn.execute("PRAGMA journal_mode=WAL;")
+        conn.execute("PRAGMA synchronous=NORMAL;")
+        _local.conn = conn
+    return _local.conn
 
 
-def get_mongo_db() -> Optional[pymongo.database.Database]:
-    return _mongo_db
+def _init_db():
+    conn = _get_conn()
+    with conn:
+        conn.execute("CREATE TABLE IF NOT EXISTS users (user_id TEXT PRIMARY KEY, data TEXT)")
+        conn.execute("CREATE TABLE IF NOT EXISTS groups (chat_id TEXT PRIMARY KEY, data TEXT)")
+        conn.execute("CREATE TABLE IF NOT EXISTS chats (chat_id TEXT PRIMARY KEY, title TEXT, username TEXT)")
+        conn.execute("CREATE TABLE IF NOT EXISTS users_chats (user_id TEXT PRIMARY KEY)")
+        conn.execute("CREATE TABLE IF NOT EXISTS whispers (whisper_id TEXT PRIMARY KEY, data TEXT)")
+        conn.execute("CREATE TABLE IF NOT EXISTS sudoers (user_id TEXT PRIMARY KEY)")
+    print("✅ Local VPS SQLite Storage Initialized Successfully!")
+
+
+_init_db()
+
+
+# Compatibility dummies
+def get_redis_client() -> None:
+    return None
+
+
+def get_mongo_db() -> None:
+    return None
 
 
 # --- CHATS & USERS TRACKING FOR BROADCAST ---
 
 def add_chat(chat_id: int, title: Optional[str] = None, username: Optional[str] = None) -> None:
     cid = str(chat_id)
-    if _redis_client:
-        try:
-            _redis_client.sadd("miko:chats", cid)
-        except Exception:
-            pass
-    if _mongo_db is not None:
-        try:
-            upd: Dict[str, Any] = {"chat_id": cid}
-            if title:
-                upd["title"] = title
-            if username is not None:
-                upd["username"] = username
-            _mongo_db.chats.update_one({"chat_id": cid}, {"$set": upd}, upsert=True)
-            _mongo_db.groups.update_one({"_id": cid}, {"$set": upd}, upsert=True)
-        except Exception:
-            pass
+    try:
+        conn = _get_conn()
+        with conn:
+            conn.execute(
+                "INSERT OR REPLACE INTO chats (chat_id, title, username) VALUES (?, ?, ?)",
+                (cid, title or "Telegram Group", username or "")
+            )
+    except Exception as e:
+        print(f"Error adding chat to SQLite: {e}")
 
 
 def rm_chat(chat_id: int) -> None:
     cid = str(chat_id)
-    if _redis_client:
-        try:
-            _redis_client.srem("miko:chats", cid)
-        except Exception:
-            pass
-    if _mongo_db is not None:
-        try:
-            _mongo_db.chats.delete_one({"chat_id": cid})
-        except Exception:
-            pass
+    try:
+        conn = _get_conn()
+        with conn:
+            conn.execute("DELETE FROM chats WHERE chat_id = ?", (cid,))
+    except Exception as e:
+        print(f"Error removing chat from SQLite: {e}")
 
 
 def get_chats() -> List[int]:
-    chats_set: Set[int] = set()
-    if _redis_client:
-        try:
-            members = _redis_client.smembers("miko:chats")
-            for m in members:
-                chats_set.add(int(m))
-        except Exception:
-            pass
-    if not chats_set and _mongo_db is not None:
-        try:
-            docs = _mongo_db.chats.find({}, {"chat_id": 1})
-            for doc in docs:
-                cid = doc.get("chat_id")
-                if cid:
-                    chats_set.add(int(cid))
-                    if _redis_client:
-                        _redis_client.sadd("miko:chats", str(cid))
-        except Exception:
-            pass
-    return list(chats_set)
+    try:
+        conn = _get_conn()
+        cur = conn.cursor()
+        cur.execute("SELECT chat_id FROM chats")
+        rows = cur.fetchall()
+        return [int(r[0]) for r in rows if r[0] and (r[0].startswith("-") or r[0].isdigit())]
+    except Exception as e:
+        print(f"Error getting chats from SQLite: {e}")
+        return []
 
 
 def add_user_chat(user_id: int) -> None:
     uid = str(user_id)
-    if _redis_client:
-        try:
-            _redis_client.sadd("miko:users", uid)
-        except Exception:
-            pass
-    if _mongo_db is not None:
-        try:
-            _mongo_db.users_chats.update_one({"user_id": uid}, {"$set": {"user_id": uid}}, upsert=True)
-        except Exception:
-            pass
+    try:
+        conn = _get_conn()
+        with conn:
+            conn.execute("INSERT OR REPLACE INTO users_chats (user_id) VALUES (?)", (uid,))
+    except Exception as e:
+        print(f"Error adding user chat to SQLite: {e}")
 
 
 def rm_user_chat(user_id: int) -> None:
     uid = str(user_id)
-    if _redis_client:
-        try:
-            _redis_client.srem("miko:users", uid)
-        except Exception:
-            pass
-    if _mongo_db is not None:
-        try:
-            _mongo_db.users_chats.delete_one({"user_id": uid})
-        except Exception:
-            pass
+    try:
+        conn = _get_conn()
+        with conn:
+            conn.execute("DELETE FROM users_chats WHERE user_id = ?", (uid,))
+    except Exception as e:
+        print(f"Error removing user chat from SQLite: {e}")
 
 
 def get_user_chats() -> List[int]:
-    users_set: Set[int] = set()
-    if _redis_client:
-        try:
-            members = _redis_client.smembers("miko:users")
-            for m in members:
-                users_set.add(int(m))
-        except Exception:
-            pass
-    if not users_set and _mongo_db is not None:
-        try:
-            docs = _mongo_db.users_chats.find({}, {"user_id": 1})
-            for doc in docs:
-                uid = doc.get("user_id")
-                if uid:
-                    users_set.add(int(uid))
-                    if _redis_client:
-                        _redis_client.sadd("miko:users", str(uid))
-        except Exception:
-            pass
-    return list(users_set)
+    try:
+        conn = _get_conn()
+        cur = conn.cursor()
+        cur.execute("SELECT user_id FROM users_chats")
+        rows = cur.fetchall()
+        return [int(r[0]) for r in rows if r[0] and r[0].isdigit()]
+    except Exception as e:
+        print(f"Error getting user chats from SQLite: {e}")
+        return []
 
 
 def _json_serial(obj: Any) -> Any:
-    """JSON serializer for objects not serializable by default json code (e.g. datetime, ObjectId)."""
+    """JSON serializer for objects not serializable by default json code (e.g. datetime)."""
     if hasattr(obj, "isoformat"):
         return obj.isoformat()
     return str(obj)
 
 
 def _sanitize_doc(data: Any) -> Any:
-    """Recursively converts non-serializable objects (like datetime) into JSON-compatible types."""
+    """Recursively converts non-serializable objects into JSON-compatible types."""
     if isinstance(data, dict):
         return {k: _sanitize_doc(v) for k, v in data.items()}
     elif isinstance(data, list):
@@ -181,156 +135,58 @@ def _sanitize_doc(data: Any) -> Any:
     return data
 
 
-# --- USER DATA DUAL LAYER ---
+# --- USER DATA LOCAL LAYER ---
 
 def db_load_user(user_id: int) -> Optional[Dict[str, Any]]:
     uid = str(user_id)
-    # 1. Primary: Try Redis (sub-millisecond instant lookup)
-    if _redis_client:
-        try:
-            val = _redis_client.get(f"miko:user:{uid}")
-            if val:
-                return json.loads(val)
-        except Exception:
-            pass
-
-    # 2. Backup Fallback: Try Mongo if missing from Redis
-    if _mongo_db is not None:
-        try:
-            doc = _mongo_db.users.find_one({"_id": uid})
-            if doc:
-                doc.pop("_id", None)
-                doc = _sanitize_doc(doc)
-                if _redis_client:
-                    _redis_client.set(f"miko:user:{uid}", json.dumps(doc, default=_json_serial))
-                    _redis_client.sadd("miko:users", uid)
-                return doc
-        except Exception:
-            pass
-
+    try:
+        conn = _get_conn()
+        cur = conn.cursor()
+        cur.execute("SELECT data FROM users WHERE user_id = ?", (uid,))
+        row = cur.fetchone()
+        if row and row[0]:
+            return json.loads(row[0])
+    except Exception as e:
+        print(f"Error loading user {uid} from SQLite: {e}")
     return None
-
-
-from concurrent.futures import ThreadPoolExecutor
-
-_db_pool = ThreadPoolExecutor(max_workers=4, thread_name_prefix="miko_db_sync")
-
-
-def _async_mongo_save_user(uid: str, doc: dict):
-    if _mongo_db is not None:
-        try:
-            _mongo_db.users.update_one({"_id": uid}, {"$set": doc}, upsert=True)
-        except Exception:
-            pass
 
 
 def db_save_user(user_id: int, udata: Dict[str, Any]) -> None:
     uid = str(user_id)
-    udata = _sanitize_doc(udata)
-    serialized = json.dumps(udata, default=_json_serial)
-
-    # 1. Primary: Save directly to Redis (instant in-memory write < 0.5ms)
-    if _redis_client:
-        try:
-            _redis_client.set(f"miko:user:{uid}", serialized)
-            _redis_client.sadd("miko:users", uid)
-        except Exception:
-            pass
-
-    # 2. Backup: Async background sync to Mongo
-    doc = dict(udata)
-    _db_pool.submit(_async_mongo_save_user, uid, doc)
+    try:
+        udata = _sanitize_doc(udata)
+        serialized = json.dumps(udata, default=_json_serial)
+        conn = _get_conn()
+        with conn:
+            conn.execute("INSERT OR REPLACE INTO users (user_id, data) VALUES (?, ?)", (uid, serialized))
+            conn.execute("INSERT OR REPLACE INTO users_chats (user_id) VALUES (?)", (uid,))
+    except Exception as e:
+        print(f"Error saving user {uid} to SQLite: {e}")
 
 
 def warmup_redis_cache() -> None:
-    """Pre-warm and restore Redis cache with all data from MongoDB."""
-    if not _redis_client or _mongo_db is None:
-        return
-    try:
-        pipe = _redis_client.pipeline()
-
-        # 1. Users
-        for u in _mongo_db.users.find({}):
-            uid = str(u.pop("_id", None))
-            if uid:
-                u = _sanitize_doc(u)
-                pipe.set(f"miko:user:{uid}", json.dumps(u, default=_json_serial))
-                pipe.sadd("miko:users", uid)
-
-        # 2. Groups
-        for g in _mongo_db.groups.find({}):
-            gid = str(g.pop("_id", None))
-            if gid:
-                g = _sanitize_doc(g)
-                pipe.set(f"miko:group:{gid}", json.dumps(g, default=_json_serial))
-                pipe.sadd("miko:chats", gid)
-
-        # 3. Chats
-        for c in _mongo_db.chats.find({}):
-            cid = c.get("chat_id") or str(c.get("_id"))
-            if cid:
-                pipe.sadd("miko:chats", str(cid))
-
-        # 4. User Chats
-        for uc in _mongo_db.users_chats.find({}):
-            uid = uc.get("user_id") or str(uc.get("_id"))
-            if uid:
-                pipe.sadd("miko:users", str(uid))
-
-        # 5. Whispers
-        for w in _mongo_db.whispers.find({}):
-            wid = str(w.pop("_id", None))
-            if wid:
-                w = _sanitize_doc(w)
-                pipe.set(f"miko:whisper:{wid}", json.dumps(w, default=_json_serial), ex=86400 * 7)
-
-        # 6. Sudoers
-        for s in _mongo_db.sudoers.find({}):
-            suid = s.get("user_id") or str(s.get("_id"))
-            if suid:
-                pipe.sadd("miko:sudoers", str(suid))
-
-        pipe.execute()
-        print("⚡ Redis in-memory cache restored and pre-warmed successfully from MongoDB!")
-    except Exception as e:
-        print(f"⚠️ Redis warm-up notice: {e}")
+    """Initializes local storage if needed."""
+    _init_db()
 
 
 def db_load_all_users() -> Dict[str, Dict[str, Any]]:
     res: Dict[str, Dict[str, Any]] = {}
-    # 1. Primary: Load all users from Redis
-    if _redis_client:
-        try:
-            keys = _redis_client.keys("miko:user:*")
-            if keys:
-                pipe = _redis_client.pipeline()
-                for k in keys:
-                    pipe.get(k)
-                values = pipe.execute()
-                for k, v in zip(keys, values):
-                    if v:
-                        uid = k.replace("miko:user:", "")
-                        res[str(uid)] = json.loads(v)
-        except Exception as e:
-            print(f"Error loading users from Redis: {e}")
-
-    # 2. Backup Fallback: If Redis is empty, load from MongoDB
-    if not res and _mongo_db is not None:
-        try:
-            for doc in _mongo_db.users.find({}):
-                uid = doc.pop("_id", None)
-                if uid:
-                    doc = _sanitize_doc(doc)
-                    res[str(uid)] = doc
-                    if _redis_client:
-                        _redis_client.set(f"miko:user:{uid}", json.dumps(doc, default=_json_serial))
-                        _redis_client.sadd("miko:users", str(uid))
-        except Exception:
-            pass
+    try:
+        conn = _get_conn()
+        cur = conn.cursor()
+        cur.execute("SELECT user_id, data FROM users")
+        for uid, data_str in cur.fetchall():
+            if data_str:
+                try:
+                    res[str(uid)] = json.loads(data_str)
+                except Exception:
+                    pass
+    except Exception as e:
+        print(f"Error loading all users from SQLite: {e}")
     return res
 
 
-# --- SUDOERS DUAL LAYER ---
+# --- SUDOERS LOCAL LAYER ---
 
 DEFAULT_SUDOERS = {7408854697, 6605051662, 5971488185, 7810795240}
 
@@ -348,69 +204,39 @@ def get_owner_id() -> int:
 def get_all_sudoers() -> Set[int]:
     sudoers = set(DEFAULT_SUDOERS)
     sudoers.add(get_owner_id())
-
-    # 1. Primary: Try Redis
-    if _redis_client:
-        try:
-            members = _redis_client.smembers("miko:sudoers")
-            if members:
-                for m in members:
-                    try:
-                        sudoers.add(int(m))
-                    except ValueError:
-                        pass
-                return sudoers
-        except Exception:
-            pass
-
-    # 2. Backup Fallback: Try Mongo
-    if _mongo_db is not None:
-        try:
-            docs = _mongo_db.sudoers.find({})
-            for d in docs:
-                uid = d.get("user_id") or d.get("_id")
-                if uid:
-                    try:
-                        sudoers.add(int(uid))
-                        if _redis_client:
-                            _redis_client.sadd("miko:sudoers", str(uid))
-                    except ValueError:
-                        pass
-        except Exception:
-            pass
-
+    try:
+        conn = _get_conn()
+        cur = conn.cursor()
+        cur.execute("SELECT user_id FROM sudoers")
+        for (uid,) in cur.fetchall():
+            if uid and uid.isdigit():
+                sudoers.add(int(uid))
+    except Exception as e:
+        print(f"Error loading sudoers from SQLite: {e}")
     return sudoers
 
 
 def add_sudoer_to_db(user_id: int) -> None:
     DEFAULT_SUDOERS.add(user_id)
     suid = str(user_id)
-    if _redis_client:
-        try:
-            _redis_client.sadd("miko:sudoers", suid)
-        except Exception:
-            pass
-    if _mongo_db is not None:
-        try:
-            _mongo_db.sudoers.update_one({"_id": suid}, {"$set": {"user_id": user_id}}, upsert=True)
-        except Exception:
-            pass
+    try:
+        conn = _get_conn()
+        with conn:
+            conn.execute("INSERT OR REPLACE INTO sudoers (user_id) VALUES (?)", (suid,))
+    except Exception as e:
+        print(f"Error adding sudoer to SQLite: {e}")
 
 
 def remove_sudoer_from_db(user_id: int) -> None:
     if user_id in DEFAULT_SUDOERS:
         DEFAULT_SUDOERS.remove(user_id)
     suid = str(user_id)
-    if _redis_client:
-        try:
-            _redis_client.srem("miko:sudoers", suid)
-        except Exception:
-            pass
-    if _mongo_db is not None:
-        try:
-            _mongo_db.sudoers.delete_one({"_id": suid})
-        except Exception:
-            pass
+    try:
+        conn = _get_conn()
+        with conn:
+            conn.execute("DELETE FROM sudoers WHERE user_id = ?", (suid,))
+    except Exception as e:
+        print(f"Error removing sudoer from SQLite: {e}")
 
 
 def is_user_sudoer(user_id: int) -> bool:
@@ -428,53 +254,56 @@ def get_sudo_users() -> List[int]:
 is_sudo_user = is_user_sudoer
 
 
-# --- GROUP SETTINGS DUAL LAYER ---
+# --- GROUP SETTINGS LOCAL LAYER ---
 
 def db_load_group(chat_id: int) -> Optional[Dict[str, Any]]:
     cid = str(chat_id)
-    # 1. Primary: Try Redis
-    if _redis_client:
-        try:
-            val = _redis_client.get(f"miko:group:{cid}")
-            if val:
-                return json.loads(val)
-        except Exception:
-            pass
-    # 2. Backup Fallback: Try Mongo
-    if _mongo_db is not None:
-        try:
-            doc = _mongo_db.groups.find_one({"_id": cid})
-            if doc:
-                doc.pop("_id", None)
-                doc = _sanitize_doc(doc)
-                if _redis_client:
-                    _redis_client.set(f"miko:group:{cid}", json.dumps(doc, default=_json_serial))
-                    _redis_client.sadd("miko:chats", cid)
-                return doc
-        except Exception:
-            pass
+    try:
+        conn = _get_conn()
+        cur = conn.cursor()
+        cur.execute("SELECT data FROM groups WHERE chat_id = ?", (cid,))
+        row = cur.fetchone()
+        if row and row[0]:
+            return json.loads(row[0])
+    except Exception as e:
+        print(f"Error loading group {cid} from SQLite: {e}")
     return None
-
-
-def _async_mongo_save_group(cid: str, doc: dict):
-    if _mongo_db is not None:
-        try:
-            _mongo_db.groups.update_one({"_id": cid}, {"$set": doc}, upsert=True)
-        except Exception:
-            pass
 
 
 def db_save_group(chat_id: int, gdata: Dict[str, Any]) -> None:
     cid = str(chat_id)
-    gdata = _sanitize_doc(gdata)
-    serialized = json.dumps(gdata, default=_json_serial)
-    # 1. Primary: Save directly to Redis (< 0.5ms)
-    if _redis_client:
-        try:
-            _redis_client.set(f"miko:group:{cid}", serialized)
-            _redis_client.sadd("miko:chats", cid)
-        except Exception:
-            pass
-    # 2. Backup: Save to Mongo in background
-    doc = dict(gdata)
-    _db_pool.submit(_async_mongo_save_group, cid, doc)
+    try:
+        gdata = _sanitize_doc(gdata)
+        serialized = json.dumps(gdata, default=_json_serial)
+        conn = _get_conn()
+        with conn:
+            conn.execute("INSERT OR REPLACE INTO groups (chat_id, data) VALUES (?, ?)", (cid, serialized))
+            conn.execute("INSERT OR REPLACE INTO chats (chat_id, title) VALUES (?, ?)", (cid, gdata.get("title", "Telegram Group")))
+    except Exception as e:
+        print(f"Error saving group {cid} to SQLite: {e}")
+
+
+# --- WHISPERS LOCAL LAYER ---
+
+def db_save_whisper(whisper_id: str, data: Dict[str, Any]) -> None:
+    try:
+        data = _sanitize_doc(data)
+        serialized = json.dumps(data, default=_json_serial)
+        conn = _get_conn()
+        with conn:
+            conn.execute("INSERT OR REPLACE INTO whispers (whisper_id, data) VALUES (?, ?)", (whisper_id, serialized))
+    except Exception as e:
+        print(f"Error saving whisper {whisper_id} to SQLite: {e}")
+
+
+def db_load_whisper(whisper_id: str) -> Optional[Dict[str, Any]]:
+    try:
+        conn = _get_conn()
+        cur = conn.cursor()
+        cur.execute("SELECT data FROM whispers WHERE whisper_id = ?", (whisper_id,))
+        row = cur.fetchone()
+        if row and row[0]:
+            return json.loads(row[0])
+    except Exception as e:
+        print(f"Error loading whisper {whisper_id} from SQLite: {e}")
+    return None

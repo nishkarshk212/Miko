@@ -343,6 +343,24 @@ def _collect_handlers():
         user = update.effective_user
         if not user or not chat:
             return
+
+        # Send user start activity to Log Group
+        try:
+            from modules.utils.logger import send_log_message
+            uname = f"@{user.username}" if user.username else "No Username"
+            chat_info = "Private DM" if chat.type == "private" else f"{html.escape(chat.title or 'Group')} (<code>{chat.id}</code>)"
+            log_text = (
+                f"🚀 <b>#UserStartedBot</b>\n\n"
+                f"• <b>User:</b> <a href=\"tg://user?id={user.id}\">{html.escape(user.first_name or 'User')}</a>\n"
+                f"• <b>User ID:</b> <code>{user.id}</code>\n"
+                f"• <b>Username:</b> {uname}\n"
+                f"• <b>Location:</b> {chat_info}\n"
+                f"• <b>Time:</b> <code>{time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}</code>"
+            )
+            asyncio.create_task(send_log_message(context.bot, log_text))
+        except Exception as le:
+            print(f"Log start error: {le}")
+
         if chat.type == "private":
             from modules.utils.storage import get_user as _gu, global_rank
             ud = _gu(user.id, user.username or "User", user.first_name or "User")
@@ -358,8 +376,8 @@ def _collect_handlers():
             )
             mini_app_url = f"https://mike-payment.vercel.app/app.html?user_id={user.id}"
             keyboard = InlineKeyboardMarkup([
-                [InlineKeyboardButton("🌐 ᴏᴘᴇɴ ᴍɪᴋᴏ ᴡᴇʙ ᴀᴘᴘ", web_app=WebAppInfo(url=mini_app_url))],
-                [InlineKeyboardButton("🍀 ᴍɪᴋᴏ ꜰᴇᴀᴛᴜʀᴇꜱ", callback_data="miko_features")],
+                [InlineKeyboardButton("🌐 ᴏᴘᴇɴ ʀᴀᴅʜᴀ ᴡᴇʙ ᴀᴘᴘ", web_app=WebAppInfo(url=mini_app_url))],
+                [InlineKeyboardButton("🍀 ʀᴀᴅʜᴀ ꜰᴇᴀᴛᴜʀᴇꜱ", callback_data="radha_features")],
                 [
                     InlineKeyboardButton("👥 ɢʀᴏᴜᴘꜱ", callback_data="groups"),
                     InlineKeyboardButton("🐻 ᴘʀᴏᴍᴏᴛᴇʀ", url="https://t.me/advaydev"),
@@ -369,12 +387,12 @@ def _collect_handlers():
                     InlineKeyboardButton("🎮 ɢᴀᴍᴇꜱ", callback_data="games"),
                 ],
                 [
-                    InlineKeyboardButton("➕ ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ɢʀᴏᴜᴘ", url="https://t.me/i_mikobot?startgroup=true"),
+                    InlineKeyboardButton("➕ ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ɢʀᴏᴜᴘ", url=f"https://t.me/{context.bot.username or 'i_mikobot'}?startgroup=true"),
                 ],
             ])
             user_mention = f'<a href="tg://user?id={user.id}">{user.first_name or user.username or "User"}</a>'
             text = (
-                f"💙 ʜɪᴇᴇᴇᴇᴇᴇᴇ {user_mention} ɪ'ᴍ ᴍɪᴋᴏ - ᴀ ɢᴀᴍɪɴɢ ᴀɴᴅ ᴄʜᴀᴛᴛɪɴɢ ɢɪʀʟ ʜᴀᴠɪɴɢ ʟᴏᴛꜱ ᴏꜰ ꜰᴇᴀᴛᴜʀᴇꜱ ᴛᴏ ᴇɴɢᴀɢᴇ ʏᴏᴜʀ ɢʀᴏᴜᴘ.\n"
+                f"💙 ʜɪᴇᴇᴇᴇᴇᴇᴇ {user_mention} ɪ'ᴍ ʀᴀᴅʜᴀ - ᴀ ɢᴀᴍɪɴɢ ᴀɴᴅ ᴄʜᴀᴛᴛɪɴɢ ɢɪʀʟ ʜᴀᴠɪɴɢ ʟᴏᴛꜱ ᴏꜰ ꜰᴇᴀᴛᴜʀᴇꜱ ᴛᴏ ᴇɴɢᴀɢᴇ ʏᴏᴜʀ ɢʀᴏᴜᴘ.\n"
                 f"{stats_block}\n"
                 f"<b>🕹️ ʜᴏᴡ ᴛᴏ ᴘʟᴀʏ?</b>\n"
                 f"💰 /bal - ᴄʜᴇᴄᴋ ʏᴏᴜʀ ꜱᴛᴀᴛꜱ\n"
@@ -491,14 +509,15 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         mini_app_url = f"https://mike-payment.vercel.app/app.html?user_id={caller.id}"
         chat = update.effective_chat
         is_private = (chat and chat.type == "private") or (query.message and query.message.chat and query.message.chat.type == "private")
+        bot_uname = context.bot.username or "i_mikobot"
         web_btn = (
-            InlineKeyboardButton("🌐 ᴏᴘᴇɴ ᴍɪᴋᴏ ᴡᴇʙ ᴀᴘᴘ", web_app=WebAppInfo(url=mini_app_url))
+            InlineKeyboardButton("🌐 ᴏᴘᴇɴ ʀᴀᴅʜᴀ ᴡᴇʙ ᴀᴘᴘ", web_app=WebAppInfo(url=mini_app_url))
             if is_private
-            else InlineKeyboardButton("🌐 ᴏᴘᴇɴ ᴍɪᴋᴏ ᴡᴇʙ ᴀᴘᴘ", url=mini_app_url)
+            else InlineKeyboardButton("🌐 ᴏᴘᴇɴ ʀᴀᴅʜᴀ ᴡᴇʙ ᴀᴘᴘ", url=mini_app_url)
         )
         keyboard = [
             [web_btn],
-            [InlineKeyboardButton("🍀 ᴍɪᴋᴏ ꜰᴇᴀᴛᴜʀᴇꜱ", callback_data="miko_features")],
+            [InlineKeyboardButton("🍀 ʀᴀᴅʜᴀ ꜰᴇᴀᴛᴜʀᴇꜱ", callback_data="radha_features")],
             [
                 InlineKeyboardButton("👥 ɢʀᴏᴜᴘꜱ", callback_data="groups"),
                 InlineKeyboardButton("🐻 ᴘʀᴏᴍᴏᴛᴇʀ", url="https://t.me/advaydev"),
@@ -508,12 +527,12 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 InlineKeyboardButton("🎮 ɢᴀᴍᴇꜱ", callback_data="games"),
             ],
             [
-                InlineKeyboardButton("➕ ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ɢʀᴏᴜᴘ", url="https://t.me/i_mikobot?startgroup=true"),
+                InlineKeyboardButton("➕ ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ɢʀᴏᴜᴘ", url=f"https://t.me/{bot_uname}?startgroup=true"),
             ],
         ]
         start_text = (
             f"✅ <b>Vᴇʀɪꜰɪᴄᴀᴛɪᴏɴ Sᴜᴄᴄᴇꜱꜱꜰᴜʟ!</b>\n\n"
-            f"💙 ʜɪᴇᴇᴇᴇᴇᴇᴇ {caller.mention_html()} ɪ'ᴍ ᴍɪᴋᴏ - ᴀ ɢᴀᴍɪɴɢ ᴀɴᴅ ᴄʜᴀᴛᴛɪɴɢ ɢɪʀʟ ʜᴀᴠɪɴɢ ʟᴏᴛꜱ ᴏꜰ ꜰᴇᴀᴛᴜʀᴇꜱ ᴛᴏ ᴇɴɢᴀɢᴇ ʏᴏᴜʀ ɢʀᴏᴜᴘ.\n"
+            f"💙 ʜɪᴇᴇᴇᴇᴇᴇᴇ {caller.mention_html()} ɪ'ᴍ ʀᴀᴅʜᴀ - ᴀ ɢᴀᴍɪɴɢ ᴀɴᴅ ᴄʜᴀᴛᴛɪɴɢ ɢɪʀʟ ʜᴀᴠɪɴɢ ʟᴏᴛꜱ ᴏꜰ ꜰᴇᴀᴛᴜʀᴇꜱ ᴛᴏ ᴇɴɢᴀɢᴇ ʏᴏᴜʀ ɢʀᴏᴜᴘ.\n"
             f"{stats_block}\n"
             f"<b>🕹️ ʜᴏᴡ ᴛᴏ ᴘʟᴀʏ?</b>\n"
             f"💰 /bal - ᴄʜᴇᴄᴋ ʏᴏᴜʀ ꜱᴛᴀᴛꜱ\n"
@@ -523,7 +542,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"⚔️ /kill &amp; /rob - ʟᴏᴏᴛ ᴏᴛʜᴇʀꜱ\n\n"
             f"👇 ᴄʜᴏᴏꜱᴇ ᴀɴ ᴏᴘᴛɪᴏɴ ʙᴇʟᴏᴡ :"
         )
-        await query.answer("✅ Verified successfully! Welcome to Miko!", show_alert=False)
+        await query.answer("✅ Verified successfully! Welcome to Radha!", show_alert=False)
         try:
             await query.edit_message_text(text=start_text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode="HTML")
         except Exception:
@@ -707,10 +726,10 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             pass
         return
 
-    if data == "miko_features":
+    if data in ("miko_features", "radha_features"):
         text = (
-            "ℹ️ <b>ABOUT MIKO</b>\n\n"
-            "CLICK THE BUTTONS BELOW TO KNOW MORE ABOUT MIKO FEATURES."
+            "ℹ️ <b>ABOUT RADHA</b>\n\n"
+            "CLICK THE BUTTONS BELOW TO KNOW MORE ABOUT RADHA FEATURES."
         )
         keyboard = InlineKeyboardMarkup([
             [
@@ -763,7 +782,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         user_mention = f'<a href="tg://user?id={uid}">{user.first_name or user.username or "User"}</a>'
         text = (
-            f"💙 ʜɪᴇᴇᴇᴇᴇᴇᴇ {user_mention} ɪ'ᴍ ᴍɪᴋᴏ - ᴀ ɢᴀᴍɪɴɢ ᴀɴᴅ ᴄʜᴀᴛᴛɪɴɢ ɢɪʀʟ ʜᴀᴠɪɴɢ ʟᴏᴛꜱ ᴏꜰ ꜰᴇᴀᴛᴜʀᴇꜱ ᴛᴏ ᴇɴɢᴀɢᴇ ʏᴏᴜʀ ɢʀᴏᴜᴘ.\n"
+            f"💙 ʜɪᴇᴇᴇᴇᴇᴇᴇ {user_mention} ɪ'ᴍ ʀᴀᴅʜᴀ - ᴀ ɢᴀᴍɪɴɢ ᴀɴᴅ ᴄʜᴀᴛᴛɪɴɢ ɢɪʀʟ ʜᴀᴠɪɴɢ ʟᴏᴛꜱ ᴏꜰ ꜰᴇᴀᴛᴜʀᴇꜱ ᴛᴏ ᴇɴɢᴀɢᴇ ʏᴏᴜʀ ɢʀᴏᴜᴘ.\n"
             f"{stats_block}\n"
             f"<b>🕹️ ʜᴏᴡ ᴛᴏ ᴘʟᴀʏ?</b>\n"
             f"💰 /bal - ᴄʜᴇᴄᴋ ʏᴏᴜʀ ꜱᴛᴀᴛꜱ\n"
@@ -775,9 +794,10 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         from telegram import WebAppInfo
         mini_app_url = f"https://mike-payment.vercel.app/app.html?user_id={uid}"
+        bot_uname = context.bot.username or "i_mikobot"
         keyboard = InlineKeyboardMarkup([
-            [InlineKeyboardButton("🌐 ᴏᴘᴇɴ ᴍɪᴋᴏ ᴡᴇʙ ᴀᴘᴘ", web_app=WebAppInfo(url=mini_app_url))],
-            [InlineKeyboardButton("🍀 ᴍɪᴋᴏ ꜰᴇᴀᴛᴜʀᴇꜱ", callback_data="miko_features")],
+            [InlineKeyboardButton("🌐 ᴏᴘᴇɴ ʀᴀᴅʜᴀ ᴡᴇʙ ᴀᴘᴘ", web_app=WebAppInfo(url=mini_app_url))],
+            [InlineKeyboardButton("🍀 ʀᴀᴅʜᴀ ꜰᴇᴀᴛᴜʀᴇꜱ", callback_data="radha_features")],
             [
                 InlineKeyboardButton("👥 ɢʀᴏᴜᴘꜱ", callback_data="groups"),
                 InlineKeyboardButton("🐻 ᴘʀᴏᴍᴏᴛᴇʀ", url="https://t.me/advaydev"),
@@ -787,7 +807,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 InlineKeyboardButton("🎮 ɢᴀᴍᴇꜱ", callback_data="games"),
             ],
             [
-                InlineKeyboardButton("➕ ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ɢʀᴏᴜᴘ", url="https://t.me/i_mikobot?startgroup=true"),
+                InlineKeyboardButton("➕ ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ɢʀᴏᴜᴘ", url=f"https://t.me/{bot_uname}?startgroup=true"),
             ],
         ])
         try:
@@ -851,7 +871,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "🕹 <b>GAMES SYSTEM</b>\n\n"
             "Multiplayer interactive mini games:\n"
             "• <code>/hack &lt;amount&gt; &lt;players&gt;</code> — Group Hack Game\n"
-            "• <code>/bluff &lt;amount&gt; &lt;players&gt;</code> — Miko Bluff Card Game\n"
+            "• <code>/bluff &lt;amount&gt; &lt;players&gt;</code> — Radha Bluff Card Game\n"
             "• <code>/bomb &lt;stake&gt;</code> — Defuse the bomb tiles\n"
             "• <code>/roulette &lt;amount&gt;</code> — Russian Roulette Game\n"
             "• <code>/card</code> — Guess high/low card game\n"
@@ -893,7 +913,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if data in feat_map:
         text = feat_map[data]
         kb = InlineKeyboardMarkup([
-            [InlineKeyboardButton("🔙 Back to Features", callback_data="miko_features")]
+            [InlineKeyboardButton("🔙 Back to Features", callback_data="radha_features")]
         ])
         try:
             await query.edit_message_text(text=text, reply_markup=kb, parse_mode="HTML")
@@ -903,7 +923,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if data == "groups":
         text = (
-            "👥 <b>ᴊᴏɪɴ ᴛʜᴇꜱᴇ ɢʀᴏᴜᴘꜱ ᴛᴏ ᴘʟᴀʏ ᴍɪᴋᴏ ɢᴀᴍᴇꜱ.</b>\n\n"
+            "👥 <b>ᴊᴏɪɴ ᴛʜᴇꜱᴇ ɢʀᴏᴜᴘꜱ ᴛᴏ ᴘʟᴀʏ ʀᴀᴅʜᴀ ɢᴀᴍᴇꜱ.</b>\n\n"
             "👉 <b>ᴏɴʟʏ ᴛʜᴇ ᴛᴏᴘ 5 ɢʟᴏʙᴀʟʟʏ ʀɪᴄʜᴇꜱᴛ ᴜꜱᴇʀꜱ ᴄᴀɴ ᴜꜱᴇ ᴛʜɪꜱ ᴄᴏᴍᴍᴀɴᴅ ᴛᴏ ꜱᴇᴛ ᴛʜᴇɪʀ ɢʀᴏᴜᴘ ʜᴇʀᴇ ᴜꜱᴇ :</b> /setgroup"
         )
         from modules.utils.storage import get_featured_groups
@@ -935,8 +955,8 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     elif data == "games":
         text = (
-            "🎮 <b>ᴍɪᴋᴏ ɢᴀᴍᴇ ꜰᴇᴀᴛᴜʀᴇꜱ</b>\n\n"
-            "ᴋɴᴏᴡ ᴀʙᴏᴜᴛ ᴛʜᴇ ᴍɪᴋᴏ ᴍɪɴɪ ɢᴀᴍᴇꜱ: /game\n"
+            "🎮 <b>ʀᴀᴅʜᴀ ɢᴀᴍᴇ ꜰᴇᴀᴛᴜʀᴇꜱ</b>\n\n"
+            "ᴋɴᴏᴡ ᴀʙᴏᴜᴛ ᴛʜᴇ ʀᴀᴅʜᴀ ᴍɪɴɪ ɢᴀᴍᴇꜱ: /game\n"
             "ᴋɴᴏᴡ ᴀʙᴏᴜᴛ ᴛʜᴇ ᴇᴄᴏɴᴏᴍʏ ꜱʏꜱᴛᴇᴍ: /economy\n\n"
             "ʜᴀᴠᴇ ꜰᴜɴ ᴀɴᴅ ʙᴇ ʟᴜᴄᴋʏ🍀"
         )
@@ -1010,7 +1030,7 @@ async def post_init(app):
     try:
         bot_user = await app.bot.get_me()
         log_text = (
-            "🤖 <b>ᴍɪᴋᴏ ʙᴏᴛ ɪꜱ ɴᴏᴡ ᴏɴʟɪɴᴇ!</b>\n\n"
+            "🤖 <b>ʀᴀᴅʜᴀ ʙᴏᴛ ɪꜱ ɴᴏᴡ ᴏɴʟɪɴᴇ!</b>\n\n"
             f"👤 <b>Bot Name:</b> {bot_user.first_name}\n"
             f"🔗 <b>Username:</b> @{bot_user.username}\n"
             f"🆔 <b>ID:</b> <code>{bot_user.id}</code>\n"
@@ -1025,6 +1045,10 @@ async def post_init(app):
 
 
 async def word_quiz_message_watcher(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    from modules.games.wordseek_game import check_wordseek_chat_message
+    if await check_wordseek_chat_message(update, context):
+        return
+
     from modules.games.word_quiz import check_word_quiz_chat_message
     if await check_word_quiz_chat_message(update, context):
         return
@@ -1067,7 +1091,7 @@ def main():
     app.add_handler(InlineQueryHandler(inline_whisper_handler))
     app.add_handler(CallbackQueryHandler(callback_handler))
 
-    print("🤖 ᴍɪᴋᴏ ʙᴏᴛ ɪꜱ ʀᴜɴɴɪɴɢ...")
+    print("🤖 ʀᴀᴅʜᴀ ʙᴏᴛ ɪꜱ ʀᴜɴɴɪɴɢ...")
     app.run_polling(allowed_updates=Update.ALL_TYPES, drop_pending_updates=True)
 
 

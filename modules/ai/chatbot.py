@@ -46,10 +46,10 @@ _chat_histories: Dict[int, List[Dict[str, str]]] = {}
 STICKER_SENTIMENTS: Dict[str, Dict[str, Any]] = {
     "love": {
         "items": [
-            ("🌸 (´,,•ω•,,)♡", "Miko Loves You~ 💕"),
+            ("🌸 (´,,•ω•,,)♡", "Radha Loves You~ 💕"),
             ("💖 (づ｡◕‿‿◕｡)づ", "Huggie Huggie! 🌸"),
             ("✨ (⁄ ⁄•⁄ω⁄•⁄ ⁄)", "Hehe Blush Ho Rahi Hu! 🙈"),
-            ("💕 (｡♥‿♥｡)", "Pyaar Se Miko~ 🌸"),
+            ("💕 (｡♥‿♥｡)", "Pyaar Se Radha~ 🌸"),
             ("🎀 (*˘︶˘*).｡.:*♡", "Aww So Sweet Yaar! 💖"),
             ("💌 (രᴗര๑)♡", "Dil De Diya Tumhe! 💕"),
         ],
@@ -77,7 +77,7 @@ STICKER_SENTIMENTS: Dict[str, Dict[str, Any]] = {
             ("🥺 (｡•́︿•̀｡)", "Aise Mat Karo Na! 💔"),
             ("👊 (ง'̀-'́)ง", "Pitega Mujhse Tu! ⚡"),
             ("💢 (,,#ﾟДﾟ)", "Gussa Hu Main Ab! 😤"),
-            ("😿 (T_T)", "Miko Ro Padegi! 🥺"),
+            ("😿 (T_T)", "Radha Ro Padegi! 🥺"),
         ],
         "bg_fill": (255, 238, 238, 245),
         "outline": (239, 68, 68, 255),
@@ -98,7 +98,7 @@ STICKER_SENTIMENTS: Dict[str, Dict[str, Any]] = {
     },
     "greeting": {
         "items": [
-            ("✨ (⸝⸝ᵕᴗᵕ⸝⸝)", "Hii Hii! Miko Aagayi! 💖"),
+            ("✨ (⸝⸝ᵕᴗᵕ⸝⸝)", "Hii Hii! Radha Aagayi! 💖"),
             ("🌸 (=^･ω･^=)", "Konnichiwa Friends! 🐾"),
             ("👋 (｡･ω･｡)ﾉ♡", "Hello Hello Suno! ✨"),
             ("☀️ (o˘◡˘o)", "Good Morning Ji! 🌸"),
@@ -110,9 +110,9 @@ STICKER_SENTIMENTS: Dict[str, Dict[str, Any]] = {
     },
     "queen": {
         "items": [
-            ("👑 (⁠◕⁠ᴗ⁠◕⁠✿⁠)", "Miko 亗 The Royal Queen! 💕"),
+            ("👑 (⁠◕⁠ᴗ⁠◕⁠✿⁠)", "Radha 亗 The Royal Queen! 💕"),
             ("⚡ ( •̀ᴗ•́ )و ̑̑", "Swag Ekdum Next Level! ✨"),
-            ("💅 (˘︶˘).｡.:*", "Attitude Queen Miko~ 🌸"),
+            ("💅 (˘︶˘).｡.:*", "Attitude Queen Radha~ 🌸"),
             ("✨ (★ω★)", "Boss Girl Vibes Only! 👑"),
         ],
         "bg_fill": (245, 243, 255, 245),
@@ -123,7 +123,7 @@ STICKER_SENTIMENTS: Dict[str, Dict[str, Any]] = {
     "sleepy": {
         "items": [
             ("🌙 (∪｡∪)｡｡zzZ", "Good Night Sweet Dreams! ✨"),
-            ("😴 (￣ρ￣)..zzZZ", "Miko Ko Neend Aa Rahi H~ 💤"),
+            ("😴 (￣ρ￣)..zzZZ", "Radha Ko Neend Aa Rahi H~ 💤"),
             ("🥱 (´-ω-`)", "Bohot Thak Gayi Yaar! 🌙"),
         ],
         "bg_fill": (238, 242, 255, 245),
@@ -145,7 +145,7 @@ STICKER_SENTIMENTS: Dict[str, Dict[str, Any]] = {
     "confused": {
         "items": [
             ("🤔 (•ิ_•ิ)?", "Hain?! Sachhi Me Kya? ✨"),
-            ("🥺 (°ㅂ°╬)", "Miko Ko Samajh Nahi Aaya! ❓"),
+            ("🥺 (°ㅂ°╬)", "Radha Ko Samajh Nahi Aaya! ❓"),
             ("🧐 (¬_¬)", "Kya Chal Raha H Yahan? 🌸"),
         ],
         "bg_fill": (254, 243, 199, 245),
@@ -158,7 +158,7 @@ STICKER_SENTIMENTS: Dict[str, Dict[str, Any]] = {
 STICKER_REACTIONS = [
     "Hehe itna pyara sticker! Yeh lo mera bhi ek cute sticker~ 🌸💕",
     "Awww yeh sticker toh bohot mast tha! (≧▽≦)✨",
-    "Haha lol! Miko ka sticker dekho ab! 💖",
+    "Haha lol! Radha ka sticker dekho ab! 💖",
     "Kya baat hai! Super cute vibes~ 🐾🌸",
     "Hehe sticker battle shuru? Main jeetungi! 👑💕",
     "Areyy wah! Dil khush kar diya is sticker ne! 💖✨",
@@ -182,7 +182,7 @@ def detect_sticker_sentiment(text: str) -> str:
         return "sleepy"
     if any(w in lowered for w in ("chai", "coffee", "tea", "pizza", "burger", "khana", "bhukh", "tasty", "sweet", "cake")):
         return "food"
-    if any(w in lowered for w in ("queen", "king", "attitude", "swag", "pro", "boss", "miko", "op")):
+    if any(w in lowered for w in ("queen", "king", "attitude", "swag", "pro", "boss", "radha", "miko", "op")):
         return "queen"
     if any(w in lowered for w in ("kya", "kyu", "why", "what", "how", "hain", "sach", "really", "confuse")):
         return "confused"
@@ -260,7 +260,7 @@ def generate_miko_sticker(
     except Exception:
         font_pill = font_caption
 
-    draw.text((256, 125), "✨ MIKO BOT ✨", fill=(255, 255, 255, 255), anchor="mm", font=font_pill)
+    draw.text((256, 125), "✨ RADHA BOT ✨", fill=(255, 255, 255, 255), anchor="mm", font=font_pill)
 
     # Large Emote and Kaomoji
     draw.text((256, 235), emote, fill=cfg["emote_color"], anchor="mm", font=font_large)
@@ -269,7 +269,7 @@ def generate_miko_sticker(
     draw.text((256, 345), caption, fill=cfg["caption_color"], anchor="mm", font=font_caption)
 
     buf = io.BytesIO()
-    buf.name = "miko_sticker.webp"
+    buf.name = "radha_sticker.webp"
     img.save(buf, format="WEBP")
     buf.seek(0)
     return buf
@@ -288,7 +288,7 @@ def _get_system_prompt(chat_type: str = "private", chat_title: Optional[str] = N
     )
 
     return (
-        "You are Miko (ミコ), a super cute, playful, bubbly anime girl.\n"
+        "You are Radha, a super cute, playful, bubbly anime girl.\n"
         f"{location_desc}\n"
         f"Real-World Time/Date: {time_str}.\n\n"
         "Language & Chatting Style Rules:\n"
@@ -321,7 +321,7 @@ def _strip_bot_mentions(text: str, bot_username: Optional[str]) -> str:
     cleaned = text
     if bot_username:
         cleaned = re.sub(rf"@{re.escape(bot_username)}", "", cleaned, flags=re.IGNORECASE)
-    cleaned = re.sub(r"^\s*miko\b[:,]?\s*", "", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"^\s*(radha|miko)\b[:,]?\s*", "", cleaned, flags=re.IGNORECASE)
     return cleaned.strip() or text.strip()
 
 
@@ -343,8 +343,8 @@ async def _call_openrouter(messages: List[Dict[str, str]]) -> Optional[str]:
                 "Authorization": f"Bearer {OPENROUTER_API_KEY}",
                 "Content-Type": "application/json",
                 "HTTP-Referer": "https://t.me/i_mikobot",
-                "X-Title": "Miko Bot",
-                "User-Agent": "MikoBot/1.0",
+                "X-Title": "Radha Bot",
+                "User-Agent": "RadhaBot/1.0",
             },
         )
 
@@ -430,7 +430,7 @@ async def chatbot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if is_group:
         lowered = text.lower()
         is_tagged = bool(bot_uname and f"@{bot_uname}" in lowered)
-        has_name = bool(re.search(r"\bmiko\b", lowered))
+        has_name = bool(re.search(r"\b(radha|miko)\b", lowered))
         is_targeted = is_reply_to_bot or is_tagged or has_name
 
         if not is_targeted:
@@ -470,7 +470,7 @@ async def chatbot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"hello hello {user_name}! itni baar hi kyu bol rha h? kuch baat krna h kya? ✨",
             "areyy bolo na kya hua? main toh yahin hu 💕",
             "kya haal chaal? aaj ka din kaisa gaya? 💖",
-            "areyy suno! Miko is always ready to chat! (≧▽≦)✨",
+            "areyy suno! Radha is always ready to chat! (≧▽≦)✨",
         ]
         reply = random.choice(fallbacks)
 
@@ -512,14 +512,14 @@ async def cmd_chatbot(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # In private DM
     if chat.type == "private":
         await msg.reply_text(
-            "🌸 <b>Miko AI Chatbot Portal</b>\n\n"
-            "Miko is always active and ready to chat with you right here in private DMs!\n\n"
+            "🌸 <b>Radha AI Chatbot Portal</b>\n\n"
+            "Radha is always active and ready to chat with you right here in private DMs!\n\n"
             "<b>✨ In Groups:</b>\n"
-            "You can add Miko to any group and enable the AI chatbot.\n"
-            "• <code>/chatbot on</code> - Activate Miko in your group\n"
-            "• <code>/chatbot off</code> - Mute Miko in your group\n"
+            "You can add Radha to any group and enable the AI chatbot.\n"
+            "• <code>/chatbot on</code> - Activate Radha in your group\n"
+            "• <code>/chatbot off</code> - Mute Radha in your group\n"
             "• <code>/chatbot status</code> - Check chatbot status\n\n"
-            "Miko chats casually in Hinglish and shares cute stickers! 💕",
+            "Radha chats casually in Hinglish and shares cute stickers! 💕",
             parse_mode="HTML",
         )
         return
@@ -543,12 +543,12 @@ async def cmd_chatbot(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
         update_group(chat.id, chatbot_enabled=True)
         bot_uname = context.bot.username or "i_mikobot"
-        st_buf = generate_miko_sticker(sentiment="happy", caption="Miko Chatbot Active! ✨")
+        st_buf = generate_miko_sticker(sentiment="happy", caption="Radha Chatbot Active! ✨")
         await msg.reply_text(
-            "🌸 <b>Miko AI Chatbot is now ACTIVATED in this group!</b>\n\n"
-            "✨ <b>How to chat with Miko:</b>\n"
-            f"• Tag <code>@{bot_uname}</code> or say <i>'Miko'</i> in your message\n"
-            "• Reply to any message or sticker sent by Miko\n"
+            "🌸 <b>Radha AI Chatbot is now ACTIVATED in this group!</b>\n\n"
+            "✨ <b>How to chat with Radha:</b>\n"
+            f"• Tag <code>@{bot_uname}</code> or say <i>'Radha'</i> in your message\n"
+            "• Reply to any message or sticker sent by Radha\n"
             "• Send stickers to exchange cute reactions! 💕\n\n"
             "To turn off, admins can type <code>/chatbot off</code>.",
             parse_mode="HTML",
@@ -564,10 +564,10 @@ async def cmd_chatbot(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await msg.reply_text("⚠️ <i>Only group administrators can disable the AI Chatbot!</i>", parse_mode="HTML")
             return
         update_group(chat.id, chatbot_enabled=False)
-        st_buf = generate_miko_sticker(sentiment="sleepy", caption="Miko Going To Sleep~ 💤")
+        st_buf = generate_miko_sticker(sentiment="sleepy", caption="Radha Going To Sleep~ 💤")
         await msg.reply_text(
-            "💤 <b>Miko AI Chatbot has been MUTED in this group.</b>\n\n"
-            "Miko will rest and won't respond to chat messages here.\n"
+            "💤 <b>Radha AI Chatbot has been MUTED in this group.</b>\n\n"
+            "Radha will rest and won't respond to chat messages here.\n"
             "Admins can re-enable anytime using <code>/chatbot on</code>! 🌸",
             parse_mode="HTML",
         )
@@ -581,11 +581,11 @@ async def cmd_chatbot(update: Update, context: ContextTypes.DEFAULT_TYPE):
         status_bool = gdata.get("chatbot_enabled", True)
         status_text = "🟢 <b>ACTIVE & CHATTING</b>" if status_bool else "🔴 <b>MUTED / DISABLED</b>"
         await msg.reply_text(
-            f"🌸 <b>Miko AI Chatbot Status:</b> {status_text}\n\n"
+            f"🌸 <b>Radha AI Chatbot Status:</b> {status_text}\n\n"
             "<b>Commands (Admins only):</b>\n"
             "• <code>/chatbot on</code> - Turn on AI chatting\n"
             "• <code>/chatbot off</code> - Mute AI chatting\n"
             "• <code>/chatbot status</code> - Check status\n\n"
-            "<i>Talk to Miko by replying to her or tagging her name!</i> ✨",
+            "<i>Talk to Radha by replying to her or tagging her name!</i> ✨",
             parse_mode="HTML",
         )

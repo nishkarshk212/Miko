@@ -14,7 +14,7 @@ from telegram import (
 )
 from telegram.ext import ContextTypes
 
-from modules.utils.db import get_redis_client, get_mongo_db
+from modules.utils.db import get_redis_client, get_mongo_db, db_save_whisper, db_load_whisper
 
 # Local fallback cache in case DB is unreachable
 _WHISPERS_MEMORY: Dict[str, Dict[str, Any]] = {}
@@ -22,49 +22,17 @@ _WHISPERS_MEMORY: Dict[str, Dict[str, Any]] = {}
 
 def save_whisper(whisper_id: str, data: Dict[str, Any]) -> None:
     _WHISPERS_MEMORY[whisper_id] = data
-    redis_client = get_redis_client()
-    if redis_client:
-        try:
-            redis_client.set(f"miko:whisper:{whisper_id}", json.dumps(data))
-        except Exception:
-            pass
-    mongo_db = get_mongo_db()
-    if mongo_db is not None:
-        try:
-            mongo_db.whispers.update_one(
-                {"_id": whisper_id},
-                {"$set": data},
-                upsert=True,
-            )
-        except Exception:
-            pass
+    db_save_whisper(whisper_id, data)
 
 
 def get_whisper(whisper_id: str) -> Optional[Dict[str, Any]]:
     if whisper_id in _WHISPERS_MEMORY:
         return _WHISPERS_MEMORY[whisper_id]
 
-    redis_client = get_redis_client()
-    if redis_client:
-        try:
-            raw = redis_client.get(f"miko:whisper:{whisper_id}")
-            if raw:
-                data = json.loads(raw)
-                _WHISPERS_MEMORY[whisper_id] = data
-                return data
-        except Exception:
-            pass
-
-    mongo_db = get_mongo_db()
-    if mongo_db is not None:
-        try:
-            doc = mongo_db.whispers.find_one({"_id": whisper_id})
-            if doc:
-                doc.pop("_id", None)
-                _WHISPERS_MEMORY[whisper_id] = doc
-                return doc
-        except Exception:
-            pass
+    doc = db_load_whisper(whisper_id)
+    if doc:
+        _WHISPERS_MEMORY[whisper_id] = doc
+        return doc
 
     return None
 
@@ -78,17 +46,18 @@ async def inline_whisper_handler(update: Update, context: ContextTypes.DEFAULT_T
     # If query is empty or doesn't have target + message
     parts = query.split(maxsplit=1)
     if not query or len(parts) < 2:
+        bot_uname = context.bot.username or "bot"
         help_text = (
-            "<b>🤫 ᴍɪᴋᴏ ᴡʜɪꜱᴘᴇʀ ꜱʏꜱᴛᴇᴍ</b>\n\n"
+            "<b>🤫 ʀᴀᴅʜᴀ ᴡʜɪꜱᴘᴇʀ ꜱʏꜱᴛᴇᴍ</b>\n\n"
             "Just type:\n"
-            "<code>@i_mikobot &lt;username/userid&gt; &lt;your whisper text&gt;</code>\n\n"
+            f"<code>@{bot_uname} &lt;username/userid&gt; &lt;your whisper text&gt;</code>\n\n"
             "<i>Only you and the target user can open and view the secret whisper message!</i>"
         )
         results = [
             InlineQueryResultArticle(
                 id="whisper_help",
-                title="—Mɪᴋᴏ 亗 | 🤫 Whisper Message",
-                description="Just type: @i_mikobot <username/userid> <your whisper text>",
+                title="—Rᴀᴅʜᴀ 亗 | 🤫 Whisper Message",
+                description=f"Just type: @{bot_uname} <username/userid> <your whisper text>",
                 input_message_content=InputTextMessageContent(help_text, parse_mode="HTML"),
                 reply_markup=InlineKeyboardMarkup([
                     [InlineKeyboardButton("✨ Try Whisper", switch_inline_query_current_chat="")]

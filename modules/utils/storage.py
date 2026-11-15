@@ -123,7 +123,7 @@ POWERS_CATALOG: Dict[str, Dict[str, Any]] = {
         "name": "Rampage Power",
         "emoji": "🐺",
         "price": 1,
-        "desc": "Unleash Miko's fury! Deal massive damage and dominate every battle!",
+        "desc": "Unleash Radha's fury! Deal massive damage and dominate every battle!",
     },
     "cloak": {
         "name": "Cloak Power",

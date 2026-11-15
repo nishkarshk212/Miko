@@ -116,18 +116,18 @@ STARS_PLANS = {
 async def pay_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """User command /pay: Show Miko Premium Access menu matching screenshot"""
     if update.effective_chat and update.effective_chat.type != "private":
-        await update.message.reply_text("⚠️ Tʜɪꜱ Cᴏᴍᴍᴀɴᴅ Oɴʟʏ Wᴏʀᴋꜱ Iɴ Tʜᴇ ᴍɪᴋᴏ Bᴏᴛ'ꜱ Dᴍ.")
+        await update.message.reply_text("⚠️ Tʜɪꜱ Cᴏᴍᴍᴀɴᴅ Oɴʟʏ Wᴏʀᴋꜱ Iɴ Tʜᴇ ʀᴀᴅʜᴀ Bᴏᴛ'ꜱ Dᴍ.")
         return
 
     user = update.effective_user
     uid = user.id if user else 7408854697
 
     msg = (
-        "<b>ᴍɪᴋᴏ ᴘʀᴇᴍɪᴜᴍ ᴀᴄᴄᴇꜱꜱ</b>\n\n"
+        "<b>ʀᴀᴅʜᴀ ᴘʀᴇᴍɪᴜᴍ ᴀᴄᴄᴇꜱꜱ</b>\n\n"
         "ɪᴍᴘᴏʀᴛᴀɴᴛ ɴᴏᴛᴇ: ɪꜰ ʏᴏᴜ ᴀʀᴇ ɴᴏᴛ ᴀɴ ɪɴᴅɪᴀɴ ᴜꜱᴇʀ ᴀɴᴅ ᴜɴʙᴀʟᴇ ᴛᴏ ʙᴜʏ ᴘʀᴇᴍɪᴜᴍ "
-        "ꜰʀᴏᴍ ᴛʜᴇ ꜱɪᴛᴇ ᴛʜᴇɴ ʏᴏᴜ ᴄᴀɴ ʙᴜʏ ᴍɪᴋᴏ ᴘʀᴇᴍɪᴜᴍ ᴜꜱɪɴɢ ᴛᴇʟᴇɢʀᴀᴍ ꜱᴛᴀʀꜱ ᴜꜱɪɴɢ "
+        "ꜰʀᴏᴍ ᴛʜᴇ ꜱɪᴛᴇ ᴛʜᴇɴ ʏᴏᴜ ᴄᴀɴ ʙᴜʏ ʀᴀᴅʜᴀ ᴘʀᴇᴍɪᴜᴍ ᴜꜱɪɴɢ ᴛᴇʟᴇɢʀᴀᴍ ꜱᴛᴀʀꜱ ᴜꜱɪɴɢ "
         "ᴛʜɪꜱ ᴄᴏᴍᴍᴀɴᴅ : /spay\n\n"
-        "ɪꜰ ʏᴏᴜ ᴀʀᴇ ꜰʀᴏᴍ ɪɴᴅɪᴀ ᴛʜᴇɴ ʏᴏᴜ ᴄᴀɴ ʙᴜʏ ᴍɪᴋᴏ ᴘʀᴇᴍɪᴜᴍ ꜱɪᴍᴘʟʏ ꜰʀᴏᴍ ᴛʜᴇ "
+        "ɪꜰ ʏᴏᴜ ᴀʀᴇ ꜰʀᴏᴍ ɪɴᴅɪᴀ ᴛʜᴇɴ ʏᴏᴜ ᴄᴀɴ ʙᴜʏ ʀᴀᴅʜᴀ ᴘʀᴇᴍɪᴜᴍ ꜱɪᴍᴘʟʏ ꜰʀᴏᴍ ᴛʜᴇ "
         "ʙᴇʟᴏᴡ ᴘᴀʏ ɴᴏᴡ ʙᴜᴛᴛᴏɴ\n"
         "ᴄʜᴇᴄᴋ ʏᴏᴜʀ ᴛᴇʟᴇɢʀᴀᴍ ɪᴅ : /id\n\n"
         "ʏᴏᴜ ᴄᴀɴ ʀᴇᴘᴏʀᴛ ᴀɴʏ ɪꜱꜱᴜᴇ ᴛʜʀᴏᴜɢʜ ᴛʜᴇ ᴅᴍ ᴏꜰ ᴛʜɪꜱ ᴄʜᴀɴɴᴇʟ : @Developer_World_Advay"
@@ -155,7 +155,7 @@ async def pay_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def spay_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Direct 1-tap Telegram Stars payment invoice: /spay <user_id> [months]"""
     if update.effective_chat and update.effective_chat.type != "private":
-        await update.message.reply_text("⚠️ Tʜɪꜱ Cᴏᴍᴍᴀɴᴅ Oɴʟʏ Wᴏʀᴋꜱ Iɴ Tʜᴇ ᴍɪᴋᴏ Bᴏᴛ'ꜱ Dᴍ.")
+        await update.message.reply_text("⚠️ Tʜɪꜱ Cᴏᴍᴍᴀɴᴅ Oɴʟʏ Wᴏʀᴋꜱ Iɴ Tʜᴇ ʀᴀᴅʜᴀ Bᴏᴛ'ꜱ Dᴍ.")
         return
 
     if not context.args:
@@ -190,12 +190,12 @@ async def spay_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         await context.bot.send_invoice(
             chat_id=chat_id,
-            title="miko premium access",
-            description=f"Pᴀʏ {stars_amount} Sᴛᴀʀꜱ Tᴏ Bᴜʏ {days_count} Dᴀʏꜱ Mɪᴋᴏ Pʀᴇᴍɪᴜᴍ Aᴄᴄᴇꜱꜱ Iɴ Pʀᴏᴠɪᴅᴇᴅ Uꜱᴇʀ ID.",
+            title="radha premium access",
+            description=f"Pᴀʏ {stars_amount} Sᴛᴀʀꜱ Tᴏ Bᴜʏ {days_count} Dᴀʏꜱ Rᴀᴅʜᴀ Pʀᴇᴍɪᴜᴍ Aᴄᴄᴇꜱꜱ Iɴ Pʀᴏᴠɪᴅᴇᴅ Uꜱᴇʀ ID.",
             payload=f"fpay_{target_uid}_{plan_key}",
             provider_token="",  # Must be empty string for Telegram Stars (XTR)
             currency="XTR",
-            prices=[LabeledPrice(label="miko premium access", amount=stars_amount)],
+            prices=[LabeledPrice(label="radha premium access", amount=stars_amount)],
         )
     except Exception as e:
         print(f"Error sending Stars invoice: {e}")
@@ -235,12 +235,12 @@ async def send_stars_invoice(query, context, callback_data: str):
     try:
         await context.bot.send_invoice(
             chat_id=chat_id,
-            title="miko premium access",
-            description=f"Pᴀʏ {plan['stars']} Sᴛᴀʀꜱ Tᴏ Bᴜʏ {plan['months'] * 30} Dᴀʏꜱ Mɪᴋᴏ Pʀᴇᴍɪᴜᴍ Aᴄᴄᴇꜱꜱ Iɴ Pʀᴏᴠɪᴅᴇᴅ Uꜱᴇʀ ID.",
+            title="radha premium access",
+            description=f"Pᴀʏ {plan['stars']} Sᴛᴀʀꜱ Tᴏ Bᴜʏ {plan['months'] * 30} Dᴀʏꜱ Rᴀᴅʜᴀ Pʀᴇᴍɪᴜᴍ Aᴄᴄᴇꜱꜱ Iɴ Pʀᴏᴠɪᴅᴇᴅ Uꜱᴇʀ ID.",
             payload=f"fpay_{target_uid}_{plan_key}",
             provider_token="",  # Must be empty string for Telegram Stars (XTR)
             currency="XTR",
-            prices=[LabeledPrice(label="miko premium access", amount=plan["stars"])],
+            prices=[LabeledPrice(label="radha premium access", amount=plan["stars"])],
         )
         await query.answer()
     except Exception as e:
@@ -274,7 +274,7 @@ async def successful_payment_callback(update: Update, context: ContextTypes.DEFA
         target_uid = user.id
         free_gems = 1.0
         days = 30
-        plan_title = "30 Days Miko Premium Access"
+        plan_title = "30 Days Radha Premium Access"
 
         if payload.startswith("fpay_"):
             parts = payload.split("_")
@@ -293,7 +293,7 @@ async def successful_payment_callback(update: Update, context: ContextTypes.DEFA
         update_user(target_uid, premium=True, gems=new_gems)
 
         text = (
-            f"🎉 <b>ᴍɪᴋᴏ ᴘʀᴇᴍɪᴜᴍ ᴀᴄᴛɪᴠᴀᴛᴇᴅ!</b>\n\n"
+            f"🎉 <b>ʀᴀᴅʜᴀ ᴘʀᴇᴍɪᴜᴍ ᴀᴄᴛɪᴠᴀᴛᴇᴅ!</b>\n\n"
             f"👤 <b>Target User ID:</b> <code>{target_uid}</code>\n"
             f"👑 <b>Plan:</b> {plan_title}\n"
             f"⭐ <b>Stars Paid:</b> {payment.total_amount} ⭐\n"
@@ -392,7 +392,7 @@ async def _is_admin(chat, user_id, context) -> bool:
 
 async def coupons(update, context):
     await update.message.reply_text(
-        "🎟 ᴍɪᴋᴏ Cᴜᴛɪᴇ Cᴏᴜᴘᴏɴꜱ Gᴜɪᴅᴇ 🎟\n\n"
+        "🎟 ʀᴀᴅʜᴀ Cᴜᴛɪᴇ Cᴏᴜᴘᴏɴꜱ Gᴜɪᴅᴇ 🎟\n\n"
         "🔹 /create_coupon - ᴄʀᴇᴀᴛᴇ ᴄᴏᴜᴘᴏɴ ᴄᴏᴅᴇ ꜰᴏʀ ᴜʀ ɢᴄ\n"
         "🔹 /coupon - ᴄʟᴀɪᴍ ᴄᴏᴜᴘᴏɴ ɪɴ ᴛʜɪꜱ ɢᴄ\n"
         "🔹 /del_coupon - ᴅᴇʟᴇᴛᴇ ᴛʜᴇ ᴄᴏᴜᴘᴏɴ ᴄᴏᴅᴇ\n"

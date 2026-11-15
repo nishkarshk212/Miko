@@ -127,9 +127,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     ud = get_user(user.id, username, display_name)
     mini_app_url = f"https://mike-payment.vercel.app/app.html?user_id={user.id}"
+    bot_uname = context.bot.username or "i_mikobot"
     keyboard = [
-        [InlineKeyboardButton("🌐 ᴏᴘᴇɴ ᴍɪᴋᴏ ᴡᴇʙ ᴀᴘᴘ", web_app=WebAppInfo(url=mini_app_url))],
-        [InlineKeyboardButton("🍀 ᴍɪᴋᴏ ꜰᴇᴀᴛᴜʀᴇꜱ", callback_data="miko_features")],
+        [InlineKeyboardButton("🌐 ᴏᴘᴇɴ ʀᴀᴅʜᴀ ᴡᴇʙ ᴀᴘᴘ", web_app=WebAppInfo(url=mini_app_url))],
+        [InlineKeyboardButton("🍀 ʀᴀᴅʜᴀ ꜰᴇᴀᴛᴜʀᴇꜱ", callback_data="radha_features")],
         [
             InlineKeyboardButton("👥 ɢʀᴏᴜᴘꜱ", callback_data="groups"),
             InlineKeyboardButton("🐻 ᴘʀᴏᴍᴏᴛᴇʀ", url="https://t.me/advaydev"),
@@ -139,7 +140,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             InlineKeyboardButton("🎮 ɢᴀᴍᴇꜱ", callback_data="games"),
         ],
         [
-            InlineKeyboardButton("➕ ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ɢʀᴏᴜᴘ", url="https://t.me/i_mikobot?startgroup=true"),
+            InlineKeyboardButton("➕ ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ɢʀᴏᴜᴘ", url=f"https://t.me/{bot_uname}?startgroup=true"),
         ],
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -154,7 +155,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "</blockquote>"
     )
     text = (
-        f"💙 ʜɪᴇᴇᴇᴇᴇᴇᴇ {user.mention_html()} ɪ'ᴍ ᴍɪᴋᴏ - ᴀ ɢᴀᴍɪɴɢ ᴀɴᴅ ᴄʜᴀᴛᴛɪɴɢ ɢɪʀʟ ʜᴀᴠɪɴɢ ʟᴏᴛꜱ ᴏꜰ ꜰᴇᴀᴛᴜʀᴇꜱ ᴛᴏ ᴇɴɢᴀɢᴇ ʏᴏᴜʀ ɢʀᴏᴜᴘ.\n"
+        f"💙 ʜɪᴇᴇᴇᴇᴇᴇᴇ {user.mention_html()} ɪ'ᴍ ʀᴀᴅʜᴀ - ᴀ ɢᴀᴍɪɴɢ ᴀɴᴅ ᴄʜᴀᴛᴛɪɴɢ ɢɪʀʟ ʜᴀᴠɪɴɢ ʟᴏᴛꜱ ᴏꜰ ꜰᴇᴀᴛᴜʀᴇꜱ ᴛᴏ ᴇɴɢᴀɢᴇ ʏᴏᴜʀ ɢʀᴏᴜᴘ.\n"
         f"{stats_block}\n"
         f"<b>🕹️ ʜᴏᴡ ᴛᴏ ᴘʟᴀʏ?</b>\n"
         f"💰 /bal - ᴄʜᴇᴄᴋ ʏᴏᴜʀ ꜱᴛᴀᴛꜱ\n"
@@ -198,7 +199,7 @@ async def bal(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def gems(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat = update.effective_chat
     if not chat or chat.type != "private":
-        await update.message.reply_text("⚠️ Tʜɪꜱ Cᴏᴍᴍᴀɴᴅ Oɴʟʏ Wᴏʀᴋꜱ Iɴ Tʜᴇ ᴍɪᴋᴏ Bᴏᴛ'ꜱ Dᴍ.")
+        await update.message.reply_text("⚠️ Tʜɪꜱ Cᴏᴍᴍᴀɴᴅ Oɴʟʏ Wᴏʀᴋꜱ Iɴ Tʜᴇ ʀᴀᴅʜᴀ Bᴏᴛ'ꜱ Dᴍ.")
         return
     user = update.effective_user
     ud = get_user(user.id, user.username or user.first_name or "User", user.first_name)
@@ -215,15 +216,15 @@ async def gems(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ],
     ])
     text = (
-        "<b>KNOW ABOUT MIKO GEMS 💎</b>\n\n"
+        "<b>KNOW ABOUT RADHA GEMS 💎</b>\n\n"
         "1 gem = $10000 coins = ₹8\n"
         "Check your gems : /pfp\n\n"
-        "1) you can convert miko gems into coins using /convert command - only premium users can convert miko gems into coins.\n\n"
-        "2) you can use miko gems for playing miko games like card, bomb, hack, roulette and bluff too.\n\n"
-        "3) whether it's a premium user or a normal user they can buy miko gems but for using gems you will need the miko premium subscription.\n\n"
+        "1) you can convert Radha gems into coins using /convert command - only premium users can convert Radha gems into coins.\n\n"
+        "2) you can use Radha gems for playing Radha games like card, bomb, hack, roulette and bluff too.\n\n"
+        "3) whether it's a premium user or a normal user they can buy Radha gems but for using gems you will need the Radha premium subscription.\n\n"
         "4) you can buy an unlimited number of gems but you can only use 50 gems per day.\n\n"
-        "6) you can't give or rob miko gems like miko coins.\n\n"
-        "<b>How to use gems in miko mini games?</b>\n\n"
+        "6) you can't give or rob Radha gems like Radha coins.\n\n"
+        "<b>How to use gems in Radha mini games?</b>\n\n"
         "👉 in card game use <code>/bet amount gems</code>\n\n"
         "User A starts the game using : <code>/card 1000</code>\n\n"
         "You have two choices\n\n"

@@ -36,7 +36,7 @@ async def cmd_card(update: Update, context: ContextTypes.DEFAULT_TYPE):
     args = context.args or []
     if len(args) < 2:
         await update.message.reply_text(
-            "🃏 <b>ᴍɪᴋᴏ ᴄᴀʀᴅ ɢᴀᴍᴇ</b> 🃏\n\n"
+            "🃏 <b>ʀᴀᴅʜᴀ ᴄᴀʀᴅ ɢᴀᴍᴇ</b> 🃏\n\n"
             "⚠️ Uꜱᴀɢᴇ: <code>/card &lt;amount&gt; &lt;players&gt;</code>\n"
             "Example: <code>/card 500 3</code>",
             parse_mode="HTML",
@@ -82,7 +82,7 @@ async def cmd_card(update: Update, context: ContextTypes.DEFAULT_TYPE):
     }
 
     await update.message.reply_text(
-        "🃏 <b>ᴍɪᴋᴏ ᴄᴀʀᴅ ɢᴀᴍᴇ ʟᴏʙʙʏ</b> 🃏\n\n"
+        "🃏 <b>ʀᴀᴅʜᴀ ᴄᴀʀᴅ ɢᴀᴍᴇ ʟᴏʙʙʏ</b> 🃏\n\n"
         f"💰 <b>Entry Bet:</b> ${amount}\n"
         f"👥 <b>Max Players:</b> {players_count}\n"
         f"👑 <b>Host:</b> {html.escape(user.first_name or 'User')}\n\n"
@@ -148,7 +148,7 @@ async def cmd_bet(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 h_str = f"A: {h['A']} | B: {h['B']} | C: {h['C']} | D: {h['D']} (Total: {fair_sum})"
                 await context.bot.send_message(
                     chat_id=p_id,
-                    text=f"🃏 <b>Your Secret Cards for Miko Card Game:</b>\n{h_str}\nChoose wisely each round with /flip!",
+                    text=f"🃏 <b>Your Secret Cards for Radha Card Game:</b>\n{h_str}\nChoose wisely each round with /flip!",
                     parse_mode="HTML",
                 )
             except Exception:
