@@ -88,7 +88,7 @@ async def cmd_bluff(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"👉 Uꜱᴇ <code>/enter {amount} gems/coins</code>\n"
         "⏳ Gᴀᴍᴇ Sᴛᴀʀᴛꜱ Iɴ 2 Mɪɴᴜᴛᴇꜱ."
     )
-    await update.message.reply_text(text, parse_mode="HTML")
+    await update.message.reply_text(text, parse_mode="HTML", auto_delete=False)
     asyncio.create_task(_bluff_lobby_timer(context.bot, chat_id, amount))
 
 

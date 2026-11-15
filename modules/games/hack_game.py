@@ -96,6 +96,7 @@ async def cmd_hack(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"🔐 <b>Tᴀʀɢᴇᴛ Lᴇɴɢᴛʜ:</b> {digits} Dɪɢɪᴛꜱ\n\n"
         f"👉 <b>Rᴇɢɪꜱᴛᴇʀ Uꜱɪɴɢ:</b> <code>/register {amount} gems/coins</code>",
         parse_mode="HTML",
+        auto_delete=False,
     )
 
 
@@ -153,6 +154,7 @@ async def cmd_register(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         f"👤 {mention} ᴊᴏɪɴᴇᴅ ᴛʜᴇ Hᴀᴄᴋ Tᴇᴀᴍ! (Tᴏᴛᴀʟ: {total_count})",
         parse_mode="HTML",
+        auto_delete=False,
     )
 
 

@@ -78,6 +78,7 @@ async def cmd_roulette(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"🔹 /bid &lt;amount&gt; - Place your bid during rounds in Radha's DM or here\n\n"
         f"Type <code>/join {amount}</code> to enter!",
         parse_mode="HTML",
+        auto_delete=False,
     )
 
 
@@ -118,6 +119,7 @@ async def cmd_join(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         f"✅ <b>{html.escape(user.first_name or 'Player')}</b> joined Roulette! ({count}/{game['max_players']})",
         parse_mode="HTML",
+        auto_delete=False,
     )
 
     # Check if full, start game

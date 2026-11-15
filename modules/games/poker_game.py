@@ -193,7 +193,7 @@ async def cmd_poker(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "⚡ <i>Join using button or type <code>/join</code>. Game starts in 60s!</i>"
     )
 
-    msg = await update.message.reply_text(text, parse_mode="HTML", reply_markup=kb)
+    msg = await update.message.reply_text(text, parse_mode="HTML", reply_markup=kb, auto_delete=False)
     game_state["lobby_msg_id"] = msg.message_id
 
     # Auto start / lobby timeout background task

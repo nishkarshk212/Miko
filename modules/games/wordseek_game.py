@@ -145,7 +145,7 @@ async def cmd_wordseek(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"👉 <b>Type any {length}-letter English word in chat to guess!</b>\n"
         "🛑 Stop game: <code>/endseek</code>"
     )
-    await update.message.reply_text(start_msg, parse_mode="HTML")
+    await update.message.reply_text(start_msg, parse_mode="HTML", auto_delete=False)
 
 
 async def cmd_endseek(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -319,5 +319,5 @@ async def check_wordseek_chat_message(update: Update, context: ContextTypes.DEFA
         f"{letters_summary}\n"
         f"👉 <i>Type next {game['length']}-letter guess in chat!</i>"
     )
-    await msg.reply_text(reply_text, parse_mode="HTML")
+    await msg.reply_text(reply_text, parse_mode="HTML", auto_delete=False)
     return True

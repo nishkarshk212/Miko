@@ -41,6 +41,9 @@ from modules.premium.commands import (
 from modules.management.commands import MANAGEMENT_COMMANDS, handle_prefix_command, cmd_welcome
 from modules.ai.chatbot import chatbot_handler, dm_chatbot_handler, cmd_chatbot
 from modules.social.whisper import inline_whisper_handler, whisper_callback_handler
+from modules.utils.auto_delete import setup_auto_delete, schedule_auto_delete
+
+setup_auto_delete()
 
 
 async def pfp(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -86,23 +89,7 @@ async def pfp(update: Update, context: ContextTypes.DEFAULT_TYPE):
         sent_msg = None
 
     if not sent_msg:
-        sent_msg = await update.message.reply_text(caption, parse_mode="HTML")
-
-    # Auto-delete message after 10 seconds
-    async def _auto_delete():
-        await asyncio.sleep(10)
-        try:
-            if sent_msg:
-                await sent_msg.delete()
-        except Exception:
-            pass
-        try:
-            if update.message and update.effective_chat and update.effective_chat.type != "private":
-                await update.message.delete()
-        except Exception:
-            pass
-
-    asyncio.create_task(_auto_delete())
+        await update.message.reply_text(caption, parse_mode="HTML")
 
 
 from modules.utils.db import add_chat, add_user_chat
@@ -166,7 +153,8 @@ async def _send_verify_prompt(bot, chat, member):
 
     # 1. Send clean welcome message in group with user mention (no buttons in group)
     try:
-        await bot.send_message(chat_id=chat.id, text=f"💓 welcome {mention}", parse_mode="HTML")
+        w_msg = await bot.send_message(chat_id=chat.id, text=f"💓 welcome {mention}", parse_mode="HTML")
+        schedule_auto_delete(w_msg, delay=10)
     except Exception as e:
         print(f"Error sending group welcome in {chat.id}: {e}")
 
@@ -247,7 +235,8 @@ async def on_my_chat_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "💓 Aʟʟ Mɪᴋᴏ Gᴀᴍᴇꜱ : /game</b>"
         )
         try:
-            await context.bot.send_message(chat_id=chat.id, text=bot_add_msg, parse_mode="HTML")
+            b_msg = await context.bot.send_message(chat_id=chat.id, text=bot_add_msg, parse_mode="HTML")
+            schedule_auto_delete(b_msg, delay=10)
         except Exception:
             pass
 
