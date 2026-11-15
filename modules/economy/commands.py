@@ -126,10 +126,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
 
     ud = get_user(user.id, username, display_name)
-    mini_app_url = f"https://mike-payment.vercel.app/app.html?user_id={user.id}"
     bot_uname = context.bot.username or "i_mikobot"
     keyboard = [
-        [InlineKeyboardButton("🌐 ᴏᴘᴇɴ ʀᴀᴅʜᴀ ᴡᴇʙ ᴀᴘᴘ", web_app=WebAppInfo(url=mini_app_url))],
         [InlineKeyboardButton("🍀 ʀᴀᴅʜᴀ ꜰᴇᴀᴛᴜʀᴇꜱ", callback_data="radha_features")],
         [
             InlineKeyboardButton("👥 ɢʀᴏᴜᴘꜱ", callback_data="groups"),

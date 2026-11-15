@@ -374,9 +374,7 @@ def _collect_handlers():
                 f"<b>🔪 ᴋɪʟʟꜱ:</b> {ud['kills']}"
                 "</blockquote>"
             )
-            mini_app_url = f"https://mike-payment.vercel.app/app.html?user_id={user.id}"
             keyboard = InlineKeyboardMarkup([
-                [InlineKeyboardButton("🌐 ᴏᴘᴇɴ ʀᴀᴅʜᴀ ᴡᴇʙ ᴀᴘᴘ", web_app=WebAppInfo(url=mini_app_url))],
                 [InlineKeyboardButton("🍀 ʀᴀᴅʜᴀ ꜰᴇᴀᴛᴜʀᴇꜱ", callback_data="radha_features")],
                 [
                     InlineKeyboardButton("👥 ɢʀᴏᴜᴘꜱ", callback_data="groups"),
@@ -506,17 +504,8 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"<b>🔪 ᴋɪʟʟꜱ:</b> {ud['kills']}"
             "</blockquote>"
         )
-        mini_app_url = f"https://mike-payment.vercel.app/app.html?user_id={caller.id}"
-        chat = update.effective_chat
-        is_private = (chat and chat.type == "private") or (query.message and query.message.chat and query.message.chat.type == "private")
         bot_uname = context.bot.username or "i_mikobot"
-        web_btn = (
-            InlineKeyboardButton("🌐 ᴏᴘᴇɴ ʀᴀᴅʜᴀ ᴡᴇʙ ᴀᴘᴘ", web_app=WebAppInfo(url=mini_app_url))
-            if is_private
-            else InlineKeyboardButton("🌐 ᴏᴘᴇɴ ʀᴀᴅʜᴀ ᴡᴇʙ ᴀᴘᴘ", url=mini_app_url)
-        )
         keyboard = [
-            [web_btn],
             [InlineKeyboardButton("🍀 ʀᴀᴅʜᴀ ꜰᴇᴀᴛᴜʀᴇꜱ", callback_data="radha_features")],
             [
                 InlineKeyboardButton("👥 ɢʀᴏᴜᴘꜱ", callback_data="groups"),
@@ -792,11 +781,8 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"⚔️ /kill &amp; /rob - ʟᴏᴏᴛ ᴏᴛʜᴇʀꜱ\n\n"
             f"👇 ᴄʜᴏᴏꜱᴇ ᴀɴ ᴏᴘᴛɪᴏɴ ʙᴇʟᴏᴡ :"
         )
-        from telegram import WebAppInfo
-        mini_app_url = f"https://mike-payment.vercel.app/app.html?user_id={uid}"
         bot_uname = context.bot.username or "i_mikobot"
         keyboard = InlineKeyboardMarkup([
-            [InlineKeyboardButton("🌐 ᴏᴘᴇɴ ʀᴀᴅʜᴀ ᴡᴇʙ ᴀᴘᴘ", web_app=WebAppInfo(url=mini_app_url))],
             [InlineKeyboardButton("🍀 ʀᴀᴅʜᴀ ꜰᴇᴀᴛᴜʀᴇꜱ", callback_data="radha_features")],
             [
                 InlineKeyboardButton("👥 ɢʀᴏᴜᴘꜱ", callback_data="groups"),
