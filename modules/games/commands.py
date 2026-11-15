@@ -87,8 +87,6 @@ async def puzzle(update, context):
     await update.message.reply_text(text, parse_mode="HTML")
 
 
-from modules.games.wordseek_game import cmd_wordseek, cmd_endseek
-
 async def game_menu(update, context):
     kb = InlineKeyboardMarkup([
         [InlineKeyboardButton("🧚 Open Radha Mini Games", url="https://t.me/i_mikoo/3")]

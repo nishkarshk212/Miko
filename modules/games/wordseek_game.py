@@ -190,6 +190,9 @@ async def cmd_new(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await start_game(update, context)
 
 
+cmd_wordseek = cmd_new
+
+
 async def cmd_new4(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Command: /new4"""
     await start_game(update, context, forced_length=4)
@@ -258,6 +261,9 @@ async def cmd_end(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
     await update.message.reply_text(msg, parse_mode="HTML", auto_delete=False)
+
+
+cmd_endseek = cmd_end
 
 
 async def check_wordseek_chat_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
