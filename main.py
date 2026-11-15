@@ -383,7 +383,7 @@ def _collect_handlers():
                     InlineKeyboardButton("🐻 ᴘʀᴏᴍᴏᴛᴇʀ", url="https://t.me/advaydev"),
                 ],
                 [
-                    InlineKeyboardButton("📢 ᴜᴘᴅᴀᴛᴇꜱ", url="https://t.me/i_mikoo"),
+                    InlineKeyboardButton("📢 ᴜᴘᴅᴀᴛᴇꜱ", url="https://t.me/sonic_networkk"),
                     InlineKeyboardButton("🎮 ɢᴀᴍᴇꜱ", callback_data="games"),
                 ],
                 [
@@ -523,7 +523,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 InlineKeyboardButton("🐻 ᴘʀᴏᴍᴏᴛᴇʀ", url="https://t.me/advaydev"),
             ],
             [
-                InlineKeyboardButton("📢 ᴜᴘᴅᴀᴛᴇꜱ", url="https://t.me/i_mikoo"),
+                InlineKeyboardButton("📢 ᴜᴘᴅᴀᴛᴇꜱ", url="https://t.me/sonic_networkk"),
                 InlineKeyboardButton("🎮 ɢᴀᴍᴇꜱ", callback_data="games"),
             ],
             [
@@ -803,7 +803,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 InlineKeyboardButton("🐻 ᴘʀᴏᴍᴏᴛᴇʀ", url="https://t.me/advaydev"),
             ],
             [
-                InlineKeyboardButton("📢 ᴜᴘᴅᴀᴛᴇꜱ", url="https://t.me/i_mikoo"),
+                InlineKeyboardButton("📢 ᴜᴘᴅᴀᴛᴇꜱ", url="https://t.me/sonic_networkk"),
                 InlineKeyboardButton("🎮 ɢᴀᴍᴇꜱ", callback_data="games"),
             ],
             [

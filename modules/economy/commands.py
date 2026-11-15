@@ -136,7 +136,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             InlineKeyboardButton("🐻 ᴘʀᴏᴍᴏᴛᴇʀ", url="https://t.me/advaydev"),
         ],
         [
-            InlineKeyboardButton("📢 ᴜᴘᴅᴀᴛᴇꜱ", url="https://t.me/i_mikoo"),
+            InlineKeyboardButton("📢 ᴜᴘᴅᴀᴛᴇꜱ", url="https://t.me/sonic_networkk"),
             InlineKeyboardButton("🎮 ɢᴀᴍᴇꜱ", callback_data="games"),
         ],
         [
@@ -212,7 +212,7 @@ async def gems(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ],
         [
             InlineKeyboardButton("ℹ️ ᴀʙᴏᴜᴛ ɢᴇᴍꜱ", url="https://t.me/i_mikoo/12"),
-            InlineKeyboardButton("📜 ᴛᴇʀᴍꜱ ᴀɴᴅ ʀᴇꜰᴜɴᴅ", url="https://t.me/i_mikoo"),
+            InlineKeyboardButton("📜 ᴛᴇʀᴍꜱ ᴀɴᴅ ʀᴇꜰᴜɴᴅ", url="https://t.me/sonic_networkk"),
         ],
     ])
     text = (
