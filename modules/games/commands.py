@@ -2,7 +2,16 @@ import random
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 
-from modules.games.hack_game import cmd_hack, cmd_register, cmd_guess, cmd_end
+from modules.games.hack_game import cmd_hack, cmd_register, cmd_guess, cmd_end as cmd_hack_end
+from modules.games.wordseek_game import (
+    cmd_new,
+    cmd_new4,
+    cmd_new5,
+    cmd_new6,
+    cmd_end as cmd_wordseek_end,
+    cmd_score as cmd_wordseek_score,
+    cmd_leaderboard as cmd_wordseek_leaderboard,
+)
 from modules.games.bluff_game import cmd_bluff, cmd_enter, cmd_startbluff, cmd_drop, cmd_judge, cmd_mycards
 from modules.games.roulette_game import cmd_roulette, cmd_join as cmd_roulette_join, cmd_bid
 from modules.games.card_game import cmd_card, cmd_bet, cmd_flip
@@ -144,6 +153,23 @@ async def cmd_unified_guess(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("⚠️ No active Word Quiz, Secret Game, or Hack game in this chat!")
 
 
+async def cmd_unified_end(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat = update.effective_chat
+    if not chat:
+        return
+    from modules.games.wordseek_game import ACTIVE_WORDSEEK_GAMES, cmd_end as ws_end
+    from modules.games.hack_game import HACK_GAMES
+
+    if chat.id in ACTIVE_WORDSEEK_GAMES:
+        await ws_end(update, context)
+        return
+    if chat.id in HACK_GAMES:
+        await cmd_hack_end(update, context)
+        return
+
+    await update.message.reply_text("There is no game in progress.")
+
+
 HANDLERS = {
     # Menu & Guides
     "game": game_menu,
@@ -188,7 +214,7 @@ HANDLERS = {
     "hack": cmd_hack,
     "register": cmd_register,
     "guess": cmd_unified_guess,
-    "end": cmd_end,
+    "end": cmd_unified_end,
 
     # Bluff Game
     "bluff": cmd_bluff,
@@ -219,11 +245,16 @@ HANDLERS = {
     # Unified Join
     "join": cmd_unified_join,
 
-    # WordSeek Wordle Game
-    "wordseek": cmd_wordseek,
-    "seek": cmd_wordseek,
-    "endseek": cmd_endseek,
-    "new": cmd_wordseek,
+    # Original WordSeek Game
+    "new": cmd_new,
+    "new4": cmd_new4,
+    "new5": cmd_new5,
+    "new6": cmd_new6,
+    "score": cmd_wordseek_score,
+    "leaderboard": cmd_wordseek_leaderboard,
+    "wordseek": cmd_new,
+    "seek": cmd_new,
+    "endseek": cmd_wordseek_end,
 
     # Fun Minis
     "ludo": ludo,

@@ -419,6 +419,11 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await secret_game_callback_handler(update, context)
         return
 
+    if data.startswith("wh:"):
+        from modules.games.wordseek_game import wordseek_callback_handler
+        if await wordseek_callback_handler(update, context):
+            return
+
     if data.startswith("welcome_toggle:"):
         parts = data.split(":")
         try:

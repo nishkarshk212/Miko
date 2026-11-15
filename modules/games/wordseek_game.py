@@ -1,23 +1,41 @@
+from __future__ import annotations
+
 import os
 import re
 import json
-import time
 import random
 import html
-from typing import Dict, Any, Optional, Set
+from typing import Dict, Any, Optional, List, Set
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
+
+from modules.utils.db import add_wordseek_score, get_wordseek_leaderboard, get_wordseek_user_score
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 DATA_DIR = os.path.join(BASE_DIR, "assets", "wordseek")
 
 # Word lists cache
-_WORD_LISTS: Dict[int, Set[str]] = {}
-_COMMON_WORDS: Dict[int, list] = {}
+_ALL_WORDS: Dict[int, Set[str]] = {}
+_COMMON_WORDS: Dict[int, List[str]] = {}
+
+MODE_LABEL: Dict[int, str] = {
+    4: "4-letter mode",
+    5: "5-letter mode",
+    6: "6-letter mode",
+}
+
+REACTION_EMOJIS = ["🎉", "🏆", "🤩", "⚡", "🫡", "💯", "❤‍🔥", "🦄"]
+
+HINTS: Dict[str, str] = {
+    "correct": '🟩 "{letter}" is in the word and in the right spot.',
+    "present": '🟨 "{letter}" is in the word, but in a different spot.',
+    "absent": '🟥 "{letter}" isn\'t in the word.',
+}
+
 
 def _load_word_lists():
-    global _WORD_LISTS, _COMMON_WORDS
-    if _WORD_LISTS:
+    global _ALL_WORDS, _COMMON_WORDS
+    if _ALL_WORDS and _COMMON_WORDS:
         return
 
     mapping = {
@@ -30,27 +48,27 @@ def _load_word_lists():
         all_path = os.path.join(DATA_DIR, all_file)
         common_path = os.path.join(DATA_DIR, common_file)
 
-        all_words = set()
-        common_words = []
+        all_words: Set[str] = set()
+        common_words: List[str] = []
 
         if os.path.exists(all_path):
             try:
                 with open(all_path, "r", encoding="utf-8") as f:
-                    all_words = {w.strip().upper() for w in json.load(f)}
+                    all_words = {w.strip().lower() for w in json.load(f)}
             except Exception as e:
                 print(f"Error loading {all_file}: {e}")
 
         if os.path.exists(common_path):
             try:
                 with open(common_path, "r", encoding="utf-8") as f:
-                    common_words = [w.strip().upper() for w in json.load(f)]
+                    common_words = [w.strip().lower() for w in json.load(f)]
             except Exception as e:
                 print(f"Error loading {common_file}: {e}")
 
         if not common_words and all_words:
             common_words = list(all_words)
 
-        _WORD_LISTS[length] = all_words
+        _ALL_WORDS[length] = all_words
         _COMMON_WORDS[length] = common_words
 
 
@@ -58,98 +76,137 @@ def _load_word_lists():
 ACTIVE_WORDSEEK_GAMES: Dict[int, Dict[str, Any]] = {}
 
 
-def evaluate_guess(target_word: str, guess_word: str) -> str:
-    """Evaluates guess against target with standard Wordle rules."""
-    target = list(target_word.upper())
-    guess = list(guess_word.upper())
-    n = len(target)
-    tiles = ["⬛"] * n
-    counts = {}
+def evaluate_guess(guess: str, solution: str) -> List[str]:
+    """
+    Exact word evaluation from original WordSeek:
+    Returns list of states: 'correct', 'present', 'absent'
+    """
+    g = guess.lower()
+    s = solution.lower()
 
-    for ch in target:
-        counts[ch] = counts.get(ch, 0) + 1
+    remaining: Dict[str, int] = {}
+    for c in s:
+        remaining[c] = remaining.get(c, 0) + 1
 
-    # First pass: Green (exact match)
-    for i in range(n):
-        if guess[i] == target[i]:
-            tiles[i] = "🟩"
-            counts[guess[i]] -= 1
+    result = ["absent"] * len(g)
 
-    # Second pass: Yellow (misplaced letter)
-    for i in range(n):
-        if tiles[i] == "⬛" and counts.get(guess[i], 0) > 0:
-            tiles[i] = "🟨"
-            counts[guess[i]] -= 1
+    # 1. Exact matches (green)
+    for i in range(len(g)):
+        if g[i] == s[i]:
+            result[i] = "correct"
+            remaining[g[i]] -= 1
 
-    return "".join(tiles)
+    # 2. Present matches (yellow)
+    for i in range(len(g)):
+        if result[i] == "absent" and remaining.get(g[i], 0) > 0:
+            result[i] = "present"
+            remaining[g[i]] -= 1
+
+    return result
 
 
-async def cmd_wordseek(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Start a new WordSeek game: /wordseek [4|5|6]"""
+def render_guess_row_text(guess: str, solution: str) -> str:
+    states = evaluate_guess(guess, solution)
+    symbols = {"correct": "🟩", "present": "🟨", "absent": "⬛"}
+    tiles = []
+    for i, ch in enumerate(guess.upper()):
+        tiles.append(f"{symbols[states[i]]} {ch}")
+    return "  ".join(tiles)
+
+
+def build_guess_buttons(guesses: List[str], solution: str) -> List[List[InlineKeyboardButton]]:
+    """Builds inline keyboard letter tiles for latest guesses with wh:{state}:{letter} callback."""
+    if not guesses:
+        return []
+    # Show buttons for the most recent guess so players can tap letters for hints
+    latest_guess = guesses[-1]
+    states = evaluate_guess(latest_guess, solution)
+    row = []
+    for i, ch in enumerate(latest_guess.upper()):
+        state = states[i]
+        icon = "🟩" if state == "correct" else ("🟨" if state == "present" else "⬛")
+        row.append(
+            InlineKeyboardButton(
+                text=f"{icon} {ch}",
+                callback_data=f"wh:{state}:{ch}",
+            )
+        )
+    return [row]
+
+
+async def start_game(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    forced_length: Optional[int] = None,
+):
+    """Starts a new WordSeek game in the current chat."""
     chat = update.effective_chat
     user = update.effective_user
     if not chat or not user:
         return
 
     _load_word_lists()
-
     chat_id = chat.id
+
     if chat_id in ACTIVE_WORDSEEK_GAMES:
-        g = ACTIVE_WORDSEEK_GAMES[chat_id]
         await update.message.reply_text(
-            f"⚠️ <b>A WᴏʀᴅSᴇᴇᴋ ɢᴀᴍᴇ ɪꜱ ᴀʟʀᴇᴀᴅʏ ɪɴ ᴘʀᴏɢʀᴇꜱꜱ!</b>\n\n"
-            f"🎯 <b>Length:</b> {g['length']} letters\n"
-            f"🔢 <b>Attempts:</b> {len(g['guesses'])}/{g['max_attempts']}\n\n"
-            f"👉 <i>Type your guess or use <code>/endseek</code> to end it!</i>",
-            parse_mode="HTML"
+            "There is already a game in progress in this chat. Use /end to end the current game.",
+            auto_delete=False,
         )
         return
 
-    # Choose length: default 5
-    length = 5
-    if context.args:
+    word_length = 5
+    if forced_length in (4, 5, 6):
+        word_length = forced_length
+    elif context.args and len(context.args) > 0:
         arg = context.args[0].strip()
-        if arg in ("4", "5", "6"):
-            length = int(arg)
+        if arg.isdigit() and int(arg) in (4, 5, 6):
+            word_length = int(arg)
 
-    common_pool = _COMMON_WORDS.get(length, [])
-    if not common_pool:
-        common_pool = list(_WORD_LISTS.get(length, []))
-
-    if not common_pool:
-        await update.message.reply_text("❌ No words found for this length.")
+    pool = _COMMON_WORDS.get(word_length) or list(_ALL_WORDS.get(word_length, []))
+    if not pool:
+        await update.message.reply_text("Something went wrong. Please try again.")
         return
 
-    target = random.choice(common_pool).upper()
+    secret_word = random.choice(pool).lower()
 
     ACTIVE_WORDSEEK_GAMES[chat_id] = {
-        "word": target,
-        "length": length,
-        "guesses": [],
-        "max_attempts": 20 if chat.type != "private" else 8,
+        "word": secret_word,
+        "length": word_length,
         "started_by": user.id,
         "started_by_name": user.first_name or "User",
-        "start_time": time.time(),
-        "keyboard_status": {},  # letter -> 🟩/🟨/⬛
+        "guesses": [],  # List of guessed words
+        "chat_id": chat_id,
     }
 
-    start_msg = (
-        "🎯 <b>WᴏʀᴅSᴇᴇᴋ Gᴀᴍᴇ Sᴛᴀʀᴛᴇᴅ!</b> 🎯\n\n"
-        f"👑 <b>Hᴏꜱᴛ:</b> <a href=\"tg://user?id={user.id}\">{html.escape(user.first_name or 'User')}</a>\n"
-        f"🔤 <b>Wᴏʀᴅ Lᴇɴɢᴛʜ:</b> <code>{length} Letters</code>\n"
-        f"🔢 <b>Mᴀx Aᴛᴛᴇᴍᴘᴛꜱ:</b> <code>{ACTIVE_WORDSEEK_GAMES[chat_id]['max_attempts']}</code>\n\n"
-        "<b>🎨 Hᴏᴡ ᴛᴏ Pʟᴀʏ:</b>\n"
-        "• 🟩 = Correct letter in the right spot\n"
-        "• 🟨 = Correct letter in the wrong spot\n"
-        "• ⬛ = Letter not in the secret word\n\n"
-        f"👉 <b>Type any {length}-letter English word in chat to guess!</b>\n"
-        "🛑 Stop game: <code>/endseek</code>"
+    await update.message.reply_text(
+        f"Game started! Guess the {word_length}-letter word!",
+        auto_delete=False,
     )
-    await update.message.reply_text(start_msg, parse_mode="HTML", auto_delete=False)
 
 
-async def cmd_endseek(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """End the current WordSeek game."""
+async def cmd_new(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Command: /new [4|5|6]"""
+    await start_game(update, context)
+
+
+async def cmd_new4(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Command: /new4"""
+    await start_game(update, context, forced_length=4)
+
+
+async def cmd_new5(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Command: /new5"""
+    await start_game(update, context, forced_length=5)
+
+
+async def cmd_new6(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Command: /new6"""
+    await start_game(update, context, forced_length=6)
+
+
+async def cmd_end(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Command: /end - End the current active game."""
     chat = update.effective_chat
     user = update.effective_user
     if not chat or not user:
@@ -157,26 +214,66 @@ async def cmd_endseek(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     chat_id = chat.id
     if chat_id not in ACTIVE_WORDSEEK_GAMES:
-        await update.message.reply_text("ℹ️ There is no active WordSeek game in this chat. Start with /wordseek!")
+        await update.message.reply_text("There is no game in progress.")
         return
 
-    game = ACTIVE_WORDSEEK_GAMES.pop(chat_id)
+    game = ACTIVE_WORDSEEK_GAMES[chat_id]
     word = game["word"]
-    await update.message.reply_text(
-        f"🛑 <b>WᴏʀᴅSᴇᴇᴋ Gᴀᴍᴇ Eɴᴅᴇᴅ!</b>\n\n"
-        f"✨ The secret word was: <b>{word}</b>\n"
-        f"Start a new game anytime with <code>/wordseek</code>! 🎮",
-        parse_mode="HTML"
+    word_length = game["length"]
+
+    is_private = chat.type == "private"
+    is_starter = user.id == game["started_by"]
+    is_admin = False
+
+    if not is_private and not is_starter:
+        try:
+            member = await chat.get_member(user.id)
+            is_admin = member.status in ("creator", "administrator")
+        except Exception:
+            is_admin = False
+
+    if not (is_private or is_starter or is_admin):
+        await update.message.reply_text("Only group administrators or the game starter can end the game.")
+        return
+
+    # Delete active game
+    del ACTIVE_WORDSEEK_GAMES[chat_id]
+
+    user_name = html.escape(user.first_name or "User")
+    user_link = f'<a href="tg://user?id={user.id}">{user_name}</a>'
+
+    if is_private:
+        reason = ""
+    elif is_starter:
+        reason = f"<b>Ended by game starter: </b>{user_link}\n"
+    elif is_admin:
+        reason = f"<b>Ended by group administrator: </b>{user_link}\n"
+    else:
+        reason = f"<b>Ended by: </b>{user_link}\n"
+
+    msg = (
+        f"<blockquote>🎮 <b>Game Ended</b>\n"
+        f"Correct Word: <b>{word.upper()}</b></blockquote>\n"
+        f"<blockquote>{reason}Start a new game with /new{word_length}</blockquote>"
     )
+
+    await update.message.reply_text(msg, parse_mode="HTML", auto_delete=False)
 
 
 async def check_wordseek_chat_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
-    """Watches incoming chat messages for WordSeek guesses."""
+    """
+    Message watcher for WordSeek guesses.
+    Executes exact WordSeek on-message handling.
+    """
+    msg = update.effective_message
     chat = update.effective_chat
     user = update.effective_user
-    msg = update.effective_message
 
-    if not chat or not user or not msg or not msg.text:
+    if not msg or not chat or not user:
+        return False
+
+    raw_text = (msg.text or "").strip()
+    if not raw_text or raw_text.startswith("/"):
         return False
 
     chat_id = chat.id
@@ -184,140 +281,184 @@ async def check_wordseek_chat_message(update: Update, context: ContextTypes.DEFA
         return False
 
     game = ACTIVE_WORDSEEK_GAMES[chat_id]
-    text = msg.text.strip().upper()
+    word_length = game["length"]
+    current_guess = raw_text.lower()
 
-    # Ignore commands
-    if text.startswith(("/", ".", "!", "?")):
+    # Only single words matching alphabetic format
+    if not re.match(r"^[a-zA-Z]{4,6}$", current_guess):
         return False
 
-    # Check if string matches single word of required length
-    if not re.match(r"^[A-Z]+$", text) or len(text) != game["length"]:
+    # Ignore if guess length doesn't match current game's length
+    if len(current_guess) != word_length:
         return False
 
     _load_word_lists()
-    valid_words = _WORD_LISTS.get(game["length"], set())
+    valid_words = _ALL_WORDS.get(word_length, set())
 
-    # Check dictionary validation
-    if valid_words and text not in valid_words:
-        await msg.reply_text(f"⚠️ <code>{text}</code> is not in the dictionary! Try a valid English word.")
+    # Check validity in dictionary
+    if current_guess not in valid_words:
+        await msg.reply_text(f"{current_guess} is not a valid {word_length}-letter word.")
         return True
 
     # Check if already guessed
-    if any(g["guess"] == text for g in game["guesses"]):
-        await msg.reply_text(f"⚠️ <code>{text}</code> has already been guessed! Try another word.")
+    if current_guess in game["guesses"]:
+        await msg.reply_text("Someone has already guessed your word. Please try another one!")
         return True
 
-    # Evaluate guess
-    tiles = evaluate_guess(game["word"], text)
-    user_name = user.first_name or "User"
-    mention = f'<a href="tg://user?id={user.id}">{html.escape(user_name)}</a>'
+    # Check WIN condition
+    if current_guess == game["word"]:
+        all_guesses = game["guesses"]
+        score = 30 - len(all_guesses)
+        additional_message = f"Added {score} to the leaderboard."
 
-    # Update keyboard letter statuses
-    for i, ch in enumerate(text):
-        tile = tiles[i]
-        curr = game["keyboard_status"].get(ch)
-        if tile == "🟩":
-            game["keyboard_status"][ch] = "🟩"
-        elif tile == "🟨" and curr != "🟩":
-            game["keyboard_status"][ch] = "🟨"
-        elif tile == "⬛" and not curr:
-            game["keyboard_status"][ch] = "⬛"
+        # Save to leaderboard database
+        uname = user.username or ""
+        u_display = user.first_name or "User"
+        add_wordseek_score(user.id, chat.id, u_display, uname, score, word_length)
 
-    game["guesses"].append({
-        "user_id": user.id,
-        "name": user_name,
-        "guess": text,
-        "tiles": tiles,
-    })
+        formatted_response = (
+            f"<blockquote>Congrats! You guessed it correctly.\n"
+            f"Correct Word: <b>{current_guess.upper()}</b>\n"
+            f"{additional_message}</blockquote>\n"
+            f"Start with /new{word_length}"
+        )
 
-    current_attempt = len(game["guesses"])
-    max_attempts = game["max_attempts"]
+        del ACTIVE_WORDSEEK_GAMES[chat_id]
 
-    # 1. Check WIN condition
-    if text == game["word"]:
-        ACTIVE_WORDSEEK_GAMES.pop(chat_id, None)
+        await msg.reply_text(
+            formatted_response,
+            parse_mode="HTML",
+            auto_delete=False,
+        )
 
-        # Rewards: 5000 coins + 50 XP
-        reward_coins = 5000
-        reward_xp = 50
+        # React with random emoji
         try:
-            from modules.utils.storage import get_user, update_user, add_xp
-            ud = get_user(user.id, user.username or user_name, user_name)
-            ud["balance"] = ud.get("balance", 0) + reward_coins
-            update_user(user.id, balance=ud["balance"])
-            add_xp(user.id, reward_xp)
-        except Exception as ee:
-            print(f"Error giving rewards: {ee}")
+            chosen_emoji = random.choice(REACTION_EMOJIS)
+            await msg.set_reaction(chosen_emoji)
+        except Exception:
+            pass
 
-        # Build victory grid
-        lines = []
-        for idx, g in enumerate(game["guesses"][-6:], start=max(1, len(game["guesses"]) - 5)):
-            spaced = " ".join(list(g["guess"]))
-            lines.append(f"{idx}. {g['tiles']} <code>{spaced}</code> — {html.escape(g['name'])}")
-
-        grid_str = "\n".join(lines)
-
-        win_msg = (
-            f"🎉 <b>BINGO! WE HAVE A WINNER!</b> 🎉\n\n"
-            f"🏆 <b>Winner:</b> {mention}\n"
-            f"✨ <b>Word:</b> <code>{game['word']}</code>\n"
-            f"🔢 <b>Attempts:</b> {current_attempt}/{max_attempts}\n"
-            f"💰 <b>Reward:</b> +${reward_coins} Coins &amp; +{reward_xp} XP!\n\n"
-            f"<b>📜 Final Board:</b>\n{grid_str}\n\n"
-            "Play again anytime with <code>/wordseek</code>! 🍀"
-        )
-        await msg.reply_text(win_msg, parse_mode="HTML")
         return True
 
-    # 2. Check LOSS condition (attempts exhausted)
-    if current_attempt >= max_attempts:
-        ACTIVE_WORDSEEK_GAMES.pop(chat_id, None)
+    # Register guess
+    game["guesses"].append(current_guess)
+    all_guesses = game["guesses"]
 
-        lines = []
-        for idx, g in enumerate(game["guesses"][-6:], start=max(1, len(game["guesses"]) - 5)):
-            spaced = " ".join(list(g["guess"]))
-            lines.append(f"{idx}. {g['tiles']} <code>{spaced}</code> — {html.escape(g['name'])}")
-
-        grid_str = "\n".join(lines)
-
-        loss_msg = (
-            f"💀 <b>GAME OVER! Out of attempts!</b>\n\n"
-            f"The secret word was: <b>{game['word']}</b>\n\n"
-            f"<b>📜 Board:</b>\n{grid_str}\n\n"
-            "Better luck next time! Type <code>/wordseek</code> to retry. 🌸"
+    # Check if max guesses (30) reached
+    if len(all_guesses) >= 30:
+        sol = game["word"]
+        del ACTIVE_WORDSEEK_GAMES[chat_id]
+        await msg.reply_text(
+            f"Game Over! The word was {sol.upper()}\nYou can start a new game with /new{word_length}",
+            auto_delete=False,
         )
-        await msg.reply_text(loss_msg, parse_mode="HTML")
         return True
 
-    # 3. Intermediate guess response
-    # Show last 5 guesses
-    recent = game["guesses"][-5:]
-    lines = []
-    start_num = max(1, len(game["guesses"]) - len(recent) + 1)
-    for idx, g in enumerate(recent, start=start_num):
-        spaced = " ".join(list(g["guess"]))
-        lines.append(f"<code>{g['tiles']}</code>  <code>{spaced}</code>  — {html.escape(g['name'])}")
+    # Format feedback for ongoing game
+    mode_label = MODE_LABEL.get(word_length, f"{word_length}-letter mode")
+    rows_text = []
+    # Show last 6 guesses to keep chat clean and readable
+    visible_guesses = all_guesses[-6:]
+    for g in visible_guesses:
+        rows_text.append(render_guess_row_text(g, game["word"]))
 
-    board_text = "\n".join(lines)
-
-    # Key letters used
-    greens = [ch for ch, s in game["keyboard_status"].items() if s == "🟩"]
-    yellows = [ch for ch, s in game["keyboard_status"].items() if s == "🟨"]
-    grays = [ch for ch, s in game["keyboard_status"].items() if s == "⬛"]
-
-    letters_summary = ""
-    if greens:
-        letters_summary += f"🟩 Correct: <b>{' '.join(sorted(greens))}</b>\n"
-    if yellows:
-        letters_summary += f"🟨 Misplaced: <b>{' '.join(sorted(yellows))}</b>\n"
-    if grays:
-        letters_summary += f"⬛ Not in word: <s>{' '.join(sorted(grays))}</s>\n"
-
-    reply_text = (
-        f"🎯 <b>WᴏʀᴅSᴇᴇᴋ ({game['length']} Lᴇᴛᴛᴇʀꜱ)</b> • <i>Aᴛᴛᴇᴍᴘᴛ {current_attempt}/{max_attempts}</i>\n\n"
-        f"{board_text}\n\n"
-        f"{letters_summary}\n"
-        f"👉 <i>Type next {game['length']}-letter guess in chat!</i>"
+    board_display = "\n".join(rows_text)
+    feedback_text = (
+        f"<b>{mode_label}</b>\n"
+        f"<i>{len(all_guesses)}/30 guesses</i>\n\n"
+        f"{board_display}"
     )
-    await msg.reply_text(reply_text, parse_mode="HTML", auto_delete=False)
+
+    buttons = build_guess_buttons(all_guesses, game["word"])
+    reply_markup = InlineKeyboardMarkup(buttons) if buttons else None
+
+    await msg.reply_text(
+        feedback_text,
+        parse_mode="HTML",
+        reply_markup=reply_markup,
+        auto_delete=False,
+    )
     return True
+
+
+async def wordseek_callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
+    """Handles wh:{state}:{letter} hint button clicks from WordSeek keyboard."""
+    query = update.callback_query
+    if not query or not query.data:
+        return False
+
+    data = query.data
+    if not data.startswith("wh:"):
+        return False
+
+    parts = data.split(":")
+    if len(parts) >= 3:
+        state = parts[1]
+        letter = parts[2]
+        hint_template = HINTS.get(state, '"{letter}"')
+        text = hint_template.format(letter=letter)
+        await query.answer(text=text, show_alert=False)
+        return True
+
+    return False
+
+
+async def cmd_score(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Command: /score - View your WordSeek score."""
+    chat = update.effective_chat
+    user = update.effective_user
+    if not chat or not user:
+        return
+
+    name = html.escape(user.first_name or "User")
+    mention_link = f'<a href="https://t.me/{user.username}">{name}</a>' if user.username else name
+
+    score_data = get_wordseek_user_score(user.id, chat.id)
+    total_score = f"{score_data['totalScore']:,}"
+    rank = str(score_data['rank'])
+
+    msg = (
+        f"<blockquote><strong>🏆 Regular WordSeek Scores</strong></blockquote>\n"
+        f"<b>{mention_link}</b> has a total score of <b>{total_score}</b> in this chat.\n"
+        f"Their rank is <b>#{rank}</b>."
+    )
+
+    await update.message.reply_text(msg, parse_mode="HTML")
+
+
+async def cmd_leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Command: /leaderboard [group|global]"""
+    chat = update.effective_chat
+    if not chat:
+        return
+
+    is_global = False
+    if context.args and "global" in [a.lower() for a in context.args]:
+        is_global = True
+    elif chat.type == "private":
+        is_global = True
+
+    search_chat_id = None if is_global else chat.id
+    scope_title = "Global" if is_global else "Group"
+
+    scores = get_wordseek_leaderboard(search_chat_id, limit=10)
+
+    if not scores:
+        await update.message.reply_text(
+            f"<blockquote>🏆 {scope_title} Leaderboard 🏆</blockquote>\n\nNo scores recorded yet! Start playing with /new",
+            parse_mode="HTML",
+        )
+        return
+
+    lines = []
+    for index, entry in enumerate(scores):
+        rank_icon = ["🥇", "🥈", "🥉"][index] if index < 3 else "🔅"
+        entry_name = html.escape(entry["name"])
+        if entry.get("username"):
+            entry_name = f'<a href="https://t.me/{entry["username"]}">{entry_name}</a>'
+        lines.append(f"{rank_icon} {entry_name} - {entry['totalScore']:,} pts")
+
+    formatted_entries = f"<blockquote>" + "\n".join(lines) + "</blockquote>"
+    msg = f"<blockquote>🏆 {scope_title} Leaderboard 🏆</blockquote>\n\n{formatted_entries}"
+
+    await update.message.reply_text(msg, parse_mode="HTML")
