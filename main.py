@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import (
     ApplicationBuilder,
+    ApplicationHandlerStop,
     ContextTypes,
     CommandHandler,
     CallbackQueryHandler,
@@ -1027,15 +1028,15 @@ async def post_init(app):
 async def word_quiz_message_watcher(update: Update, context: ContextTypes.DEFAULT_TYPE):
     from modules.games.wordseek_game import check_wordseek_chat_message
     if await check_wordseek_chat_message(update, context):
-        return
+        raise ApplicationHandlerStop()
 
     from modules.games.word_quiz import check_word_quiz_chat_message
     if await check_word_quiz_chat_message(update, context):
-        return
+        raise ApplicationHandlerStop()
 
     from modules.games.secret_game import check_secret_game_chat_message
     if await check_secret_game_chat_message(update, context):
-        return
+        raise ApplicationHandlerStop()
 
 
 def main():
@@ -1065,9 +1066,9 @@ def main():
     app.add_handler(ChatMemberHandler(on_chat_member_updated, ChatMemberHandler.CHAT_MEMBER))
     app.add_handler(ChatJoinRequestHandler(handle_chat_join_request))
     app.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_new_members))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_prefix_command), group=1)
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, word_quiz_message_watcher), group=1)
-    app.add_handler(MessageHandler((filters.TEXT | filters.Sticker.ALL) & ~filters.COMMAND, chatbot_handler), group=2)
+    app.add_handler(MessageHandler(filters.Regex(r"^[.!]"), handle_prefix_command), group=2)
+    app.add_handler(MessageHandler((filters.TEXT | filters.Sticker.ALL) & ~filters.COMMAND, chatbot_handler), group=3)
     app.add_handler(InlineQueryHandler(inline_whisper_handler))
     app.add_handler(CallbackQueryHandler(callback_handler))
 

@@ -72,8 +72,29 @@ def _load_word_lists():
         _COMMON_WORDS[length] = common_words
 
 
-# Active in-memory games: {chat_id: game_dict}
-ACTIVE_WORDSEEK_GAMES: Dict[int, Dict[str, Any]] = {}
+# Active in-memory games: {chat_id or "chat_thread": game_dict}
+ACTIVE_WORDSEEK_GAMES: Dict[Any, Dict[str, Any]] = {}
+
+
+def _game_keys(chat_id: int, thread_id: Optional[int] = None) -> List[Any]:
+    keys = []
+    if thread_id:
+        keys.append(f"{chat_id}_{thread_id}")
+    keys.append(str(chat_id))
+    keys.append(chat_id)
+    return keys
+
+
+def get_active_game(chat_id: int, thread_id: Optional[int] = None) -> tuple[Optional[Any], Optional[Dict[str, Any]]]:
+    for k in _game_keys(chat_id, thread_id):
+        if k in ACTIVE_WORDSEEK_GAMES:
+            return k, ACTIVE_WORDSEEK_GAMES[k]
+    return None, None
+
+
+def remove_active_game(chat_id: int, thread_id: Optional[int] = None) -> None:
+    for k in _game_keys(chat_id, thread_id):
+        ACTIVE_WORDSEEK_GAMES.pop(k, None)
 
 
 def evaluate_guess(guess: str, solution: str) -> List[str]:
@@ -147,8 +168,10 @@ async def start_game(
 
     _load_word_lists()
     chat_id = chat.id
+    thread_id = getattr(update.effective_message, "message_thread_id", None)
 
-    if chat_id in ACTIVE_WORDSEEK_GAMES:
+    _, existing = get_active_game(chat_id, thread_id)
+    if existing:
         await update.message.reply_text(
             "There is already a game in progress in this chat. Use /end to end the current game.",
             auto_delete=False,
@@ -170,14 +193,19 @@ async def start_game(
 
     secret_word = random.choice(pool).lower()
 
-    ACTIVE_WORDSEEK_GAMES[chat_id] = {
+    primary_key = f"{chat_id}_{thread_id}" if thread_id else chat_id
+    ACTIVE_WORDSEEK_GAMES[primary_key] = {
         "word": secret_word,
         "length": word_length,
         "started_by": user.id,
         "started_by_name": user.first_name or "User",
         "guesses": [],  # List of guessed words
         "chat_id": chat_id,
+        "thread_id": thread_id,
     }
+    # Also save under chat_id and str(chat_id) for instant lookup
+    ACTIVE_WORDSEEK_GAMES[chat_id] = ACTIVE_WORDSEEK_GAMES[primary_key]
+    ACTIVE_WORDSEEK_GAMES[str(chat_id)] = ACTIVE_WORDSEEK_GAMES[primary_key]
 
     await update.message.reply_text(
         f"Game started! Guess the {word_length}-letter word!",
@@ -216,11 +244,12 @@ async def cmd_end(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     chat_id = chat.id
-    if chat_id not in ACTIVE_WORDSEEK_GAMES:
+    thread_id = getattr(update.effective_message, "message_thread_id", None)
+    _, game = get_active_game(chat_id, thread_id)
+    if not game:
         await update.message.reply_text("There is no game in progress.")
         return
 
-    game = ACTIVE_WORDSEEK_GAMES[chat_id]
     word = game["word"]
     word_length = game["length"]
 
@@ -240,7 +269,7 @@ async def cmd_end(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     # Delete active game
-    del ACTIVE_WORDSEEK_GAMES[chat_id]
+    remove_active_game(chat_id, thread_id)
 
     user_name = html.escape(user.first_name or "User")
     user_link = f'<a href="tg://user?id={user.id}">{user_name}</a>'
@@ -283,15 +312,14 @@ async def check_wordseek_chat_message(update: Update, context: ContextTypes.DEFA
         return False
 
     chat_id = chat.id
-    if chat_id not in ACTIVE_WORDSEEK_GAMES:
+    thread_id = getattr(msg, "message_thread_id", None)
+    game_key, game = get_active_game(chat_id, thread_id)
+    if not game:
         return False
 
-    game = ACTIVE_WORDSEEK_GAMES[chat_id]
     word_length = game["length"]
-    current_guess = raw_text.lower()
-
-    # Only single words matching alphabetic format
-    if not re.match(r"^[a-zA-Z]{4,6}$", current_guess):
+    current_guess = re.sub(r"[^a-zA-Z]", "", raw_text).lower()
+    if not current_guess:
         return False
 
     # Ignore if guess length doesn't match current game's length
@@ -329,7 +357,7 @@ async def check_wordseek_chat_message(update: Update, context: ContextTypes.DEFA
             f"Start with /new{word_length}"
         )
 
-        del ACTIVE_WORDSEEK_GAMES[chat_id]
+        remove_active_game(chat_id, thread_id)
 
         await msg.reply_text(
             formatted_response,
@@ -353,7 +381,7 @@ async def check_wordseek_chat_message(update: Update, context: ContextTypes.DEFA
     # Check if max guesses (30) reached
     if len(all_guesses) >= 30:
         sol = game["word"]
-        del ACTIVE_WORDSEEK_GAMES[chat_id]
+        remove_active_game(chat_id, thread_id)
         await msg.reply_text(
             f"Game Over! The word was {sol.upper()}\nYou can start a new game with /new{word_length}",
             auto_delete=False,
