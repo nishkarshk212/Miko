@@ -440,30 +440,38 @@ async def check_wordgrid_chat_message(update: Update, context: ContextTypes.DEFA
             # Already found
             return False
 
+        from modules.utils.anonymous_admin import (
+            resolve_player_identity,
+            record_pending_anon_score,
+            build_anon_verification_prompt,
+        )
+
+        eff_user_id, eff_name, eff_uname, is_unlinked_anon = resolve_player_identity(chat_id, msg, user)
+
         # Mark as found
-        u_name = user.first_name or user.username or "User"
-        info["found_by"] = user.id
-        info["found_by_name"] = u_name
-        info["found_by_username"] = user.username or ""
+        info["found_by"] = eff_user_id
+        info["found_by_name"] = eff_name
+        info["found_by_username"] = eff_uname
 
         points = len(guess)
-        # Award rewards (points in gems, plus coins & xp)
-        try:
-            update_user(user.id, {"$inc": {"gems": points, "balance": points * 10, "xp": points * 5}})
-        except Exception as e:
-            print(f"Error awarding wordgrid points: {e}")
+        if is_unlinked_anon:
+            record_pending_anon_score(chat_id, points, "wordgrid", guess)
+        else:
+            # Award rewards (points in gems, plus coins & xp)
+            try:
+                ud = get_user(eff_user_id)
+                new_bal = ud.get("balance", 0) + points * 10
+                new_gems = ud.get("gems", 0.0) + points
+                new_xp = ud.get("xp", 0) + points * 5
+                update_user(eff_user_id, balance=new_bal, gems=new_gems, xp=new_xp)
+            except Exception as e:
+                print(f"Error awarding wordgrid points: {e}")
 
         # Update in DB
         update_wordgrid_words_db(chat_id, thread_id, words)
 
         # Check if all words are found
         all_found = all(bool(w_info.get("found_by")) for w_info in words.values())
-
-        # Collect all found positions for auto-refresh
-        found_coords: List[Tuple[int, int]] = []
-        for w_info in words.values():
-            if w_info.get("found_by"):
-                found_coords.extend(w_info.get("positions", []))
 
         # Auto-refresh the main grid image and caption immediately with multi-colored found words
         if game.get("message_id"):
@@ -488,19 +496,37 @@ async def check_wordgrid_chat_message(update: Update, context: ContextTypes.DEFA
             clean_cid = str(chat_id).replace("-100", "").replace("-", "")
             grid_url = f"https://t.me/c/{clean_cid}/{game['message_id']}"
 
-        reply_kb = InlineKeyboardMarkup([
+        reply_buttons = [
             [InlineKeyboardButton("Go to Grid ➡️", url=grid_url)]
-        ])
+        ]
+
+        # Add verification button if playing as unlinked anonymous admin
+        anon_notice = ""
+        if is_unlinked_anon:
+            clean_bot = (context.bot.username if context.bot else None) or "im_Radhabot"
+            _, anon_kb = build_anon_verification_prompt(clean_bot, chat_id)
+            reply_buttons.append(anon_kb.inline_keyboard[0])
+            anon_notice = (
+                "\n\n🕵️ <i>Anonymous Admin: Tap below or reply with</i> <code>/anonid YOUR_ID</code> <i>to store your score!</i>"
+            )
+
+        reply_kb = InlineKeyboardMarkup(reply_buttons)
 
         c_idx = info.get("color_idx", 0) % len(WORD_COLOR_PALETTE)
         emoji = WORD_COLOR_PALETTE[c_idx]["emoji"]
 
+        user_tag = (
+            f'<a href="tg://user?id={eff_user_id}">{html.escape(eff_name)}</a>'
+            if isinstance(eff_user_id, int) and eff_user_id != 1087968824
+            else f"<b>{html.escape(eff_name)}</b>"
+        )
+
         unlock_text = (
             f"💎 <b>WORD UNLOCKED!</b>\n\n"
-            f"👤 <a href=\"tg://user?id={user.id}\">{html.escape(u_name)}</a>\n\n"
+            f"👤 {user_tag}\n\n"
             f"<b>WORD: {guess}</b> {emoji}\n"
             f"<b>POINTS: +{points} 💎</b>\n\n"
-            "◽ <i>Added to your score!</i>"
+            f"◽ <i>Added to your score!</i>{anon_notice}"
         )
 
         await msg.reply_text(

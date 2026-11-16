@@ -34,6 +34,7 @@ from modules.games.secret_game import (
     cmd_secret_rank,
 )
 from modules.games.wordgrid_game import cmd_wordgrid, cmd_endgrid
+from modules.utils.anonymous_admin import cmd_anonid
 
 
 async def ludo(update, context):
@@ -264,6 +265,9 @@ HANDLERS = {
     "grid": cmd_wordgrid,
     "wg": cmd_wordgrid,
     "endgrid": cmd_endgrid,
+
+    # Anonymous Admin ID Linking
+    "anonid": cmd_anonid,
 
     # Fun Minis
     "ludo": ludo,

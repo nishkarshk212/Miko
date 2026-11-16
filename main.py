@@ -354,6 +354,34 @@ def _collect_handlers():
             print(f"Log start error: {le}")
 
         if chat.type == "private":
+            if context.args and context.args[0].startswith("anon_"):
+                raw_cid = context.args[0].replace("anon_", "")
+                try:
+                    target_chat_id = -int(raw_cid) if not raw_cid.startswith("-") else int(raw_cid)
+                    member = await context.bot.get_chat_member(target_chat_id, user.id)
+                    if member.status in ("creator", "administrator"):
+                        from modules.utils.db import set_anonymous_link
+                        from modules.utils.anonymous_admin import apply_pending_anon_scores
+
+                        u_name = user.first_name or user.username or "Admin"
+                        u_uname = user.username or ""
+                        set_anonymous_link(target_chat_id, user.id, u_uname, u_name)
+                        credited = apply_pending_anon_scores(target_chat_id, user.id)
+
+                        bonus_txt = f"\n🎁 Credited <b>{credited}</b> pending points to your account!" if credited > 0 else ""
+                        await update.message.reply_text(
+                            f"✅ <b>Anonymous Admin Verification Successful!</b>\n\n"
+                            f"Your account <b>{html.escape(u_name)}</b> (<code>{user.id}</code>) has been successfully verified and linked to your group's anonymous admin actions!{bonus_txt}\n\n"
+                            f"All your scores in WordSeek, WordGrid, and other games will now be added directly to your profile and leaderboard ranking!",
+                            parse_mode="HTML"
+                        )
+                        return
+                    else:
+                        await update.message.reply_text("❌ Verification failed: You are not an administrator of that group.")
+                        return
+                except Exception as e:
+                    print(f"Anon DM verification error: {e}")
+
             from modules.utils.storage import get_user as _gu, global_rank
             ud = _gu(user.id, user.username or "User", user.first_name or "User")
             toprich_rank = global_rank(user.id, "balance")

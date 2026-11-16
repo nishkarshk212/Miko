@@ -71,6 +71,15 @@ def _init_db():
                 PRIMARY KEY (chat_id, topic_id)
             )
         """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS anonymous_admin_links (
+                chat_id TEXT PRIMARY KEY,
+                user_id TEXT,
+                username TEXT,
+                name TEXT,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
     print("✅ Local VPS SQLite Storage Initialized Successfully!")
 
 
@@ -622,5 +631,52 @@ def update_wordgrid_words_db(chat_id: int, topic_id: Optional[Any], words: Dict[
             )
     except Exception as e:
         print(f"Error updating wordgrid words: {e}")
+
+
+# --- ANONYMOUS ADMIN IDENTITY MAPPING ---
+
+def set_anonymous_link(chat_id: int, user_id: int, username: str, name: str) -> None:
+    try:
+        conn = _get_conn()
+        with conn:
+            conn.execute(
+                """
+                INSERT OR REPLACE INTO anonymous_admin_links (chat_id, user_id, username, name, updated_at)
+                VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+                """,
+                (str(chat_id), str(user_id), username or "", name or "Admin"),
+            )
+    except Exception as e:
+        print(f"Error saving anonymous admin link: {e}")
+
+
+def get_anonymous_link(chat_id: int) -> Optional[Dict[str, Any]]:
+    try:
+        conn = _get_conn()
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT user_id, username, name FROM anonymous_admin_links WHERE chat_id = ?",
+            (str(chat_id),),
+        )
+        row = cur.fetchone()
+        if row:
+            return {
+                "user_id": int(row[0]) if row[0] and row[0].isdigit() else row[0],
+                "username": row[1] or "",
+                "name": row[2] or "Admin",
+            }
+    except Exception as e:
+        print(f"Error getting anonymous admin link: {e}")
+    return None
+
+
+def clear_anonymous_link(chat_id: int) -> None:
+    try:
+        conn = _get_conn()
+        with conn:
+            conn.execute("DELETE FROM anonymous_admin_links WHERE chat_id = ?", (str(chat_id),))
+    except Exception as e:
+        print(f"Error clearing anonymous admin link: {e}")
+
 
 

@@ -417,12 +417,28 @@ async def check_wordseek_chat_message(update: Update, context: ContextTypes.DEFA
     if current_guess == game["word"]:
         all_guesses = game["guesses"]
         score = 30 - len(all_guesses)
-        additional_message = f"Added {score} to the leaderboard."
 
-        # Save to leaderboard database
-        uname = user.username or ""
-        u_display = user.first_name or "User"
-        add_wordseek_score(user.id, chat.id, u_display, uname, score, word_length)
+        from modules.utils.anonymous_admin import (
+            resolve_player_identity,
+            record_pending_anon_score,
+            build_anon_verification_prompt,
+        )
+
+        eff_user_id, eff_name, eff_uname, is_unlinked_anon = resolve_player_identity(chat.id, msg, user)
+        reply_markup = None
+
+        if is_unlinked_anon:
+            record_pending_anon_score(chat.id, score, "wordseek", current_guess)
+            clean_bot = (context.bot.username if context.bot else None) or "im_Radhabot"
+            _, anon_kb = build_anon_verification_prompt(clean_bot, chat.id)
+            reply_markup = anon_kb
+            additional_message = (
+                f"You scored {score} points!\n"
+                f"🕵️ <i>Anonymous Admin: Tap below or reply with</i> <code>/anonid YOUR_ID</code> <i>to store your score on the leaderboard!</i>"
+            )
+        else:
+            additional_message = f"Added {score} to the leaderboard."
+            add_wordseek_score(eff_user_id, chat.id, eff_name, eff_uname, score, word_length)
 
         formatted_response = (
             f"<blockquote>Congrats! You guessed it correctly.\n"
@@ -436,6 +452,7 @@ async def check_wordseek_chat_message(update: Update, context: ContextTypes.DEFA
         await msg.reply_text(
             formatted_response,
             parse_mode="HTML",
+            reply_markup=reply_markup,
             auto_delete=False,
         )
 
