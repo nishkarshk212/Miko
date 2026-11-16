@@ -463,6 +463,11 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if await wordgrid_callback_handler(update, context):
             return
 
+    if data.startswith("lb:"):
+        from modules.games.leaderboard import leaderboard_callback_handler
+        if await leaderboard_callback_handler(update, context):
+            return
+
     if data.startswith("welcome_toggle:"):
         parts = data.split(":")
         try:

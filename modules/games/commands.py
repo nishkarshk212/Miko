@@ -12,6 +12,7 @@ from modules.games.wordseek_game import (
     cmd_score as cmd_wordseek_score,
     cmd_leaderboard as cmd_wordseek_leaderboard,
 )
+from modules.games.leaderboard import cmd_unified_leaderboard
 from modules.games.bluff_game import cmd_bluff, cmd_enter, cmd_startbluff, cmd_drop, cmd_judge, cmd_mycards
 from modules.games.roulette_game import cmd_roulette, cmd_join as cmd_roulette_join, cmd_bid
 from modules.games.card_game import cmd_card, cmd_bet, cmd_flip
@@ -255,7 +256,9 @@ HANDLERS = {
     "new5": cmd_new5,
     "new6": cmd_new6,
     "score": cmd_wordseek_score,
-    "leaderboard": cmd_wordseek_leaderboard,
+    "leaderboard": cmd_unified_leaderboard,
+    "lb": cmd_unified_leaderboard,
+    "top": cmd_unified_leaderboard,
     "wordseek": cmd_new,
     "seek": cmd_new,
     "endseek": cmd_wordseek_end,

@@ -98,6 +98,30 @@ def _init_db():
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS wordgrid_leaderboard (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id TEXT,
+                chat_id TEXT,
+                name TEXT,
+                username TEXT,
+                score INTEGER,
+                word TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS wordquiz_leaderboard (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id TEXT,
+                chat_id TEXT,
+                name TEXT,
+                username TEXT,
+                score INTEGER,
+                word TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
     print("✅ Local VPS SQLite Storage Initialized Successfully!")
 
 
@@ -471,6 +495,336 @@ def get_wordseek_user_score(user_id: int, chat_id: Optional[int] = None) -> Dict
         return {"totalScore": tot, "rank": rank}
     except Exception as e:
         print(f"Error getting user wordseek score: {e}")
+        return {"totalScore": 0, "rank": "-"}
+
+
+# --- WORDGRID SCORES & LEADERBOARDS ---
+
+def add_wordgrid_score(user_id: int, chat_id: int, name: str, username: str, score: int, word: str) -> None:
+    try:
+        conn = _get_conn()
+        with conn:
+            conn.execute(
+                "INSERT INTO wordgrid_leaderboard (user_id, chat_id, name, username, score, word) VALUES (?, ?, ?, ?, ?, ?)",
+                (str(user_id), str(chat_id), name or "User", username or "", score, word)
+            )
+    except Exception as e:
+        print(f"Error saving wordgrid score: {e}")
+
+
+def get_wordgrid_leaderboard(chat_id: Optional[int] = None, limit: int = 10) -> List[Dict[str, Any]]:
+    try:
+        conn = _get_conn()
+        cur = conn.cursor()
+        if chat_id:
+            cur.execute(
+                """
+                SELECT user_id, name, username, SUM(score) as total_score
+                FROM wordgrid_leaderboard
+                WHERE chat_id = ?
+                GROUP BY user_id
+                ORDER BY total_score DESC
+                LIMIT ?
+                """,
+                (str(chat_id), limit)
+            )
+        else:
+            cur.execute(
+                """
+                SELECT user_id, name, username, SUM(score) as total_score
+                FROM wordgrid_leaderboard
+                GROUP BY user_id
+                ORDER BY total_score DESC
+                LIMIT ?
+                """,
+                (limit,)
+            )
+        rows = cur.fetchall()
+        return [{"user_id": r[0], "name": r[1], "username": r[2], "totalScore": r[3]} for r in rows]
+    except Exception as e:
+        print(f"Error getting wordgrid leaderboard: {e}")
+        return []
+
+
+def get_wordgrid_user_score(user_id: int, chat_id: Optional[int] = None) -> Dict[str, Any]:
+    try:
+        conn = _get_conn()
+        cur = conn.cursor()
+        if chat_id:
+            cur.execute(
+                "SELECT SUM(score) FROM wordgrid_leaderboard WHERE user_id = ? AND chat_id = ?",
+                (str(user_id), str(chat_id))
+            )
+            tot_row = cur.fetchone()
+            tot = (tot_row[0] if tot_row and tot_row[0] else 0)
+            if tot > 0:
+                cur.execute(
+                    """
+                    SELECT COUNT(*) + 1 FROM (
+                        SELECT user_id, SUM(score) as s FROM wordgrid_leaderboard
+                        WHERE chat_id = ? GROUP BY user_id HAVING s > ?
+                    )
+                    """,
+                    (str(chat_id), tot)
+                )
+                r_row = cur.fetchone()
+                rank = r_row[0] if r_row else 1
+            else:
+                rank = "-"
+        else:
+            cur.execute(
+                "SELECT SUM(score) FROM wordgrid_leaderboard WHERE user_id = ?",
+                (str(user_id),)
+            )
+            tot_row = cur.fetchone()
+            tot = (tot_row[0] if tot_row and tot_row[0] else 0)
+            if tot > 0:
+                cur.execute(
+                    """
+                    SELECT COUNT(*) + 1 FROM (
+                        SELECT user_id, SUM(score) as s FROM wordgrid_leaderboard
+                        GROUP BY user_id HAVING s > ?
+                    )
+                    """,
+                    (tot,)
+                )
+                r_row = cur.fetchone()
+                rank = r_row[0] if r_row else 1
+            else:
+                rank = "-"
+        return {"totalScore": tot, "rank": rank}
+    except Exception as e:
+        print(f"Error getting user wordgrid score: {e}")
+        return {"totalScore": 0, "rank": "-"}
+
+
+# --- WORD QUIZ SCORES & LEADERBOARDS ---
+
+def add_wordquiz_score(user_id: int, chat_id: int, name: str, username: str, score: int, word: str) -> None:
+    try:
+        conn = _get_conn()
+        with conn:
+            conn.execute(
+                "INSERT INTO wordquiz_leaderboard (user_id, chat_id, name, username, score, word) VALUES (?, ?, ?, ?, ?, ?)",
+                (str(user_id), str(chat_id), name or "User", username or "", score, word)
+            )
+    except Exception as e:
+        print(f"Error saving wordquiz score: {e}")
+
+
+def get_wordquiz_leaderboard(chat_id: Optional[int] = None, limit: int = 10) -> List[Dict[str, Any]]:
+    try:
+        conn = _get_conn()
+        cur = conn.cursor()
+        if chat_id:
+            cur.execute(
+                """
+                SELECT user_id, name, username, SUM(score) as total_score
+                FROM wordquiz_leaderboard
+                WHERE chat_id = ?
+                GROUP BY user_id
+                ORDER BY total_score DESC
+                LIMIT ?
+                """,
+                (str(chat_id), limit)
+            )
+        else:
+            cur.execute(
+                """
+                SELECT user_id, name, username, SUM(score) as total_score
+                FROM wordquiz_leaderboard
+                GROUP BY user_id
+                ORDER BY total_score DESC
+                LIMIT ?
+                """,
+                (limit,)
+            )
+        rows = cur.fetchall()
+        return [{"user_id": r[0], "name": r[1], "username": r[2], "totalScore": r[3]} for r in rows]
+    except Exception as e:
+        print(f"Error getting wordquiz leaderboard: {e}")
+        return []
+
+
+def get_wordquiz_user_score(user_id: int, chat_id: Optional[int] = None) -> Dict[str, Any]:
+    try:
+        conn = _get_conn()
+        cur = conn.cursor()
+        if chat_id:
+            cur.execute(
+                "SELECT SUM(score) FROM wordquiz_leaderboard WHERE user_id = ? AND chat_id = ?",
+                (str(user_id), str(chat_id))
+            )
+            tot_row = cur.fetchone()
+            tot = (tot_row[0] if tot_row and tot_row[0] else 0)
+            if tot > 0:
+                cur.execute(
+                    """
+                    SELECT COUNT(*) + 1 FROM (
+                        SELECT user_id, SUM(score) as s FROM wordquiz_leaderboard
+                        WHERE chat_id = ? GROUP BY user_id HAVING s > ?
+                    )
+                    """,
+                    (str(chat_id), tot)
+                )
+                r_row = cur.fetchone()
+                rank = r_row[0] if r_row else 1
+            else:
+                rank = "-"
+        else:
+            cur.execute(
+                "SELECT SUM(score) FROM wordquiz_leaderboard WHERE user_id = ?",
+                (str(user_id),)
+            )
+            tot_row = cur.fetchone()
+            tot = (tot_row[0] if tot_row and tot_row[0] else 0)
+            if tot > 0:
+                cur.execute(
+                    """
+                    SELECT COUNT(*) + 1 FROM (
+                        SELECT user_id, SUM(score) as s FROM wordquiz_leaderboard
+                        GROUP BY user_id HAVING s > ?
+                    )
+                    """,
+                    (tot,)
+                )
+                r_row = cur.fetchone()
+                rank = r_row[0] if r_row else 1
+            else:
+                rank = "-"
+        return {"totalScore": tot, "rank": rank}
+    except Exception as e:
+        print(f"Error getting user wordquiz score: {e}")
+        return {"totalScore": 0, "rank": "-"}
+
+
+# --- OVERALL COMBINED LEADERBOARDS ---
+
+def get_overall_leaderboard(chat_id: Optional[int] = None, limit: int = 10) -> List[Dict[str, Any]]:
+    try:
+        conn = _get_conn()
+        cur = conn.cursor()
+        if chat_id:
+            cur.execute(
+                """
+                SELECT user_id, name, username, SUM(score) as total_score
+                FROM (
+                    SELECT user_id, name, username, score, chat_id FROM wordseek_leaderboard
+                    UNION ALL
+                    SELECT user_id, name, username, score, chat_id FROM wordgrid_leaderboard
+                    UNION ALL
+                    SELECT user_id, name, username, score, chat_id FROM wordquiz_leaderboard
+                )
+                WHERE chat_id = ?
+                GROUP BY user_id
+                ORDER BY total_score DESC
+                LIMIT ?
+                """,
+                (str(chat_id), limit)
+            )
+        else:
+            cur.execute(
+                """
+                SELECT user_id, name, username, SUM(score) as total_score
+                FROM (
+                    SELECT user_id, name, username, score, chat_id FROM wordseek_leaderboard
+                    UNION ALL
+                    SELECT user_id, name, username, score, chat_id FROM wordgrid_leaderboard
+                    UNION ALL
+                    SELECT user_id, name, username, score, chat_id FROM wordquiz_leaderboard
+                )
+                GROUP BY user_id
+                ORDER BY total_score DESC
+                LIMIT ?
+                """,
+                (limit,)
+            )
+        rows = cur.fetchall()
+        return [{"user_id": r[0], "name": r[1], "username": r[2], "totalScore": r[3]} for r in rows]
+    except Exception as e:
+        print(f"Error getting overall leaderboard: {e}")
+        return []
+
+
+def get_overall_user_score(user_id: int, chat_id: Optional[int] = None) -> Dict[str, Any]:
+    try:
+        conn = _get_conn()
+        cur = conn.cursor()
+        if chat_id:
+            cur.execute(
+                """
+                SELECT SUM(score) FROM (
+                    SELECT user_id, score, chat_id FROM wordseek_leaderboard
+                    UNION ALL
+                    SELECT user_id, score, chat_id FROM wordgrid_leaderboard
+                    UNION ALL
+                    SELECT user_id, score, chat_id FROM wordquiz_leaderboard
+                )
+                WHERE user_id = ? AND chat_id = ?
+                """,
+                (str(user_id), str(chat_id))
+            )
+            tot_row = cur.fetchone()
+            tot = (tot_row[0] if tot_row and tot_row[0] else 0)
+            if tot > 0:
+                cur.execute(
+                    """
+                    SELECT COUNT(*) + 1 FROM (
+                        SELECT user_id, SUM(score) as s FROM (
+                            SELECT user_id, score, chat_id FROM wordseek_leaderboard
+                            UNION ALL
+                            SELECT user_id, score, chat_id FROM wordgrid_leaderboard
+                            UNION ALL
+                            SELECT user_id, score, chat_id FROM wordquiz_leaderboard
+                        )
+                        WHERE chat_id = ? GROUP BY user_id HAVING s > ?
+                    )
+                    """,
+                    (str(chat_id), tot)
+                )
+                r_row = cur.fetchone()
+                rank = r_row[0] if r_row else 1
+            else:
+                rank = "-"
+        else:
+            cur.execute(
+                """
+                SELECT SUM(score) FROM (
+                    SELECT user_id, score, chat_id FROM wordseek_leaderboard
+                    UNION ALL
+                    SELECT user_id, score, chat_id FROM wordgrid_leaderboard
+                    UNION ALL
+                    SELECT user_id, score, chat_id FROM wordquiz_leaderboard
+                )
+                WHERE user_id = ?
+                """,
+                (str(user_id),)
+            )
+            tot_row = cur.fetchone()
+            tot = (tot_row[0] if tot_row and tot_row[0] else 0)
+            if tot > 0:
+                cur.execute(
+                    """
+                    SELECT COUNT(*) + 1 FROM (
+                        SELECT user_id, SUM(score) as s FROM (
+                            SELECT user_id, score, chat_id FROM wordseek_leaderboard
+                            UNION ALL
+                            SELECT user_id, score, chat_id FROM wordgrid_leaderboard
+                            UNION ALL
+                            SELECT user_id, score, chat_id FROM wordquiz_leaderboard
+                        )
+                        GROUP BY user_id HAVING s > ?
+                    )
+                    """,
+                    (tot,)
+                )
+                r_row = cur.fetchone()
+                rank = r_row[0] if r_row else 1
+            else:
+                rank = "-"
+        return {"totalScore": tot, "rank": rank}
+    except Exception as e:
+        print(f"Error getting overall user score: {e}")
         return {"totalScore": 0, "rank": "-"}
 
 

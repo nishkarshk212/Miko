@@ -17,6 +17,7 @@ from modules.utils.db import (
     get_active_wordgrid_game_db,
     delete_active_wordgrid_game_db,
     update_wordgrid_words_db,
+    add_wordgrid_score,
 )
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -509,6 +510,11 @@ async def check_wordgrid_chat_message(update: Update, context: ContextTypes.DEFA
                 update_user(eff_user_id, balance=new_bal, gems=new_gems, xp=new_xp)
             except Exception as e:
                 print(f"Error awarding wordgrid points: {e}")
+
+            try:
+                add_wordgrid_score(eff_user_id, chat_id, eff_name, eff_uname, points, guess)
+            except Exception as e:
+                print(f"Error saving wordgrid leaderboard score: {e}")
 
         # Update in DB
         update_wordgrid_words_db(chat_id, thread_id, words)

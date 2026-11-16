@@ -30,7 +30,7 @@ BOT_COMMANDS = [
     BotCommand("new6", "Start a 6-letter WordSeek game"),
     BotCommand("end", "End the current active game"),
     BotCommand("score", "View your WordSeek score"),
-    BotCommand("leaderboard", "View WordSeek leaderboard"),
+    BotCommand("leaderboard", "View Word Games leaderboard (WordSeek, WordGrid, Quiz, Overall)"),
     BotCommand("wordseek", "Start a new WordSeek game"),
     BotCommand("wordgrid", "Start an 8x8 Word Grid puzzle challenge"),
     BotCommand("anonid", "Link anonymous admin score to user ID (/anonid <id>)"),

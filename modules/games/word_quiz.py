@@ -10,6 +10,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 
 from modules.utils.storage import get_user, update_user, add_xp
+from modules.utils.db import add_wordquiz_score
 from modules.ai.chatbot import generate_miko_sticker
 
 # In-memory active quizzes: {chat_id: GameData}
@@ -290,6 +291,11 @@ async def _handle_quiz_win(
         quiz_earnings=new_earnings,
     )
     add_xp(user.id, reward_xp)
+
+    try:
+        add_wordquiz_score(user.id, chat_id, display_name, user.username or "", reward_coins, word)
+    except Exception as e:
+        print(f"Error saving wordquiz leaderboard score: {e}")
 
     user_mention = f'<a href="tg://user?id={user.id}">{html.escape(display_name)}</a>'
 
