@@ -33,6 +33,7 @@ from modules.games.secret_game import (
     cmd_secret_stop,
     cmd_secret_rank,
 )
+from modules.games.wordgrid_game import cmd_wordgrid, cmd_endgrid
 
 
 async def ludo(update, context):
@@ -161,6 +162,10 @@ async def cmd_unified_end(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if chat.id in ACTIVE_WORDSEEK_GAMES:
         await ws_end(update, context)
         return
+    from modules.games.wordgrid_game import ACTIVE_WORDGRIDS
+    if str(chat.id) in ACTIVE_WORDGRIDS:
+        await cmd_endgrid(update, context)
+        return
     if chat.id in HACK_GAMES:
         await cmd_hack_end(update, context)
         return
@@ -253,6 +258,12 @@ HANDLERS = {
     "wordseek": cmd_new,
     "seek": cmd_new,
     "endseek": cmd_wordseek_end,
+
+    # Word Grid Challenge Game
+    "wordgrid": cmd_wordgrid,
+    "grid": cmd_wordgrid,
+    "wg": cmd_wordgrid,
+    "endgrid": cmd_endgrid,
 
     # Fun Minis
     "ludo": ludo,

@@ -58,6 +58,19 @@ def _init_db():
                 PRIMARY KEY (chat_id, topic_id)
             )
         """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS wordgrid_active_games (
+                chat_id TEXT,
+                topic_id TEXT,
+                grid_data TEXT,
+                words_data TEXT,
+                message_id INTEGER,
+                started_by INTEGER,
+                started_by_name TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (chat_id, topic_id)
+            )
+        """)
     print("✅ Local VPS SQLite Storage Initialized Successfully!")
 
 
@@ -522,4 +535,92 @@ def update_wordseek_guesses_db(chat_id: int, topic_id: Optional[Any], guesses: L
             )
     except Exception as e:
         print(f"Error updating wordseek guesses: {e}")
+
+
+# --- ACTIVE WORDGRID GAMES PERSISTENCE ---
+
+def save_active_wordgrid_game(chat_id: int, topic_id: Optional[Any], game: Dict[str, Any]) -> None:
+    try:
+        t_id = str(topic_id) if topic_id else "general"
+        conn = _get_conn()
+        with conn:
+            conn.execute(
+                """
+                INSERT OR REPLACE INTO wordgrid_active_games
+                (chat_id, topic_id, grid_data, words_data, message_id, started_by, started_by_name)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    str(chat_id),
+                    t_id,
+                    json.dumps(game.get("grid", [])),
+                    json.dumps(game.get("words", {})),
+                    int(game.get("message_id", 0)),
+                    int(game.get("started_by", 0)),
+                    game.get("started_by_name", "User"),
+                ),
+            )
+    except Exception as e:
+        print(f"Error saving active wordgrid game: {e}")
+
+
+def get_active_wordgrid_game_db(chat_id: int, topic_id: Optional[Any] = None) -> Optional[Dict[str, Any]]:
+    try:
+        t_id = str(topic_id) if topic_id else "general"
+        conn = _get_conn()
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT grid_data, words_data, message_id, started_by, started_by_name FROM wordgrid_active_games WHERE chat_id = ? AND topic_id = ?",
+            (str(chat_id), t_id),
+        )
+        row = cur.fetchone()
+        if not row and t_id != "general":
+            cur.execute(
+                "SELECT grid_data, words_data, message_id, started_by, started_by_name FROM wordgrid_active_games WHERE chat_id = ? AND topic_id = 'general'",
+                (str(chat_id),),
+            )
+            row = cur.fetchone()
+
+        if row:
+            grid = json.loads(row[0]) if row[0] else []
+            words = json.loads(row[1]) if row[1] else {}
+            return {
+                "grid": grid,
+                "words": words,
+                "message_id": row[2],
+                "started_by": row[3],
+                "started_by_name": row[4],
+                "chat_id": chat_id,
+                "thread_id": topic_id,
+            }
+    except Exception as e:
+        print(f"Error fetching active wordgrid game from DB: {e}")
+    return None
+
+
+def delete_active_wordgrid_game_db(chat_id: int, topic_id: Optional[Any] = None) -> None:
+    try:
+        t_id = str(topic_id) if topic_id else "general"
+        conn = _get_conn()
+        with conn:
+            conn.execute(
+                "DELETE FROM wordgrid_active_games WHERE chat_id = ? AND (topic_id = ? OR topic_id = 'general')",
+                (str(chat_id), t_id),
+            )
+    except Exception as e:
+        print(f"Error deleting active wordgrid game: {e}")
+
+
+def update_wordgrid_words_db(chat_id: int, topic_id: Optional[Any], words: Dict[str, Any]) -> None:
+    try:
+        t_id = str(topic_id) if topic_id else "general"
+        conn = _get_conn()
+        with conn:
+            conn.execute(
+                "UPDATE wordgrid_active_games SET words_data = ? WHERE chat_id = ? AND topic_id = ?",
+                (json.dumps(words), str(chat_id), t_id),
+            )
+    except Exception as e:
+        print(f"Error updating wordgrid words: {e}")
+
 

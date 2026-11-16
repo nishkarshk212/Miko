@@ -32,6 +32,7 @@ BOT_COMMANDS = [
     BotCommand("score", "View your WordSeek score"),
     BotCommand("leaderboard", "View WordSeek leaderboard"),
     BotCommand("wordseek", "Start a new WordSeek game"),
+    BotCommand("wordgrid", "Start an 8x8 Word Grid puzzle challenge"),
     BotCommand("roulette", "start the roulette game"),
     BotCommand("friends", "Check all friendship commands"),
     BotCommand("addf", "Reply To Add A Friend (/addf <tag>)"),

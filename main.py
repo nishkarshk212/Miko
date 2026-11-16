@@ -427,6 +427,11 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if await wordseek_callback_handler(update, context):
             return
 
+    if data.startswith("wg_"):
+        from modules.games.wordgrid_game import wordgrid_callback_handler
+        if await wordgrid_callback_handler(update, context):
+            return
+
     if data.startswith("welcome_toggle:"):
         parts = data.split(":")
         try:
@@ -1030,6 +1035,10 @@ async def post_init(app):
 async def word_quiz_message_watcher(update: Update, context: ContextTypes.DEFAULT_TYPE):
     from modules.games.wordseek_game import check_wordseek_chat_message
     if await check_wordseek_chat_message(update, context):
+        raise ApplicationHandlerStop()
+
+    from modules.games.wordgrid_game import check_wordgrid_chat_message
+    if await check_wordgrid_chat_message(update, context):
         raise ApplicationHandlerStop()
 
     from modules.games.word_quiz import check_word_quiz_chat_message
