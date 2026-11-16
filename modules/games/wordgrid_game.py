@@ -70,6 +70,18 @@ DIRECTIONS = [
 ]
 
 
+WORD_COLOR_PALETTE = [
+    {"fill": "#14532d", "outline": "#22c55e", "text": "#86efac", "emoji": "🟢"},  # Green
+    {"fill": "#7f1d1d", "outline": "#ef4444", "text": "#fca5a5", "emoji": "🔴"},  # Red
+    {"fill": "#713f12", "outline": "#eab308", "text": "#fde047", "emoji": "🟡"},  # Yellow
+    {"fill": "#1e3a8a", "outline": "#3b82f6", "text": "#93c5fd", "emoji": "🔵"},  # Blue
+    {"fill": "#581c87", "outline": "#a855f7", "text": "#d8b4fe", "emoji": "🟣"},  # Purple
+    {"fill": "#7c2d12", "outline": "#f97316", "text": "#fdba74", "emoji": "🟠"},  # Orange
+    {"fill": "#134e4a", "outline": "#14b8a6", "text": "#5eead4", "emoji": "🩵"},  # Cyan
+    {"fill": "#831843", "outline": "#ec4899", "text": "#f472b6", "emoji": "💖"},  # Pink
+]
+
+
 def generate_word_grid(size: int = 8) -> Tuple[List[List[str]], Dict[str, Any]]:
     """
     Generates an 8x8 letter grid containing 8-10 hidden words of varying lengths:
@@ -126,10 +138,12 @@ def generate_word_grid(size: int = 8) -> Tuple[List[List[str]], Dict[str, Any]]:
                 if can_place:
                     for i, (curr_r, curr_c) in enumerate(coords):
                         grid[curr_r][curr_c] = word[i]
+                    color_idx = len(placed_words) % len(WORD_COLOR_PALETTE)
                     placed_words[word] = {
                         "positions": coords,
                         "found_by": None,
                         "found_by_name": None,
+                        "color_idx": color_idx,
                     }
                     placed = True
                     break
@@ -143,8 +157,12 @@ def generate_word_grid(size: int = 8) -> Tuple[List[List[str]], Dict[str, Any]]:
     return grid, placed_words
 
 
-def render_grid_image(grid: List[List[str]], found_positions: Optional[List[Tuple[int, int]]] = None) -> bytes:
-    """Renders high-resolution dark grid image with highlighted found cells."""
+def render_grid_image(
+    grid: List[List[str]],
+    found_positions: Optional[List[Tuple[int, int]]] = None,
+    words_dict: Optional[Dict[str, Any]] = None,
+) -> bytes:
+    """Renders high-resolution dark grid image with multi-colored found cells (green, red, yellow, etc.)."""
     size = len(grid)
     cell_size = 64
     padding = 24
@@ -165,7 +183,18 @@ def render_grid_image(grid: List[List[str]], found_positions: Optional[List[Tupl
         except Exception:
             font = ImageFont.load_default()
 
-    found_set = set(tuple(p) for p in (found_positions or []))
+    cell_style: Dict[Tuple[int, int], Dict[str, str]] = {}
+    if words_dict:
+        for word, info in words_dict.items():
+            if info.get("found_by"):
+                c_idx = info.get("color_idx", 0) % len(WORD_COLOR_PALETTE)
+                style = WORD_COLOR_PALETTE[c_idx]
+                for p in info.get("positions", []):
+                    cell_style[tuple(p)] = style
+    elif found_positions:
+        default_style = WORD_COLOR_PALETTE[0]
+        for p in found_positions:
+            cell_style[tuple(p)] = default_style
 
     for r in range(size):
         for c in range(size):
@@ -174,12 +203,6 @@ def render_grid_image(grid: List[List[str]], found_positions: Optional[List[Tupl
             x2 = x1 + cell_size
             y2 = y1 + cell_size
 
-            # Highlight found cell
-            if (r, c) in found_set:
-                draw.rounded_rectangle([x1 + 3, y1 + 3, x2 - 3, y2 - 3], radius=8, fill="#14532d", outline="#22c55e", width=2)
-            else:
-                draw.rectangle([x1, y1, x2, y2], outline="#181a22", width=1)
-
             letter = grid[r][c].upper()
             bbox = draw.textbbox((0, 0), letter, font=font)
             tw = bbox[2] - bbox[0]
@@ -187,8 +210,13 @@ def render_grid_image(grid: List[List[str]], found_positions: Optional[List[Tupl
             tx = x1 + (cell_size - tw) / 2
             ty = y1 + (cell_size - th) / 2 - 2
 
-            fill_color = "#86efac" if (r, c) in found_set else "#ffffff"
-            draw.text((tx, ty), letter, fill=fill_color, font=font)
+            if (r, c) in cell_style:
+                st = cell_style[(r, c)]
+                draw.rounded_rectangle([x1 + 3, y1 + 3, x2 - 3, y2 - 3], radius=8, fill=st["fill"], outline=st["outline"], width=2)
+                draw.text((tx, ty), letter, fill=st["text"], font=font)
+            else:
+                draw.rectangle([x1, y1, x2, y2], outline="#181a22", width=1)
+                draw.text((tx, ty), letter, fill="#ffffff", font=font)
 
     buf = io.BytesIO()
     img.save(buf, format="PNG")
@@ -196,7 +224,7 @@ def render_grid_image(grid: List[List[str]], found_positions: Optional[List[Tupl
 
 
 def build_caption(words_dict: Dict[str, Any], is_completed: bool = False) -> str:
-    """Builds the challenge caption matching the user's design."""
+    """Builds the challenge caption matching the user's design with multi-colored emoji indicators."""
     sorted_words = sorted(words_dict.items(), key=lambda x: (len(x[0]), x[0]))
 
     clue_lines: List[str] = []
@@ -208,7 +236,9 @@ def build_caption(words_dict: Dict[str, Any], is_completed: bool = False) -> str
         if info.get("found_by"):
             found_count += 1
             u_name = info.get("found_by_name", "User")
-            clue_lines.append(f"✅ <s><b>{word}</b></s> ({w_len}) • {html.escape(u_name)}")
+            c_idx = info.get("color_idx", 0) % len(WORD_COLOR_PALETTE)
+            emoji = WORD_COLOR_PALETTE[c_idx]["emoji"]
+            clue_lines.append(f"{emoji} <s><b>{word}</b></s> ({w_len}) • {html.escape(u_name)}")
         else:
             clue = word[0] + "-" * (w_len - 1)
             clue_lines.append(f"<b>{clue}</b>  ({w_len})")
@@ -435,10 +465,10 @@ async def check_wordgrid_chat_message(update: Update, context: ContextTypes.DEFA
             if w_info.get("found_by"):
                 found_coords.extend(w_info.get("positions", []))
 
-        # Auto-refresh the main grid image and caption immediately
+        # Auto-refresh the main grid image and caption immediately with multi-colored found words
         if game.get("message_id"):
             try:
-                updated_image = render_grid_image(game["grid"], found_positions=found_coords)
+                updated_image = render_grid_image(game["grid"], words_dict=words)
                 updated_caption = build_caption(words, is_completed=all_found)
                 grid_kb = build_keyboard(chat_id, thread_id) if not all_found else None
 
@@ -462,10 +492,13 @@ async def check_wordgrid_chat_message(update: Update, context: ContextTypes.DEFA
             [InlineKeyboardButton("Go to Grid ➡️", url=grid_url)]
         ])
 
+        c_idx = info.get("color_idx", 0) % len(WORD_COLOR_PALETTE)
+        emoji = WORD_COLOR_PALETTE[c_idx]["emoji"]
+
         unlock_text = (
-            "💎 <b>WORD UNLOCKED!</b>\n\n"
+            f"💎 <b>WORD UNLOCKED!</b>\n\n"
             f"👤 <a href=\"tg://user?id={user.id}\">{html.escape(u_name)}</a>\n\n"
-            f"<b>WORD: {guess}</b>\n"
+            f"<b>WORD: {guess}</b> {emoji}\n"
             f"<b>POINTS: +{points} 💎</b>\n\n"
             "◽ <i>Added to your score!</i>"
         )
@@ -516,13 +549,7 @@ async def wordgrid_callback_handler(update: Update, context: ContextTypes.DEFAUL
             await query.answer("No active challenge found. Start one with /wordgrid", show_alert=True)
             return True
 
-        # Collect found positions
-        found_coords: List[Tuple[int, int]] = []
-        for w_info in game["words"].values():
-            if w_info.get("found_by"):
-                found_coords.extend(w_info.get("positions", []))
-
-        updated_image = render_grid_image(game["grid"], found_positions=found_coords)
+        updated_image = render_grid_image(game["grid"], words_dict=game["words"])
         updated_caption = build_caption(game["words"], is_completed=False)
         keyboard = build_keyboard(chat_id, thread_id)
 
