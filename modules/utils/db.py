@@ -17,10 +17,28 @@ _local = threading.local()
 
 def _get_conn() -> sqlite3.Connection:
     if not hasattr(_local, "conn") or _local.conn is None:
-        conn = sqlite3.connect(DB_PATH, timeout=30.0, check_same_thread=False)
-        conn.execute("PRAGMA journal_mode=WAL;")
-        conn.execute("PRAGMA synchronous=NORMAL;")
-        _local.conn = conn
+        try:
+            conn = sqlite3.connect(DB_PATH, timeout=30.0, check_same_thread=False)
+            conn.execute("PRAGMA journal_mode=WAL;")
+            conn.execute("PRAGMA synchronous=NORMAL;")
+            _local.conn = conn
+        except sqlite3.DatabaseError:
+            # Auto-heal in case of binary corruption
+            if os.path.exists(DB_PATH):
+                try:
+                    backup_path = DB_PATH + ".corrupt"
+                    if os.path.exists(backup_path):
+                        os.remove(backup_path)
+                    os.rename(DB_PATH, backup_path)
+                    for ext in ["-wal", "-shm"]:
+                        if os.path.exists(DB_PATH + ext):
+                            os.remove(DB_PATH + ext)
+                except Exception:
+                    pass
+            conn = sqlite3.connect(DB_PATH, timeout=30.0, check_same_thread=False)
+            conn.execute("PRAGMA journal_mode=WAL;")
+            conn.execute("PRAGMA synchronous=NORMAL;")
+            _local.conn = conn
     return _local.conn
 
 
