@@ -416,9 +416,10 @@ async def check_wordgrid_chat_message(update: Update, context: ContextTypes.DEFA
         info["found_by_name"] = u_name
         info["found_by_username"] = user.username or ""
 
-        # Award rewards (25 coins, 10 xp)
+        points = len(guess)
+        # Award rewards (points in gems, plus coins & xp)
         try:
-            update_user(user.id, {"$inc": {"balance": 25, "xp": 10}})
+            update_user(user.id, {"$inc": {"gems": points, "balance": points * 10, "xp": points * 5}})
         except Exception as e:
             print(f"Error awarding wordgrid points: {e}")
 
@@ -428,43 +429,64 @@ async def check_wordgrid_chat_message(update: Update, context: ContextTypes.DEFA
         # Check if all words are found
         all_found = all(bool(w_info.get("found_by")) for w_info in words.values())
 
-        if all_found:
-            # Game complete!
-            remove_active_grid_game(chat_id, thread_id)
+        # Collect all found positions for auto-refresh
+        found_coords: List[Tuple[int, int]] = []
+        for w_info in words.values():
+            if w_info.get("found_by"):
+                found_coords.extend(w_info.get("positions", []))
 
-            # Collect all found positions
-            all_coords: List[Tuple[int, int]] = []
-            for w_info in words.values():
-                all_coords.extend(w_info.get("positions", []))
-
-            final_image = render_grid_image(game["grid"], found_positions=all_coords)
-            final_caption = build_caption(words, is_completed=True)
-
+        # Auto-refresh the main grid image and caption immediately
+        if game.get("message_id"):
             try:
-                if game.get("message_id"):
-                    await context.bot.edit_message_media(
-                        chat_id=chat_id,
-                        message_id=game["message_id"],
-                        media=InputMediaPhoto(media=final_image, caption=final_caption, parse_mode="HTML"),
-                    )
-            except Exception:
-                pass
+                updated_image = render_grid_image(game["grid"], found_positions=found_coords)
+                updated_caption = build_caption(words, is_completed=all_found)
+                grid_kb = build_keyboard(chat_id, thread_id) if not all_found else None
 
-            await msg.reply_text(
-                f"🎉 <b>Bingo!</b> <a href=\"tg://user?id={user.id}\">{html.escape(u_name)}</a> found the last word <b>{guess}</b>!\n\n"
-                f"{final_caption}",
+                await context.bot.edit_message_media(
+                    chat_id=chat_id,
+                    message_id=game["message_id"],
+                    media=InputMediaPhoto(media=updated_image, caption=updated_caption, parse_mode="HTML"),
+                    reply_markup=grid_kb,
+                )
+            except Exception as e:
+                print(f"Error auto-refreshing grid photo: {e}")
+
+        # Deep link to jump directly to the grid message
+        if chat.username:
+            grid_url = f"https://t.me/{chat.username}/{game['message_id']}"
+        else:
+            clean_cid = str(chat_id).replace("-100", "").replace("-", "")
+            grid_url = f"https://t.me/c/{clean_cid}/{game['message_id']}"
+
+        reply_kb = InlineKeyboardMarkup([
+            [InlineKeyboardButton("Go to Grid ➡️", url=grid_url)]
+        ])
+
+        unlock_text = (
+            "💎 <b>WORD UNLOCKED!</b>\n\n"
+            f"👤 <a href=\"tg://user?id={user.id}\">{html.escape(u_name)}</a>\n\n"
+            f"<b>WORD: {guess}</b>\n"
+            f"<b>POINTS: +{points} 💎</b>\n\n"
+            "◽ <i>Added to your score!</i>"
+        )
+
+        await msg.reply_text(
+            unlock_text,
+            parse_mode="HTML",
+            reply_markup=reply_kb,
+            auto_delete=False,
+        )
+
+        if all_found:
+            remove_active_grid_game(chat_id, thread_id)
+            final_caption = build_caption(words, is_completed=True)
+            await chat.send_message(
+                f"🎉 <b>Word Grid Challenge Completed!</b>\n\n{final_caption}",
                 parse_mode="HTML",
+                message_thread_id=thread_id if chat.is_forum else None,
                 auto_delete=False,
             )
-            return True
 
-        # Send feedback for the found word
-        await msg.reply_text(
-            f"🎉 <b>Nice find!</b> <a href=\"tg://user?id={user.id}\">{html.escape(u_name)}</a> found <b>{guess}</b>! (+25 💰)",
-            parse_mode="HTML",
-            auto_delete=True,
-            delete_after=8,
-        )
         return True
 
     return False

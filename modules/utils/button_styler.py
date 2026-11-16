@@ -50,8 +50,9 @@ def to_name_style(text: str) -> str:
 
     # Strip emojis and supplementary symbols
     cleaned = re.sub(r'[\U00010000-\U0010ffff]', '', plain)
-    # Strip symbols and pictographs, arrows, geometric shapes
+    # Strip symbols and pictographs, arrows, geometric shapes, variation selectors
     cleaned = re.sub(r'[\u2000-\u32ff]', '', cleaned)
+    cleaned = re.sub(r'[\ufe00-\ufe0f]', '', cleaned)
     cleaned = re.sub(r'[\u00ab\u00bb\u2039\u203a]', '', cleaned)
     # Strip ASCII punctuation and symbols except alphanumerics
     cleaned = re.sub(r'[\u0021-\u002f\u003a-\u0040\u005b-\u0060\u007b-\u007e]', ' ', cleaned)
