@@ -3,7 +3,6 @@ user_data.json
 *.json
 !app.json
 !assets/wordseek/*.json
-!assets/word_chain_dict.json
 *.log
 *.db-shm
 *.db-wal

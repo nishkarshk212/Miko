@@ -45,6 +45,19 @@ def _init_db():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS wordseek_active_games (
+                chat_id TEXT,
+                topic_id TEXT,
+                word TEXT,
+                length INTEGER,
+                started_by INTEGER,
+                started_by_name TEXT,
+                guesses TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (chat_id, topic_id)
+            )
+        """)
     print("✅ Local VPS SQLite Storage Initialized Successfully!")
 
 
@@ -419,3 +432,94 @@ def get_wordseek_user_score(user_id: int, chat_id: Optional[int] = None) -> Dict
     except Exception as e:
         print(f"Error getting user wordseek score: {e}")
         return {"totalScore": 0, "rank": "-"}
+
+
+# --- ACTIVE WORDSEEK GAMES PERSISTENCE ---
+
+def save_active_wordseek_game(chat_id: int, topic_id: Optional[Any], game: Dict[str, Any]) -> None:
+    try:
+        t_id = str(topic_id) if topic_id else "general"
+        conn = _get_conn()
+        with conn:
+            conn.execute(
+                """
+                INSERT OR REPLACE INTO wordseek_active_games
+                (chat_id, topic_id, word, length, started_by, started_by_name, guesses)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    str(chat_id),
+                    t_id,
+                    game.get("word", ""),
+                    int(game.get("length", 5)),
+                    int(game.get("started_by", 0)),
+                    game.get("started_by_name", "User"),
+                    json.dumps(game.get("guesses", [])),
+                ),
+            )
+    except Exception as e:
+        print(f"Error saving active wordseek game: {e}")
+
+
+def get_active_wordseek_game_db(chat_id: int, topic_id: Optional[Any] = None) -> Optional[Dict[str, Any]]:
+    try:
+        t_id = str(topic_id) if topic_id else "general"
+        conn = _get_conn()
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT word, length, started_by, started_by_name, guesses FROM wordseek_active_games WHERE chat_id = ? AND topic_id = ?",
+            (str(chat_id), t_id),
+        )
+        row = cur.fetchone()
+        if not row and t_id != "general":
+            cur.execute(
+                "SELECT word, length, started_by, started_by_name, guesses FROM wordseek_active_games WHERE chat_id = ? AND topic_id = 'general'",
+                (str(chat_id),),
+            )
+            row = cur.fetchone()
+
+        if row:
+            guesses = []
+            try:
+                guesses = json.loads(row[4])
+            except Exception:
+                pass
+            return {
+                "word": row[0],
+                "length": row[1],
+                "started_by": row[2],
+                "started_by_name": row[3],
+                "guesses": guesses,
+                "chat_id": chat_id,
+                "thread_id": topic_id,
+            }
+    except Exception as e:
+        print(f"Error fetching active wordseek game from DB: {e}")
+    return None
+
+
+def delete_active_wordseek_game_db(chat_id: int, topic_id: Optional[Any] = None) -> None:
+    try:
+        t_id = str(topic_id) if topic_id else "general"
+        conn = _get_conn()
+        with conn:
+            conn.execute(
+                "DELETE FROM wordseek_active_games WHERE chat_id = ? AND (topic_id = ? OR topic_id = 'general')",
+                (str(chat_id), t_id),
+            )
+    except Exception as e:
+        print(f"Error deleting active wordseek game: {e}")
+
+
+def update_wordseek_guesses_db(chat_id: int, topic_id: Optional[Any], guesses: List[str]) -> None:
+    try:
+        t_id = str(topic_id) if topic_id else "general"
+        conn = _get_conn()
+        with conn:
+            conn.execute(
+                "UPDATE wordseek_active_games SET guesses = ? WHERE chat_id = ? AND topic_id = ?",
+                (json.dumps(guesses), str(chat_id), t_id),
+            )
+    except Exception as e:
+        print(f"Error updating wordseek guesses: {e}")
+

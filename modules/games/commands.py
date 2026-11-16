@@ -33,11 +33,6 @@ from modules.games.secret_game import (
     cmd_secret_stop,
     cmd_secret_rank,
 )
-from modules.games.word_chain import (
-    cmd_word_chain,
-    cmd_chain_join,
-    cmd_chain_cancel,
-)
 
 
 async def ludo(update, context):
@@ -117,16 +112,9 @@ async def cmd_unified_join(update: Update, context: ContextTypes.DEFAULT_TYPE):
     from modules.games.poker_game import POKER_GAMES
     from modules.games.roulette_game import ROULETTE_GAMES
     from modules.games.bomb_game import BOMB_GAMES
-    from modules.games.word_chain import get_chain_game
 
     chat = update.effective_chat
     if not chat or chat.type == "private":
-        return
-
-    thread_id = getattr(update.effective_message, "message_thread_id", None)
-    _, chain_game = get_chain_game(chat.id, thread_id)
-    if chain_game and chain_game.get("state") == "lobby":
-        await cmd_chain_join(update, context)
         return
 
     chat_id = chat.id
@@ -137,7 +125,7 @@ async def cmd_unified_join(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif chat_id in BOMB_GAMES:
         await cmd_joinbomb(update, context)
     else:
-        await update.message.reply_text("⚠️ No active Poker, Roulette, Bomb, or Word Chain lobby to join.")
+        await update.message.reply_text("⚠️ No active Poker, Roulette or Bomb game lobby to join.")
 
 
 # Unified guess handler to support `/guess` in Word Quiz, Secret Game, and Hack games
@@ -169,13 +157,6 @@ async def cmd_unified_end(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     from modules.games.wordseek_game import ACTIVE_WORDSEEK_GAMES, cmd_end as ws_end
     from modules.games.hack_game import HACK_GAMES
-    from modules.games.word_chain import get_chain_game
-
-    thread_id = getattr(update.effective_message, "message_thread_id", None)
-    _, chain_game = get_chain_game(chat.id, thread_id)
-    if chain_game:
-        await cmd_chain_cancel(update, context)
-        return
 
     if chat.id in ACTIVE_WORDSEEK_GAMES:
         await ws_end(update, context)
@@ -278,12 +259,4 @@ HANDLERS = {
     "truth": truth,
     "dare": dare,
     "puzzle": puzzle,
-
-    # Word Chain Game
-    "wordchain": cmd_word_chain,
-    "chain": cmd_word_chain,
-    "chainjoin": cmd_chain_join,
-    "chaincancel": cmd_chain_cancel,
-    "chainstop": cmd_chain_cancel,
-    "endchain": cmd_chain_cancel,
 }

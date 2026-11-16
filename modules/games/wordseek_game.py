@@ -9,7 +9,15 @@ from typing import Dict, Any, Optional, List, Set
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 
-from modules.utils.db import add_wordseek_score, get_wordseek_leaderboard, get_wordseek_user_score
+from modules.utils.db import (
+    add_wordseek_score,
+    get_wordseek_leaderboard,
+    get_wordseek_user_score,
+    save_active_wordseek_game,
+    get_active_wordseek_game_db,
+    delete_active_wordseek_game_db,
+    update_wordseek_guesses_db,
+)
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 DATA_DIR = os.path.join(BASE_DIR, "assets", "wordseek")
@@ -89,12 +97,23 @@ def get_active_game(chat_id: int, thread_id: Optional[int] = None) -> tuple[Opti
     for k in _game_keys(chat_id, thread_id):
         if k in ACTIVE_WORDSEEK_GAMES:
             return k, ACTIVE_WORDSEEK_GAMES[k]
+
+    # Fallback to persistent SQLite DB
+    db_game = get_active_wordseek_game_db(chat_id, thread_id)
+    if db_game:
+        primary_key = f"{chat_id}_{thread_id}" if thread_id else chat_id
+        ACTIVE_WORDSEEK_GAMES[primary_key] = db_game
+        ACTIVE_WORDSEEK_GAMES[chat_id] = db_game
+        ACTIVE_WORDSEEK_GAMES[str(chat_id)] = db_game
+        return primary_key, db_game
+
     return None, None
 
 
 def remove_active_game(chat_id: int, thread_id: Optional[int] = None) -> None:
     for k in _game_keys(chat_id, thread_id):
         ACTIVE_WORDSEEK_GAMES.pop(k, None)
+    delete_active_wordseek_game_db(chat_id, thread_id)
 
 
 BUTTON_STYLE = {
@@ -171,7 +190,13 @@ async def reply_rich_message(bot, chat_id: int, html_content: str, thread_id: Op
     }
     if thread_id:
         data["message_thread_id"] = thread_id
-    return await bot._post("sendRichMessage", data=data)
+    try:
+        return await bot._post("sendRichMessage", data=data)
+    except Exception as e:
+        if thread_id:
+            data.pop("message_thread_id", None)
+            return await bot._post("sendRichMessage", data=data)
+        raise e
 
 
 def render_guess_row_text(guess: str, solution: str) -> str:
@@ -192,11 +217,12 @@ def build_guess_buttons(guesses: List[str], solution: str) -> List[List[InlineKe
     row = []
     for i, ch in enumerate(latest_guess.upper()):
         state = states[i]
-        icon = "🟩" if state == "correct" else ("🟨" if state == "present" else "⬛")
+        btn_style = "success" if state == "correct" else ("danger" if state == "absent" else "primary")
         row.append(
             InlineKeyboardButton(
-                text=f"{icon} {ch}",
+                text=ch,
                 callback_data=f"wh:{state}:{ch}",
+                api_kwargs={"style": btn_style},
             )
         )
     return [row]
@@ -253,6 +279,7 @@ async def start_game(
     # Also save under chat_id and str(chat_id) for instant lookup
     ACTIVE_WORDSEEK_GAMES[chat_id] = ACTIVE_WORDSEEK_GAMES[primary_key]
     ACTIVE_WORDSEEK_GAMES[str(chat_id)] = ACTIVE_WORDSEEK_GAMES[primary_key]
+    save_active_wordseek_game(chat_id, thread_id, ACTIVE_WORDSEEK_GAMES[primary_key])
 
     await update.message.reply_text(
         f"Game started! Guess the {word_length}-letter word!",
@@ -424,6 +451,7 @@ async def check_wordseek_chat_message(update: Update, context: ContextTypes.DEFA
     # Register guess
     game["guesses"].append(current_guess)
     all_guesses = game["guesses"]
+    update_wordseek_guesses_db(chat_id, thread_id, all_guesses)
 
     # Check if max guesses (30) reached
     if len(all_guesses) >= 30:

@@ -43,8 +43,10 @@ from modules.management.commands import MANAGEMENT_COMMANDS, handle_prefix_comma
 from modules.ai.chatbot import chatbot_handler, dm_chatbot_handler, cmd_chatbot
 from modules.social.whisper import inline_whisper_handler, whisper_callback_handler
 from modules.utils.auto_delete import setup_auto_delete, schedule_auto_delete
+from modules.utils.button_styler import patch_inline_keyboard_button
 
 setup_auto_delete()
+patch_inline_keyboard_button()
 
 
 async def pfp(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -423,11 +425,6 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if data.startswith("wh:"):
         from modules.games.wordseek_game import wordseek_callback_handler
         if await wordseek_callback_handler(update, context):
-            return
-
-    if data.startswith("chain_"):
-        from modules.games.word_chain import word_chain_callback_handler
-        if await word_chain_callback_handler(update, context):
             return
 
     if data.startswith("welcome_toggle:"):
@@ -1031,10 +1028,6 @@ async def post_init(app):
 
 
 async def word_quiz_message_watcher(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    from modules.games.word_chain import check_word_chain_chat_message
-    if await check_word_chain_chat_message(update, context):
-        raise ApplicationHandlerStop()
-
     from modules.games.wordseek_game import check_wordseek_chat_message
     if await check_wordseek_chat_message(update, context):
         raise ApplicationHandlerStop()
