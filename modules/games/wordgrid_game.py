@@ -21,7 +21,8 @@ from modules.utils.db import (
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 DATA_DIR = os.path.join(BASE_DIR, "assets", "wordseek")
-FONT_PATH = os.path.join(BASE_DIR, "assets", "fonts", "roboto.ttf")
+FONT_BOLD_PATH = os.path.join(BASE_DIR, "assets", "fonts", "Roboto-Bold.ttf")
+FONT_REGULAR_PATH = os.path.join(BASE_DIR, "assets", "fonts", "roboto.ttf")
 
 COMMON_THREE = [
     "MOT", "CAT", "DOG", "SUN", "CAR", "DAY", "MAN", "BOY", "RED", "SKY",
@@ -71,14 +72,14 @@ DIRECTIONS = [
 
 
 WORD_COLOR_PALETTE = [
-    {"fill": "#14532d", "outline": "#22c55e", "text": "#86efac", "emoji": "🟢"},  # Green
-    {"fill": "#7f1d1d", "outline": "#ef4444", "text": "#fca5a5", "emoji": "🔴"},  # Red
-    {"fill": "#713f12", "outline": "#eab308", "text": "#fde047", "emoji": "🟡"},  # Yellow
-    {"fill": "#1e3a8a", "outline": "#3b82f6", "text": "#93c5fd", "emoji": "🔵"},  # Blue
-    {"fill": "#581c87", "outline": "#a855f7", "text": "#d8b4fe", "emoji": "🟣"},  # Purple
-    {"fill": "#7c2d12", "outline": "#f97316", "text": "#fdba74", "emoji": "🟠"},  # Orange
-    {"fill": "#134e4a", "outline": "#14b8a6", "text": "#5eead4", "emoji": "🩵"},  # Cyan
-    {"fill": "#831843", "outline": "#ec4899", "text": "#f472b6", "emoji": "💖"},  # Pink
+    {"rgb": (34, 197, 94), "hex": "#22c55e"},   # Green
+    {"rgb": (239, 68, 68), "hex": "#ef4444"},   # Red
+    {"rgb": (234, 179, 8), "hex": "#eab308"},   # Yellow
+    {"rgb": (59, 130, 246), "hex": "#3b82f6"},  # Blue
+    {"rgb": (168, 85, 247), "hex": "#a855f7"},  # Purple
+    {"rgb": (249, 115, 22), "hex": "#f97316"},  # Orange
+    {"rgb": (6, 182, 212), "hex": "#06b6d4"},   # Cyan
+    {"rgb": (236, 72, 153), "hex": "#ec4899"},  # Pink
 ]
 
 
@@ -162,69 +163,112 @@ def render_grid_image(
     found_positions: Optional[List[Tuple[int, int]]] = None,
     words_dict: Optional[Dict[str, Any]] = None,
 ) -> bytes:
-    """Renders high-resolution dark grid image with multi-colored found cells (green, red, yellow, etc.)."""
+    """Renders high-resolution dark grid image with multi-colored highlighter lines through found words."""
     size = len(grid)
     cell_size = 64
     padding = 24
     w = size * cell_size + padding * 2
     h = size * cell_size + padding * 2
 
-    img = Image.new("RGB", (w, h), color="#07080b")
-    draw = ImageDraw.Draw(img)
+    base = Image.new("RGBA", (w, h), color=(10, 12, 16, 255))
+    draw_base = ImageDraw.Draw(base)
 
-    # Rounded outer border / card
-    draw.rounded_rectangle([padding - 6, padding - 6, w - padding + 6, h - padding + 6], radius=16, outline="#222634", width=3)
+    # Outer rounded card border
+    draw_base.rounded_rectangle(
+        [padding - 8, padding - 8, w - padding + 8, h - padding + 8],
+        radius=16,
+        outline=(34, 38, 52, 255),
+        width=3,
+    )
 
-    if os.path.exists(FONT_PATH):
-        font = ImageFont.truetype(FONT_PATH, 32)
-    else:
-        try:
-            font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 32)
-        except Exception:
-            font = ImageFont.load_default()
-
-    cell_style: Dict[Tuple[int, int], Dict[str, str]] = {}
-    if words_dict:
-        for word, info in words_dict.items():
-            if info.get("found_by"):
-                c_idx = info.get("color_idx", 0) % len(WORD_COLOR_PALETTE)
-                style = WORD_COLOR_PALETTE[c_idx]
-                for p in info.get("positions", []):
-                    cell_style[tuple(p)] = style
-    elif found_positions:
-        default_style = WORD_COLOR_PALETTE[0]
-        for p in found_positions:
-            cell_style[tuple(p)] = default_style
-
+    # Grid cell lines
     for r in range(size):
         for c in range(size):
             x1 = padding + c * cell_size
             y1 = padding + r * cell_size
             x2 = x1 + cell_size
             y2 = y1 + cell_size
+            draw_base.rectangle([x1, y1, x2, y2], outline=(24, 27, 36, 255), width=1)
 
+    # Highlighter lines overlay
+    overlay = Image.new("RGBA", (w, h), color=(0, 0, 0, 0))
+    draw_over = ImageDraw.Draw(overlay)
+
+    capsule_w = 46
+    radius = capsule_w // 2
+
+    if words_dict:
+        for word, info in words_dict.items():
+            if not info.get("found_by"):
+                continue
+            positions = info.get("positions", [])
+            if not positions:
+                continue
+            r0, c0 = positions[0]
+            r1, c1 = positions[-1]
+            c_idx = info.get("color_idx", 0) % len(WORD_COLOR_PALETTE)
+            rgb = WORD_COLOR_PALETTE[c_idx]["rgb"]
+
+            x0 = padding + c0 * cell_size + cell_size // 2
+            y0 = padding + r0 * cell_size + cell_size // 2
+            x1 = padding + c1 * cell_size + cell_size // 2
+            y1 = padding + r1 * cell_size + cell_size // 2
+
+            fill_rgba = (*rgb, 150)
+            stroke_rgba = (*rgb, 230)
+
+            # Draw capsule body & round caps
+            draw_over.line([(x0, y0), (x1, y1)], fill=fill_rgba, width=capsule_w)
+            draw_over.ellipse([x0 - radius, y0 - radius, x0 + radius, y0 + radius], fill=fill_rgba)
+            draw_over.ellipse([x1 - radius, y1 - radius, x1 + radius, y1 + radius], fill=fill_rgba)
+
+            # Draw crisp center line
+            draw_over.line([(x0, y0), (x1, y1)], fill=stroke_rgba, width=4)
+            draw_over.ellipse([x0 - 2, y0 - 2, x0 + 2, y0 + 2], fill=stroke_rgba)
+            draw_over.ellipse([x1 - 2, y1 - 2, x1 + 2, y1 + 2], fill=stroke_rgba)
+
+    # Composite overlay over base
+    combined = Image.alpha_composite(base, overlay)
+    draw_final = ImageDraw.Draw(combined)
+
+    # Load crisp bold font
+    font = None
+    if os.path.exists(FONT_BOLD_PATH):
+        try:
+            font = ImageFont.truetype(FONT_BOLD_PATH, 30)
+        except Exception:
+            pass
+    if not font and os.path.exists(FONT_REGULAR_PATH):
+        try:
+            font = ImageFont.truetype(FONT_REGULAR_PATH, 30)
+        except Exception:
+            pass
+    if not font:
+        try:
+            font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 30)
+        except Exception:
+            font = ImageFont.load_default()
+
+    # Draw letters in crisp white on top of lines
+    for r in range(size):
+        for c in range(size):
             letter = grid[r][c].upper()
-            bbox = draw.textbbox((0, 0), letter, font=font)
+            bbox = draw_final.textbbox((0, 0), letter, font=font)
             tw = bbox[2] - bbox[0]
             th = bbox[3] - bbox[1]
+            x1 = padding + c * cell_size
+            y1 = padding + r * cell_size
             tx = x1 + (cell_size - tw) / 2
             ty = y1 + (cell_size - th) / 2 - 2
-
-            if (r, c) in cell_style:
-                st = cell_style[(r, c)]
-                draw.rounded_rectangle([x1 + 3, y1 + 3, x2 - 3, y2 - 3], radius=8, fill=st["fill"], outline=st["outline"], width=2)
-                draw.text((tx, ty), letter, fill=st["text"], font=font)
-            else:
-                draw.rectangle([x1, y1, x2, y2], outline="#181a22", width=1)
-                draw.text((tx, ty), letter, fill="#ffffff", font=font)
+            draw_final.text((tx, ty), letter, fill=(255, 255, 255, 255), font=font)
 
     buf = io.BytesIO()
-    img.save(buf, format="PNG")
+    combined.convert("RGB").save(buf, format="PNG")
     return buf.getvalue()
 
 
 def build_caption(words_dict: Dict[str, Any], is_completed: bool = False) -> str:
-    """Builds the challenge caption matching the user's design with multi-colored emoji indicators."""
+    """Builds the challenge caption with clean text without color emojis."""
     sorted_words = sorted(words_dict.items(), key=lambda x: (len(x[0]), x[0]))
 
     clue_lines: List[str] = []
@@ -236,12 +280,10 @@ def build_caption(words_dict: Dict[str, Any], is_completed: bool = False) -> str
         if info.get("found_by"):
             found_count += 1
             u_name = info.get("found_by_name", "User")
-            c_idx = info.get("color_idx", 0) % len(WORD_COLOR_PALETTE)
-            emoji = WORD_COLOR_PALETTE[c_idx]["emoji"]
-            clue_lines.append(f"{emoji} <s><b>{word}</b></s> ({w_len}) • {html.escape(u_name)}")
+            clue_lines.append(f"<s><b>{word}</b></s> ({w_len}) • {html.escape(u_name)}")
         else:
             clue = word[0] + "-" * (w_len - 1)
-            clue_lines.append(f"<b>{clue}</b>  ({w_len})")
+            clue_lines.append(f"<b>{clue}</b> ({w_len})")
 
     clues_text = "\n".join(clue_lines)
 
@@ -280,8 +322,8 @@ def build_keyboard(chat_id: int, thread_id: Optional[int] = None) -> InlineKeybo
     t_key = f"{chat_id}_{thread_id}" if thread_id else str(chat_id)
     return InlineKeyboardMarkup([
         [
-            InlineKeyboardButton("🔄 Refresh Grid", callback_data=f"wg_refresh:{t_key}"),
-            InlineKeyboardButton("❌ End Game", callback_data=f"wg_end:{t_key}"),
+            InlineKeyboardButton("Refresh Grid", callback_data=f"wg_refresh:{t_key}"),
+            InlineKeyboardButton("End Game", callback_data=f"wg_end:{t_key}"),
         ]
     ])
 
@@ -344,7 +386,8 @@ async def cmd_wordgrid(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = build_keyboard(chat_id, thread_id)
 
     sent_msg = await chat.send_photo(
-        photo=image_bytes,
+        photo=io.BytesIO(image_bytes),
+        filename="wordgrid.png",
         caption=caption,
         parse_mode="HTML",
         reply_markup=keyboard,
@@ -483,7 +526,7 @@ async def check_wordgrid_chat_message(update: Update, context: ContextTypes.DEFA
                 await context.bot.edit_message_media(
                     chat_id=chat_id,
                     message_id=game["message_id"],
-                    media=InputMediaPhoto(media=updated_image, caption=updated_caption, parse_mode="HTML"),
+                    media=InputMediaPhoto(media=io.BytesIO(updated_image), filename="wordgrid.png", caption=updated_caption, parse_mode="HTML"),
                     reply_markup=grid_kb,
                 )
             except Exception as e:
@@ -497,7 +540,7 @@ async def check_wordgrid_chat_message(update: Update, context: ContextTypes.DEFA
             grid_url = f"https://t.me/c/{clean_cid}/{game['message_id']}"
 
         reply_buttons = [
-            [InlineKeyboardButton("Go to Grid ➡️", url=grid_url)]
+            [InlineKeyboardButton("Go to Grid", url=grid_url)]
         ]
 
         # Add verification button if playing as unlinked anonymous admin
@@ -512,9 +555,6 @@ async def check_wordgrid_chat_message(update: Update, context: ContextTypes.DEFA
 
         reply_kb = InlineKeyboardMarkup(reply_buttons)
 
-        c_idx = info.get("color_idx", 0) % len(WORD_COLOR_PALETTE)
-        emoji = WORD_COLOR_PALETTE[c_idx]["emoji"]
-
         user_tag = (
             f'<a href="tg://user?id={eff_user_id}">{html.escape(eff_name)}</a>'
             if isinstance(eff_user_id, int) and eff_user_id != 1087968824
@@ -524,7 +564,7 @@ async def check_wordgrid_chat_message(update: Update, context: ContextTypes.DEFA
         unlock_text = (
             f"💎 <b>WORD UNLOCKED!</b>\n\n"
             f"👤 {user_tag}\n\n"
-            f"<b>WORD: {guess}</b> {emoji}\n"
+            f"<b>WORD: {guess}</b>\n"
             f"<b>POINTS: +{points} 💎</b>\n\n"
             f"◽ <i>Added to your score!</i>{anon_notice}"
         )
@@ -581,7 +621,7 @@ async def wordgrid_callback_handler(update: Update, context: ContextTypes.DEFAUL
 
         try:
             await query.edit_message_media(
-                media=InputMediaPhoto(media=updated_image, caption=updated_caption, parse_mode="HTML"),
+                media=InputMediaPhoto(media=io.BytesIO(updated_image), filename="wordgrid.png", caption=updated_caption, parse_mode="HTML"),
                 reply_markup=keyboard,
             )
             found_count = sum(1 for w in game["words"].values() if w.get("found_by"))
