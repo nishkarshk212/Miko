@@ -136,23 +136,28 @@ def render_guess_row_text(guess: str, solution: str) -> str:
 
 
 def build_guess_buttons(guesses: List[str], solution: str) -> List[List[InlineKeyboardButton]]:
-    """Builds inline keyboard letter tiles for latest guesses with wh:{state}:{letter} callback."""
-    if not guesses:
-        return []
-    # Show buttons for the most recent guess so players can tap letters for hints
-    latest_guess = guesses[-1]
-    states = evaluate_guess(latest_guess, solution)
-    row = []
-    for i, ch in enumerate(latest_guess.upper()):
-        state = states[i]
-        icon = "🟩" if state == "correct" else ("🟨" if state == "present" else "⬛")
-        row.append(
-            InlineKeyboardButton(
-                text=f"{icon} {ch}",
-                callback_data=f"wh:{state}:{ch}",
+    """Builds inline keyboard letter tiles for all guesses matching WordSeek button styling."""
+    rows = []
+    # Up to last 25 guesses
+    for guess in guesses[-25:]:
+        states = evaluate_guess(guess, solution)
+        row = []
+        for i, ch in enumerate(guess.upper()):
+            state = states[i]
+            # Telegram Bot API 9.4+ button styles:
+            # "success" -> Green (correct spot)
+            # "primary" -> Blue (present/misplaced)
+            # "danger" -> Red (not in word)
+            style = "success" if state == "correct" else ("primary" if state == "present" else "danger")
+            row.append(
+                InlineKeyboardButton(
+                    text=ch,
+                    callback_data=f"wh:{state}:{ch}",
+                    api_kwargs={"style": style},
+                )
             )
-        )
-    return [row]
+        rows.append(row)
+    return rows
 
 
 async def start_game(
@@ -388,30 +393,30 @@ async def check_wordseek_chat_message(update: Update, context: ContextTypes.DEFA
         )
         return True
 
-    # Format feedback for ongoing game
+    # Format feedback for ongoing game matching exact WordSeek screenshot
     mode_label = MODE_LABEL.get(word_length, f"{word_length}-letter mode")
-    rows_text = []
-    # Show last 6 guesses to keep chat clean and readable
-    visible_guesses = all_guesses[-6:]
-    for g in visible_guesses:
-        rows_text.append(render_guess_row_text(g, game["word"]))
-
-    board_display = "\n".join(rows_text)
     feedback_text = (
         f"<b>{mode_label}</b>\n"
-        f"<i>{len(all_guesses)}/30 guesses</i>\n\n"
-        f"{board_display}"
+        f"<i>{len(all_guesses)}/30 guesses</i>"
     )
 
     buttons = build_guess_buttons(all_guesses, game["word"])
     reply_markup = InlineKeyboardMarkup(buttons) if buttons else None
 
-    await msg.reply_text(
+    # Delete previous board message if exists to keep chat clean and board at bottom
+    if game.get("board_msg_id"):
+        try:
+            await context.bot.delete_message(chat_id=chat.id, message_id=game["board_msg_id"])
+        except Exception:
+            pass
+
+    board_msg = await msg.reply_text(
         feedback_text,
         parse_mode="HTML",
         reply_markup=reply_markup,
         auto_delete=False,
     )
+    game["board_msg_id"] = board_msg.message_id
     return True
 
 

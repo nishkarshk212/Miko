@@ -425,6 +425,11 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if await wordseek_callback_handler(update, context):
             return
 
+    if data.startswith("chain_"):
+        from modules.games.word_chain import word_chain_callback_handler
+        if await word_chain_callback_handler(update, context):
+            return
+
     if data.startswith("welcome_toggle:"):
         parts = data.split(":")
         try:
@@ -1026,6 +1031,10 @@ async def post_init(app):
 
 
 async def word_quiz_message_watcher(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    from modules.games.word_chain import check_word_chain_chat_message
+    if await check_word_chain_chat_message(update, context):
+        raise ApplicationHandlerStop()
+
     from modules.games.wordseek_game import check_wordseek_chat_message
     if await check_wordseek_chat_message(update, context):
         raise ApplicationHandlerStop()
