@@ -97,6 +97,26 @@ def remove_active_game(chat_id: int, thread_id: Optional[int] = None) -> None:
         ACTIVE_WORDSEEK_GAMES.pop(k, None)
 
 
+BUTTON_STYLE = {
+    "correct": "success",
+    "present": None,
+    "absent": "danger",
+}
+
+ZERO_WIDTH = [
+    "\u200B",  # zero width space
+    "\u200C",  # zero width non-joiner
+    "\u200D",  # zero width joiner
+    "\u2060",  # word joiner
+    "\uFEFF",  # zero width no-break space
+]
+
+
+def zero_width_noise(min_c: int = 1, max_c: int = 6) -> str:
+    count = random.randint(min_c, max_c)
+    return "".join(random.choice(ZERO_WIDTH) for _ in range(count))
+
+
 def evaluate_guess(guess: str, solution: str) -> List[str]:
     """
     Exact word evaluation from original WordSeek:
@@ -126,6 +146,34 @@ def evaluate_guess(guess: str, solution: str) -> List[str]:
     return result
 
 
+def render_guess_row(guess: str, solution: str) -> str:
+    states = evaluate_guess(guess, solution)
+    buttons = []
+    for i, letter in enumerate(guess.upper()):
+        state = states[i]
+        style = BUTTON_STYLE[state]
+        style_attr = f' style="{style}"' if style else ""
+        label = f"{zero_width_noise()}{letter}{zero_width_noise()}"
+        buttons.append(f'<tg-button type="callback_data"{style_attr} data="wh:{state}:{letter}">{label}</tg-button>')
+    return f"<p>{''.join(buttons)}</p>"
+
+
+def build_rich_feedback(guesses: List[str], solution: str, mode_label: str) -> str:
+    rows = "".join(render_guess_row(g, solution) for g in guesses)
+    return f"<h3>{mode_label}</h3><p><i>{len(guesses)}/30 guesses</i></p>{rows}"
+
+
+async def reply_rich_message(bot, chat_id: int, html_content: str, thread_id: Optional[int] = None):
+    """Sends Telegram RichMessage with tg-button HTML elements."""
+    data = {
+        "chat_id": chat_id,
+        "rich_message": {"html": html_content},
+    }
+    if thread_id:
+        data["message_thread_id"] = thread_id
+    return await bot._post("sendRichMessage", data=data)
+
+
 def render_guess_row_text(guess: str, solution: str) -> str:
     states = evaluate_guess(guess, solution)
     symbols = {"correct": "🟩", "present": "🟨", "absent": "⬛"}
@@ -136,28 +184,22 @@ def render_guess_row_text(guess: str, solution: str) -> str:
 
 
 def build_guess_buttons(guesses: List[str], solution: str) -> List[List[InlineKeyboardButton]]:
-    """Builds inline keyboard letter tiles for all guesses matching WordSeek button styling."""
-    rows = []
-    # Up to last 25 guesses
-    for guess in guesses[-25:]:
-        states = evaluate_guess(guess, solution)
-        row = []
-        for i, ch in enumerate(guess.upper()):
-            state = states[i]
-            # Telegram Bot API 9.4+ button styles:
-            # "success" -> Green (correct spot)
-            # "primary" -> Blue (present/misplaced)
-            # "danger" -> Red (not in word)
-            style = "success" if state == "correct" else ("primary" if state == "present" else "danger")
-            row.append(
-                InlineKeyboardButton(
-                    text=ch,
-                    callback_data=f"wh:{state}:{ch}",
-                    api_kwargs={"style": style},
-                )
+    """Builds inline keyboard letter tiles for latest guesses with wh:{state}:{letter} callback."""
+    if not guesses:
+        return []
+    latest_guess = guesses[-1]
+    states = evaluate_guess(latest_guess, solution)
+    row = []
+    for i, ch in enumerate(latest_guess.upper()):
+        state = states[i]
+        icon = "🟩" if state == "correct" else ("🟨" if state == "present" else "⬛")
+        row.append(
+            InlineKeyboardButton(
+                text=f"{icon} {ch}",
+                callback_data=f"wh:{state}:{ch}",
             )
-        rows.append(row)
-    return rows
+        )
+    return [row]
 
 
 async def start_game(
@@ -393,30 +435,29 @@ async def check_wordseek_chat_message(update: Update, context: ContextTypes.DEFA
         )
         return True
 
-    # Format feedback for ongoing game matching exact WordSeek screenshot
+    # Format feedback for ongoing game using exact WordSeek rich HTML layout
     mode_label = MODE_LABEL.get(word_length, f"{word_length}-letter mode")
-    feedback_text = (
-        f"<b>{mode_label}</b>\n"
-        f"<i>{len(all_guesses)}/30 guesses</i>"
-    )
+    rich_html = build_rich_feedback(all_guesses, game["word"], mode_label)
 
-    buttons = build_guess_buttons(all_guesses, game["word"])
-    reply_markup = InlineKeyboardMarkup(buttons) if buttons else None
-
-    # Delete previous board message if exists to keep chat clean and board at bottom
-    if game.get("board_msg_id"):
-        try:
-            await context.bot.delete_message(chat_id=chat.id, message_id=game["board_msg_id"])
-        except Exception:
-            pass
-
-    board_msg = await msg.reply_text(
-        feedback_text,
-        parse_mode="HTML",
-        reply_markup=reply_markup,
-        auto_delete=False,
-    )
-    game["board_msg_id"] = board_msg.message_id
+    try:
+        await reply_rich_message(context.bot, chat.id, rich_html, thread_id)
+    except Exception as e:
+        print(f"sendRichMessage failed, fallback to text: {e}")
+        rows_text = [render_guess_row_text(g, game["word"]) for g in all_guesses[-6:]]
+        board_display = "\n".join(rows_text)
+        feedback_text = (
+            f"<b>{mode_label}</b>\n"
+            f"<i>{len(all_guesses)}/30 guesses</i>\n\n"
+            f"{board_display}"
+        )
+        buttons = build_guess_buttons(all_guesses, game["word"])
+        reply_markup = InlineKeyboardMarkup(buttons) if buttons else None
+        await msg.reply_text(
+            feedback_text,
+            parse_mode="HTML",
+            reply_markup=reply_markup,
+            auto_delete=False,
+        )
     return True
 
 
