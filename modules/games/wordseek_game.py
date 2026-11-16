@@ -536,7 +536,7 @@ async def cmd_score(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     name = html.escape(user.first_name or "User")
-    mention_link = f'<a href="https://t.me/{user.username}">{name}</a>' if user.username else name
+    mention_link = f'<a href="tg://user?id={user.id}">{name}</a>'
 
     score_data = get_wordseek_user_score(user.id, chat.id)
     total_score = f"{score_data['totalScore']:,}"
@@ -579,8 +579,10 @@ async def cmd_leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE):
     for index, entry in enumerate(scores):
         rank_icon = ["🥇", "🥈", "🥉"][index] if index < 3 else "🔅"
         entry_name = html.escape(entry["name"])
-        if entry.get("username"):
-            entry_name = f'<a href="https://t.me/{entry["username"]}">{entry_name}</a>'
+        if entry.get("userId"):
+            entry_name = f'<a href="tg://user?id={entry["userId"]}">{entry_name}</a>'
+        elif entry.get("username"):
+            entry_name = f'@{entry["username"]}'
         lines.append(f"{rank_icon} {entry_name} - {entry['totalScore']:,} pts")
 
     formatted_entries = f"<blockquote>" + "\n".join(lines) + "</blockquote>"

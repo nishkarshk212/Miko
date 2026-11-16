@@ -67,6 +67,8 @@ def setup_auto_delete(delay: int = AUTO_DELETE_DELAY) -> None:
             async def wrapped(self: Message, *args, **kwargs):
                 auto_del = kwargs.pop("auto_delete", True)
                 custom_delay = kwargs.pop("delete_after", delay)
+                if method_name in ("reply_text", "reply_html", "reply_markdown", "reply_markdown_v2"):
+                    kwargs.setdefault("disable_web_page_preview", True)
 
                 sent_msg = await original_method(self, *args, **kwargs)
 

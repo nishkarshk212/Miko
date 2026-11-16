@@ -9,6 +9,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppI
 from telegram.ext import (
     ApplicationBuilder,
     ApplicationHandlerStop,
+    Defaults,
     ContextTypes,
     CommandHandler,
     CallbackQueryHandler,
@@ -44,9 +45,11 @@ from modules.ai.chatbot import chatbot_handler, dm_chatbot_handler, cmd_chatbot
 from modules.social.whisper import inline_whisper_handler, whisper_callback_handler
 from modules.utils.auto_delete import setup_auto_delete, schedule_auto_delete
 from modules.utils.button_styler import patch_inline_keyboard_button
+from modules.utils.link_preview import disable_link_previews_globally
 
 setup_auto_delete()
 patch_inline_keyboard_button()
+disable_link_previews_globally()
 
 
 async def pfp(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -1086,6 +1089,7 @@ def main():
     app = (
         ApplicationBuilder()
         .token(BOT_TOKEN)
+        .defaults(Defaults(disable_web_page_preview=True))
         .read_timeout(30)
         .write_timeout(30)
         .connect_timeout(30)
