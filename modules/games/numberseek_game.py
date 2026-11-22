@@ -134,21 +134,9 @@ def render_guess_row(guess: str, solution: str) -> str:
 
 
 def build_rich_feedback(guesses: List[str], solution: str, length: int) -> str:
-    """Builds full rich HTML matching Number Seek layout with keypad & guess rows."""
-    digit_status = get_digit_statuses(guesses, solution)
-
-    def _btn(d: str) -> str:
-        st = digit_status[d]
-        style = "danger" if st == "absent" else "primary"
-        return f'<tg-button type="callback_data" style="{style}" data="ns_k:{d}">{d}</tg-button>'
-
-    row1 = "".join(_btn(d) for d in ["1", "2", "3", "4", "5"])
-    row2 = "".join(_btn(d) for d in ["6", "7", "8", "9", "0"])
-    keypad_html = f"<p>{row1}</p><p>{row2}</p>"
-
+    """Builds full rich HTML matching Number Seek layout with guess rows."""
     guess_rows = "".join(render_guess_row(g, solution) for g in guesses)
-
-    return f"<h3>Number Seek</h3><p><i>{len(guesses)}/30 guesses</i></p>{keypad_html}{guess_rows}"
+    return f"<h3>Number Seek</h3><p><i>{len(guesses)}/30 guesses</i></p>{guess_rows}"
 
 
 async def reply_rich_message(
