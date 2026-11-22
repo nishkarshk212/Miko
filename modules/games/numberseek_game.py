@@ -54,9 +54,9 @@ def remove_active_game(chat_id: int, thread_id: Optional[int] = None) -> None:
 
 BUTTON_STYLE = {
     "correct": "success",
-    "present": None,
+    "present": "primary",
     "absent": "danger",
-    "untouched": None,
+    "untouched": "primary",
 }
 
 ZERO_WIDTH = [
@@ -110,13 +110,14 @@ def get_digit_statuses(guesses: List[str], solution: str) -> Dict[str, str]:
     for g in guesses:
         evals = evaluate_number_guess(g, solution)
         for d, state in zip(g, evals):
-            curr = status[d]
-            if state == "correct":
-                status[d] = "correct"
-            elif state == "present" and curr != "correct":
-                status[d] = "present"
-            elif state == "absent" and curr == "untouched":
+            if d not in solution:
                 status[d] = "absent"
+            else:
+                curr = status[d]
+                if state == "correct":
+                    status[d] = "correct"
+                elif curr != "correct":
+                    status[d] = "present"
     return status
 
 
@@ -126,9 +127,9 @@ def render_guess_row(guess: str, solution: str) -> str:
     for i, digit in enumerate(guess):
         state = states[i]
         style = BUTTON_STYLE[state]
-        style_attr = f' style="{style}"' if style else ""
-        label = f"{zero_width_noise()}{digit}{zero_width_noise()}"
-        buttons.append(f'<tg-button type="callback_data"{style_attr} data="ns:{state}:{digit}">{label}</tg-button>')
+        buttons.append(
+            f'<tg-button type="callback_data" style="{style}" data="ns:{state}:{digit}">{digit}</tg-button>'
+        )
     return f"<p>{''.join(buttons)}</p>"
 
 
@@ -138,10 +139,8 @@ def build_rich_feedback(guesses: List[str], solution: str, length: int) -> str:
 
     def _btn(d: str) -> str:
         st = digit_status[d]
-        style = BUTTON_STYLE[st]
-        style_attr = f' style="{style}"' if style else ""
-        label = f"{zero_width_noise()}{d}{zero_width_noise()}"
-        return f'<tg-button type="callback_data"{style_attr} data="ns_k:{d}">{label}</tg-button>'
+        style = "danger" if st == "absent" else "primary"
+        return f'<tg-button type="callback_data" style="{style}" data="ns_k:{d}">{d}</tg-button>'
 
     row1 = "".join(_btn(d) for d in ["1", "2", "3", "4", "5"])
     row2 = "".join(_btn(d) for d in ["6", "7", "8", "9", "0"])
@@ -149,11 +148,16 @@ def build_rich_feedback(guesses: List[str], solution: str, length: int) -> str:
 
     guess_rows = "".join(render_guess_row(g, solution) for g in guesses)
 
-    mode_label = f"Number Seek ({length}-digit)" if length != 5 else "Number Seek"
-    return f"<h3>{mode_label}</h3><p><i>{len(guesses)}/30 guesses</i></p>{keypad_html}{guess_rows}"
+    return f"<h3>Number Seek</h3><p><i>{len(guesses)}/30 guesses</i></p>{keypad_html}{guess_rows}"
 
 
-async def reply_rich_message(bot, chat_id: int, html_content: str, thread_id: Optional[int] = None):
+async def reply_rich_message(
+    bot,
+    chat_id: int,
+    html_content: str,
+    thread_id: Optional[int] = None,
+    reply_to_message_id: Optional[int] = None,
+):
     """Sends Telegram RichMessage with tg-button HTML elements."""
     data = {
         "chat_id": chat_id,
@@ -161,9 +165,17 @@ async def reply_rich_message(bot, chat_id: int, html_content: str, thread_id: Op
     }
     if thread_id:
         data["message_thread_id"] = thread_id
+    if reply_to_message_id:
+        data["reply_parameters"] = {"message_id": reply_to_message_id}
     try:
         return await bot._post("sendRichMessage", data=data)
     except Exception as e:
+        if reply_to_message_id:
+            data.pop("reply_parameters", None)
+            try:
+                return await bot._post("sendRichMessage", data=data)
+            except Exception:
+                pass
         if thread_id:
             data.pop("message_thread_id", None)
             return await bot._post("sendRichMessage", data=data)
@@ -439,13 +451,19 @@ async def check_numberseek_chat_message(update: Update, context: ContextTypes.DE
     rich_html = build_rich_feedback(all_guesses, game["number"], num_length)
 
     try:
-        await reply_rich_message(context.bot, chat.id, rich_html, thread_id)
+        await reply_rich_message(
+            context.bot,
+            chat.id,
+            rich_html,
+            thread_id=thread_id,
+            reply_to_message_id=msg.message_id,
+        )
     except Exception as e:
         print(f"sendRichMessage failed for NumberSeek, fallback to text: {e}")
         rows_text = [render_guess_row_text(g, game["number"]) for g in all_guesses[-6:]]
         board_display = "\n".join(rows_text)
         feedback_text = (
-            f"<b>Number Seek ({num_length}-digit)</b>\n"
+            f"<b>Number Seek</b>\n"
             f"<i>{len(all_guesses)}/30 guesses</i>\n\n"
             f"{board_display}"
         )
