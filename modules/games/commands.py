@@ -35,6 +35,13 @@ from modules.games.secret_game import (
     cmd_secret_rank,
 )
 from modules.games.wordgrid_game import cmd_wordgrid, cmd_endgrid
+from modules.games.numberseek_game import (
+    cmd_num,
+    cmd_num4,
+    cmd_num5,
+    cmd_num6,
+    cmd_endnum,
+)
 from modules.utils.anonymous_admin import cmd_anonid
 
 
@@ -268,6 +275,17 @@ HANDLERS = {
     "grid": cmd_wordgrid,
     "wg": cmd_wordgrid,
     "endgrid": cmd_endgrid,
+
+    # Number Seek Game
+    "num": cmd_num,
+    "numberseek": cmd_num,
+    "numseek": cmd_num,
+    "ns": cmd_num,
+    "num4": cmd_num4,
+    "num5": cmd_num5,
+    "num6": cmd_num6,
+    "endnum": cmd_endnum,
+    "endns": cmd_endnum,
 
     # Anonymous Admin ID Linking
     "anonid": cmd_anonid,

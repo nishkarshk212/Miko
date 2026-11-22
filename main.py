@@ -468,6 +468,11 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if await leaderboard_callback_handler(update, context):
             return
 
+    if data.startswith("ns:") or data.startswith("ns_k:"):
+        from modules.games.numberseek_game import numberseek_callback_handler
+        if await numberseek_callback_handler(update, context):
+            return
+
     if data.startswith("welcome_toggle:"):
         parts = data.split(":")
         try:
@@ -1069,6 +1074,10 @@ async def post_init(app):
 
 
 async def word_quiz_message_watcher(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    from modules.games.numberseek_game import check_numberseek_chat_message
+    if await check_numberseek_chat_message(update, context):
+        raise ApplicationHandlerStop()
+
     from modules.games.wordseek_game import check_wordseek_chat_message
     if await check_wordseek_chat_message(update, context):
         raise ApplicationHandlerStop()

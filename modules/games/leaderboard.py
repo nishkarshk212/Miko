@@ -20,15 +20,18 @@ from modules.utils.db import (
     get_wordgrid_user_score,
     get_wordquiz_leaderboard,
     get_wordquiz_user_score,
+    get_numberseek_leaderboard,
+    get_numberseek_user_score,
     get_overall_leaderboard,
     get_overall_user_score,
 )
 
-MODES = ["seek", "grid", "quiz", "overall"]
+MODES = ["seek", "num", "grid", "quiz", "overall"]
 SCOPES = ["group", "global"]
 
 MODE_LABELS = {
     "seek": "WordSeek",
+    "num": "Number Seek",
     "grid": "WordGrid",
     "quiz": "Word Quiz",
     "overall": "Overall",
@@ -36,6 +39,7 @@ MODE_LABELS = {
 
 MODE_ICONS = {
     "seek": ("🏆", "WordSeek"),
+    "num": ("🔢", "Number Seek"),
     "grid": ("🧩", "WordGrid"),
     "quiz": ("💡", "Word Quiz"),
     "overall": ("👑", "Overall"),
@@ -66,6 +70,11 @@ def build_leaderboard_content(
         user_stat = get_wordseek_user_score(user_id, filter_chat_id)
         mode_title = "WordSeek"
         icon = "🏆"
+    elif mode == "num":
+        scores = get_numberseek_leaderboard(filter_chat_id, limit=10)
+        user_stat = get_numberseek_user_score(user_id, filter_chat_id)
+        mode_title = "Number Seek"
+        icon = "🔢"
     elif mode == "grid":
         scores = get_wordgrid_leaderboard(filter_chat_id, limit=10)
         user_stat = get_wordgrid_user_score(user_id, filter_chat_id)
@@ -111,31 +120,38 @@ def build_leaderboard_content(
     # Build Buttons
     cid_str = str(chat_id or 0)
 
-    # Row 1: WordSeek & WordGrid
+    # Row 1: WordSeek & Number Seek
     b_seek = InlineKeyboardButton(
         "WordSeek",
         callback_data=f"lb:seek:{scope}:{cid_str}",
         api_kwargs={"style": "success" if mode == "seek" else "primary"},
     )
+    b_num = InlineKeyboardButton(
+        "Number Seek",
+        callback_data=f"lb:num:{scope}:{cid_str}",
+        api_kwargs={"style": "success" if mode == "num" else "primary"},
+    )
+
+    # Row 2: WordGrid & Word Quiz
     b_grid = InlineKeyboardButton(
         "WordGrid",
         callback_data=f"lb:grid:{scope}:{cid_str}",
         api_kwargs={"style": "success" if mode == "grid" else "primary"},
     )
-
-    # Row 2: Word Quiz & Overall
     b_quiz = InlineKeyboardButton(
         "Word Quiz",
         callback_data=f"lb:quiz:{scope}:{cid_str}",
         api_kwargs={"style": "success" if mode == "quiz" else "primary"},
     )
+
+    # Row 3: Overall
     b_overall = InlineKeyboardButton(
         "Overall",
         callback_data=f"lb:overall:{scope}:{cid_str}",
         api_kwargs={"style": "success" if mode == "overall" else "primary"},
     )
 
-    # Row 3: Group & Global
+    # Row 4: Group & Global
     b_group = InlineKeyboardButton(
         "Group",
         callback_data=f"lb:{mode}:group:{cid_str}",
@@ -147,7 +163,7 @@ def build_leaderboard_content(
         api_kwargs={"style": "success" if scope == "global" else "primary"},
     )
 
-    # Row 4: Refresh & Close
+    # Row 5: Refresh & Close
     b_refresh = InlineKeyboardButton(
         "Refresh",
         callback_data=f"lb:refresh:{mode}:{scope}:{cid_str}",
@@ -160,8 +176,9 @@ def build_leaderboard_content(
     )
 
     keyboard = InlineKeyboardMarkup([
-        [b_seek, b_grid],
-        [b_quiz, b_overall],
+        [b_seek, b_num],
+        [b_grid, b_quiz],
+        [b_overall],
         [b_group, b_global],
         [b_refresh, b_close],
     ])
@@ -186,6 +203,8 @@ async def cmd_unified_leaderboard(update: Update, context: ContextTypes.DEFAULT_
     for a in args:
         if a in ("seek", "wordseek"):
             mode = "seek"
+        elif a in ("num", "numberseek", "numseek", "ns"):
+            mode = "num"
         elif a in ("grid", "wordgrid", "wg"):
             mode = "grid"
         elif a in ("quiz", "wordquiz"):

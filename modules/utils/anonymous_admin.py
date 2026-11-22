@@ -11,6 +11,7 @@ from modules.utils.db import (
     clear_anonymous_link,
     add_wordgrid_score,
     add_wordseek_score,
+    add_numberseek_score,
 )
 from modules.utils.storage import update_user, get_user
 
@@ -80,6 +81,8 @@ def apply_pending_anon_scores(chat_id: int, user_id: int) -> int:
                     add_wordgrid_score(user_id, chat_id, u_name, u_uname, item["points"], item.get("word", ""))
                 elif item.get("game") == "wordseek":
                     add_wordseek_score(user_id, chat_id, u_name, u_uname, item["points"], len(item.get("word", "")))
+                elif item.get("game") == "numberseek":
+                    add_numberseek_score(user_id, chat_id, u_name, u_uname, item["points"], len(item.get("word", "")))
         except Exception as e:
             print(f"Error crediting pending anon score: {e}")
     return total_points
