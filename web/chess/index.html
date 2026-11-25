@@ -624,7 +624,10 @@
     const tg = window.Telegram?.WebApp;
     let currentUser = { id: 0, name: "You", photo_url: "" };
     let currentRoomCode = "CHESS1";
-    let isVsBot = true;
+    let isVsBot = false; // default multiplayer when room code present
+    let myColor = 'w';   // 'w' (White) or 'b' (Black)
+    let lastProcessedVersion = 0;
+    let roomPollInterval = null;
 
     if (tg) {
       tg.ready();
@@ -634,13 +637,135 @@
         currentUser.name = tg.initDataUnsafe.user.first_name || "Player";
         currentUser.photo_url = tg.initDataUnsafe.user.photo_url || "";
       }
-      if (tg.initDataUnsafe && tg.initDataUnsafe.start_param) {
-        const param = tg.initDataUnsafe.start_param.trim().toUpperCase();
-        if (param && param !== "CHESS") {
-          currentRoomCode = param;
+    }
+
+    // Detect Room Code from start_param or URL query param
+    function detectInitialRoom() {
+      let code = "";
+      if (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) {
+        code = tg.initDataUnsafe.start_param.trim().toUpperCase();
+      }
+      if (!code) {
+        const params = new URLSearchParams(window.location.search);
+        code = (params.get("room") || params.get("code") || "").trim().toUpperCase();
+      }
+      if (code && code.length >= 4 && code !== "CHESS") {
+        currentRoomCode = code;
+      }
+      document.getElementById("roomCodeDisplay").textContent = currentRoomCode;
+    }
+
+    async function joinChessRoom(code) {
+      if (!code) return;
+      try {
+        const res = await fetch("/api/chess/room/join", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            code: code,
+            user_id: currentUser.id,
+            name: currentUser.name,
+            avatar: currentUser.photo_url
+          })
+        });
+        const data = await res.json();
+        if (data.success && data.room) {
+          applyChessRoomData(data.room);
+        }
+      } catch (err) {
+        console.log("Chess room join notice:", err);
+      }
+    }
+
+    function applyChessRoomData(room) {
+      if (!room) return;
+      currentRoomCode = room.code;
+      document.getElementById("roomCodeDisplay").textContent = room.code;
+
+      const isMeWhite = String(room.white_player?.id) === String(currentUser.id);
+      const isMeBlack = room.black_player && (String(room.black_player.id) === String(currentUser.id));
+
+      if (isMeBlack) {
+        myColor = 'b';
+        isFlipped = true; // Black views board flipped so black pieces are at bottom
+        isVsBot = false;
+
+        document.getElementById("namePlayer").textContent = currentUser.name;
+        document.getElementById("colorTagPlayer").textContent = "Black (You)";
+        if (currentUser.photo_url) {
+          document.getElementById("avPlayer").innerHTML = `<img src="${currentUser.photo_url}">`;
+        }
+
+        const whiteName = room.white_player?.name || "Player 1";
+        document.getElementById("nameOpponent").textContent = whiteName;
+        document.getElementById("colorTagOpponent").textContent = "White";
+        if (room.white_player?.avatar) {
+          document.getElementById("avOpponent").innerHTML = `<img src="${room.white_player.avatar}">`;
+        } else {
+          document.getElementById("avOpponent").innerHTML = "<span>🧑</span>";
+        }
+      } else {
+        myColor = 'w';
+        isFlipped = false;
+
+        document.getElementById("namePlayer").textContent = currentUser.name;
+        document.getElementById("colorTagPlayer").textContent = "White (You)";
+        if (currentUser.photo_url) {
+          document.getElementById("avPlayer").innerHTML = `<img src="${currentUser.photo_url}">`;
+        }
+
+        if (room.black_player) {
           isVsBot = false;
+          document.getElementById("nameOpponent").textContent = room.black_player.name;
+          document.getElementById("colorTagOpponent").textContent = "Black";
+          if (room.black_player.avatar) {
+            document.getElementById("avOpponent").innerHTML = `<img src="${room.black_player.avatar}">`;
+          } else {
+            document.getElementById("avOpponent").innerHTML = "<span>👤</span>";
+          }
+        } else {
+          // Waiting for second player to join
+          isVsBot = false;
+          document.getElementById("nameOpponent").textContent = "Waiting for player...";
+          document.getElementById("colorTagOpponent").textContent = "Black (Open)";
+          document.getElementById("avOpponent").innerHTML = "<span>⏳</span>";
         }
       }
+
+      // Synchronize remote move and board state
+      if (room.version && room.version > lastProcessedVersion) {
+        lastProcessedVersion = room.version;
+        if (room.board) {
+          board = room.board;
+        }
+        if (room.turn) {
+          currentTurn = room.turn;
+        }
+        if (room.last_move) {
+          lastMove = room.last_move;
+          playSound('move');
+        }
+        if (room.captured) {
+          capturedPieces = room.captured;
+        }
+        if (room.is_game_over && !isGameOver) {
+          isGameOver = true;
+          const msg = (room.winner === "draw") ? "Game drawn by agreement." : `${room.winner.toUpperCase()} wins the match!`;
+          showGameOver("Match Over 🏆", msg);
+        }
+        renderBoard();
+      }
+    }
+
+    async function pollChessRoomState() {
+      if (!currentRoomCode) return;
+      try {
+        const res = await fetch(`/api/chess/room/state?code=${currentRoomCode}`);
+        const data = await res.json();
+        if (data.success && data.room) {
+          applyChessRoomData(data.room);
+        }
+      } catch (err) {}
     }
 
     /* Board Coordinates & Rendering */
@@ -724,6 +849,11 @@
 
     function handleSquareClick(r, c) {
       if (isGameOver) return;
+      // In multiplayer room, each player can only move their own color
+      if (!isVsBot && currentTurn !== myColor) {
+        showToast(`Wait for opponent's turn (${currentTurn === 'w' ? 'White' : 'Black'})`);
+        return;
+      }
       if (isVsBot && currentTurn === 'b') return; // wait for bot
 
       const clickedPiece = board[r][c];
@@ -837,6 +967,28 @@
       }
 
       renderBoard();
+
+      // Send move to multiplayer room server
+      if (!isVsBot && currentRoomCode) {
+        fetch("/api/chess/room/action", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            code: currentRoomCode,
+            action: "move",
+            user_id: currentUser.id,
+            from: [fromR, fromC],
+            to: [toR, toC],
+            piece: piece,
+            promo: promoChoice,
+            board: board,
+            turn: currentTurn,
+            captured: capturedPieces,
+            castling: castling,
+            en_passant: enPassantTarget
+          })
+        }).catch(() => {});
+      }
 
       // If Bot turn, schedule Bot move
       if (!isGameOver && isVsBot && currentTurn === 'b') {
@@ -1171,7 +1323,20 @@
       if (isGameOver) return;
       if (confirm("Are you sure you want to resign this match?")) {
         isGameOver = true;
-        showGameOver("Match Forfeited", "You resigned. Black wins.");
+        const winner = myColor === 'w' ? "Black" : "White";
+        showGameOver("Match Forfeited", `You resigned. ${winner} wins.`);
+        if (!isVsBot && currentRoomCode) {
+          fetch("/api/chess/room/action", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              code: currentRoomCode,
+              action: "resign",
+              color: myColor,
+              user_id: currentUser.id
+            })
+          }).catch(() => {});
+        }
       }
     }
 
@@ -1180,7 +1345,20 @@
       if (isVsBot) {
         showToast("Bot declined draw offer!");
       } else {
-        showToast("Draw offer sent to opponent.");
+        showToast("Draw agreed! 🤝");
+        isGameOver = true;
+        showGameOver("Match Drawn 🤝", "Draw agreed by both players.");
+        if (currentRoomCode) {
+          fetch("/api/chess/room/action", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              code: currentRoomCode,
+              action: "draw",
+              user_id: currentUser.id
+            })
+          }).catch(() => {});
+        }
       }
     }
 
@@ -1223,14 +1401,10 @@
     }
 
     // Initialize
-    if (currentUser.name && currentUser.name !== "You") {
-      document.getElementById("namePlayer").textContent = currentUser.name;
-      if (currentUser.photo_url) {
-        document.getElementById("avPlayer").innerHTML = `<img src="${currentUser.photo_url}">`;
-      }
-    }
-    document.getElementById("roomCodeDisplay").textContent = currentRoomCode;
+    detectInitialRoom();
     renderBoard();
+    joinChessRoom(currentRoomCode);
+    roomPollInterval = setInterval(pollChessRoomState, 800);
   </script>
 </body>
 </html>

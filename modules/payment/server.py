@@ -910,8 +910,22 @@ async def handle_chess_room_action(request: web.Request) -> web.Response:
         from_sq = data.get("from")
         to_sq = data.get("to")
         piece = data.get("piece")
-        room["last_move"] = {"from": from_sq, "to": to_sq, "piece": piece}
-        room["turn"] = "b" if room["turn"] == "w" else "w"
+        promo = data.get("promo", "Q")
+        board_state = data.get("board")
+        captured = data.get("captured")
+        castling = data.get("castling")
+        en_passant = data.get("en_passant")
+        turn = data.get("turn")
+
+        room["last_move"] = {"from": from_sq, "to": to_sq, "piece": piece, "promo": promo}
+        if board_state:
+            room["board"] = board_state
+        if captured:
+            room["captured"] = captured
+        if castling:
+            room["castling"] = castling
+        room["en_passant"] = en_passant
+        room["turn"] = turn if turn else ("b" if room["turn"] == "w" else "w")
         room["move_history"].append({"from": from_sq, "to": to_sq, "piece": piece, "time": time.time()})
         room["version"] = room.get("version", 0) + 1
 
