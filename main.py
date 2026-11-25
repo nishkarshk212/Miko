@@ -468,6 +468,11 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if await leaderboard_callback_handler(update, context):
             return
 
+    if data.startswith("ludo_"):
+        from modules.games.ludo_game import ludo_callback_handler
+        if await ludo_callback_handler(update, context):
+            return
+
     if data.startswith("ns:") or data.startswith("ns_k:"):
         from modules.games.numberseek_game import numberseek_callback_handler
         if await numberseek_callback_handler(update, context):

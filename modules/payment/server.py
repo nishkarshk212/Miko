@@ -385,6 +385,15 @@ async def handle_request_fund(request: web.Request) -> web.Response:
     })
 
 
+async def handle_ludo_page(request: web.Request) -> web.Response:
+    ludo_file = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "web", "ludo", "index.html")
+    if os.path.exists(ludo_file):
+        with open(ludo_file, "r", encoding="utf-8") as f:
+            content = f.read()
+        return web.Response(text=content, content_type="text/html")
+    return web.Response(text="Ludo game not found", status=404)
+
+
 def create_payment_app() -> web.Application:
     app = web.Application()
     async def cors_middleware(app, handler):
@@ -414,5 +423,9 @@ def create_payment_app() -> web.Application:
     app.router.add_get("/api/user-profile", handle_user_profile)
     app.router.add_get("/api/leaderboards", handle_leaderboards)
     app.router.add_get("/api/config", handle_config)
+    app.router.add_get("/ludo", handle_ludo_page)
+    app.router.add_get("/ludo/", handle_ludo_page)
+    app.router.add_get("/ludo/index.html", handle_ludo_page)
+    app.router.add_get("/ludo.html", handle_ludo_page)
     return app
 

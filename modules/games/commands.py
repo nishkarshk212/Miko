@@ -43,10 +43,7 @@ from modules.games.numberseek_game import (
     cmd_endnum,
 )
 from modules.utils.anonymous_admin import cmd_anonid
-
-
-async def ludo(update, context):
-    await update.message.reply_text("🎲 <b>Ludo Game</b> — Coming soon in the next update!", parse_mode="HTML")
+from modules.games.ludo_game import cmd_ludo
 
 
 TRUTHS = [
@@ -291,7 +288,8 @@ HANDLERS = {
     "anonid": cmd_anonid,
 
     # Fun Minis
-    "ludo": ludo,
+    "ludo": cmd_ludo,
+    "playludo": cmd_ludo,
     "truth": truth,
     "dare": dare,
     "puzzle": puzzle,
