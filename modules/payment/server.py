@@ -692,7 +692,7 @@ async def handle_ludo_room_action(request: web.Request) -> web.Response:
         if "voice" in room and user_id in room["voice"]:
             room["voice"][user_id]["speaking"] = speaking
 
-        elif action == "kick_inactive":
+    elif action == "kick_inactive":
         kicked_color = data.get("color")
         if kicked_color in room["players"] and room["players"][kicked_color] is not None:
             kicked_name = room["players"][kicked_color].get("name", "Player")
@@ -774,6 +774,160 @@ async def handle_ludo_room_action(request: web.Request) -> web.Response:
     return web.json_response({"success": True, "room": room})
 
 
+
+# =============================================================================
+# CHESS MULTIPLAYER ENGINE & MINI APP
+# =============================================================================
+
+async def handle_chess_page(request: web.Request) -> web.Response:
+    chess_file = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "web", "chess", "index.html")
+    if os.path.exists(chess_file):
+        with open(chess_file, "r", encoding="utf-8") as f:
+            content = f.read()
+        return web.Response(
+            text=content,
+            content_type="text/html",
+            headers={
+                "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
+                "Pragma": "no-cache",
+                "Expires": "0",
+            }
+        )
+    return web.Response(text="Chess game not found", status=404)
+
+
+async def handle_chess_banner(request: web.Request) -> web.Response:
+    banner_file = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "web", "chess", "banner.jpg")
+    if os.path.exists(banner_file):
+        with open(banner_file, "rb") as f:
+            return web.Response(body=f.read(), content_type="image/jpeg")
+    return web.Response(text="Banner not found", status=404)
+
+
+CHESS_ROOMS: dict[str, dict] = {}
+
+
+async def handle_chess_room_create(request: web.Request) -> web.Response:
+    """POST /api/chess/room/create"""
+    try:
+        data = await request.json()
+    except Exception:
+        data = {}
+
+    host_id = data.get("user_id", 0)
+    host_name = data.get("name", "Player")
+    avatar = data.get("avatar", "")
+
+    chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+    code = "".join(random.choices(chars, k=6))
+    while code in CHESS_ROOMS:
+        code = "".join(random.choices(chars, k=6))
+
+    CHESS_ROOMS[code] = {
+        "code": code,
+        "host_id": host_id,
+        "status": "lobby",
+        "created_at": time.time(),
+        "white_player": {"id": host_id, "name": host_name, "avatar": avatar, "is_bot": False},
+        "black_player": None,
+        "turn": "w",
+        "last_move": None,
+        "move_history": [],
+        "captured": {"w": [], "b": []},
+        "winner": None,
+        "is_game_over": False,
+        "version": 1
+    }
+    return web.json_response({"success": True, "room": CHESS_ROOMS[code]})
+
+
+async def handle_chess_room_join(request: web.Request) -> web.Response:
+    """POST /api/chess/room/join"""
+    try:
+        data = await request.json()
+    except Exception:
+        data = {}
+
+    code = str(data.get("code", "")).strip().upper()
+    user_id = data.get("user_id", 0)
+    name = data.get("name", "Opponent")
+    avatar = data.get("avatar", "")
+
+    if not code:
+        return web.json_response({"success": False, "error": "Room code required"}, status=400)
+
+    if code not in CHESS_ROOMS:
+        CHESS_ROOMS[code] = {
+            "code": code,
+            "host_id": user_id,
+            "status": "lobby",
+            "created_at": time.time(),
+            "white_player": {"id": user_id, "name": name, "avatar": avatar, "is_bot": False},
+            "black_player": None,
+            "turn": "w",
+            "last_move": None,
+            "move_history": [],
+            "captured": {"w": [], "b": []},
+            "winner": None,
+            "is_game_over": False,
+            "version": 1
+        }
+        return web.json_response({"success": True, "room": CHESS_ROOMS[code]})
+
+    room = CHESS_ROOMS[code]
+    if str(room["white_player"].get("id")) != str(user_id):
+        if room["black_player"] is None or str(room["black_player"].get("id")) == str(user_id):
+            room["black_player"] = {"id": user_id, "name": name, "avatar": avatar, "is_bot": False}
+            room["status"] = "playing"
+            room["version"] = room.get("version", 0) + 1
+
+    return web.json_response({"success": True, "room": room})
+
+
+async def handle_chess_room_state(request: web.Request) -> web.Response:
+    """GET /api/chess/room/state?code=..."""
+    code = request.query.get("code", "").strip().upper()
+    if not code or code not in CHESS_ROOMS:
+        return web.json_response({"success": False, "error": "Room not found"}, status=404)
+    return web.json_response({"success": True, "room": CHESS_ROOMS[code]})
+
+
+async def handle_chess_room_action(request: web.Request) -> web.Response:
+    """POST /api/chess/room/action"""
+    try:
+        data = await request.json()
+    except Exception:
+        data = {}
+
+    code = str(data.get("code", "")).strip().upper()
+    if not code or code not in CHESS_ROOMS:
+        return web.json_response({"success": False, "error": "Room not found"}, status=404)
+
+    room = CHESS_ROOMS[code]
+    action = data.get("action")
+
+    if action == "move":
+        from_sq = data.get("from")
+        to_sq = data.get("to")
+        piece = data.get("piece")
+        room["last_move"] = {"from": from_sq, "to": to_sq, "piece": piece}
+        room["turn"] = "b" if room["turn"] == "w" else "w"
+        room["move_history"].append({"from": from_sq, "to": to_sq, "piece": piece, "time": time.time()})
+        room["version"] = room.get("version", 0) + 1
+
+    elif action == "resign":
+        color = data.get("color", "w")
+        room["winner"] = "black" if color == "w" else "white"
+        room["is_game_over"] = True
+        room["version"] = room.get("version", 0) + 1
+
+    elif action == "draw":
+        room["is_game_over"] = True
+        room["winner"] = "draw"
+        room["version"] = room.get("version", 0) + 1
+
+    return web.json_response({"success": True, "room": room})
+
 def create_payment_app() -> web.Application:
     app = web.Application()
     async def cors_middleware(app, handler):
@@ -813,5 +967,14 @@ def create_payment_app() -> web.Application:
     app.router.add_post("/api/ludo/room/join", handle_ludo_room_join)
     app.router.add_get("/api/ludo/room/state", handle_ludo_room_state)
     app.router.add_post("/api/ludo/room/action", handle_ludo_room_action)
+    app.router.add_get("/chess", handle_chess_page)
+    app.router.add_get("/chess/", handle_chess_page)
+    app.router.add_get("/chess/index.html", handle_chess_page)
+    app.router.add_get("/chess/banner.jpg", handle_chess_banner)
+    app.router.add_post("/api/chess/room/create", handle_chess_room_create)
+    app.router.add_post("/api/chess/room/join", handle_chess_room_join)
+    app.router.add_get("/api/chess/room/state", handle_chess_room_state)
+    app.router.add_post("/api/chess/room/action", handle_chess_room_action)
+
     return app
 

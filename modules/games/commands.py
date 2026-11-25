@@ -44,6 +44,7 @@ from modules.games.numberseek_game import (
 )
 from modules.utils.anonymous_admin import cmd_anonid
 from modules.games.ludo_game import cmd_ludo
+from modules.games.chess_game import cmd_chess
 
 
 TRUTHS = [
@@ -290,6 +291,8 @@ HANDLERS = {
     # Fun Minis
     "ludo": cmd_ludo,
     "playludo": cmd_ludo,
+    "chess": cmd_chess,
+    "playchess": cmd_chess,
     "truth": truth,
     "dare": dare,
     "puzzle": puzzle,
