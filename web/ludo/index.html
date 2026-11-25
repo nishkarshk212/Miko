@@ -438,6 +438,18 @@
     .ctrl-icon-btn:active { transform: scale(0.92); }
 
 
+
+    /* Goti Hopping / Running Animation */
+    @keyframes gotiHop {
+      0% { transform: scale(1) translateY(0); }
+      50% { transform: scale(1.28) translateY(-14px); }
+      100% { transform: scale(1) translateY(0); }
+    }
+    .token.hopping {
+      animation: gotiHop 0.13s ease-out !important;
+      z-index: 60 !important;
+    }
+
     /* Screen Effect Burst Animation (SIX! etc.) */
     .ludo-screen-fx {
       position: absolute;
@@ -2115,60 +2127,111 @@
       toggleSwitch('sound');
     }
 
-    /* Audio Context */
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    let audioCtx = null;
-
-    function getAudioCtx() {
-      if (!audioCtx) audioCtx = new AudioContext();
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-      return audioCtx;
-    }
+    /* High-Fidelity Audio Synthesizer */
+    const soundSystem = {
+      ctx: null,
+      getContext() {
+        try {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (!AudioCtx) return null;
+          if (!this.ctx) this.ctx = new AudioCtx();
+          if (this.ctx.state === 'suspended') this.ctx.resume();
+          return this.ctx;
+        } catch(e) {
+          return null;
+        }
+      },
+      init() {
+        this.getContext();
+      },
+      tone(ctx, type, freqStart, freqEnd, duration, volume = 0.16, delay = 0) {
+        try {
+          const s = ctx.createOscillator();
+          const c = ctx.createGain();
+          const l = ctx.currentTime + delay;
+          s.type = type;
+          s.frequency.setValueAtTime(freqStart, l);
+          s.frequency.exponentialRampToValueAtTime(Math.max(1, freqEnd), l + duration);
+          c.gain.setValueAtTime(0.001, l);
+          c.gain.exponentialRampToValueAtTime(volume, l + 0.015);
+          c.gain.exponentialRampToValueAtTime(0.001, l + duration);
+          s.connect(c);
+          c.connect(ctx.destination);
+          s.start(l);
+          s.stop(l + duration + 0.03);
+        } catch(e) {}
+      },
+      noise(ctx, duration, volume = 0.12, delay = 0) {
+        try {
+          const r = Math.floor(ctx.sampleRate * duration);
+          const i = ctx.createBuffer(1, r, ctx.sampleRate);
+          const a = i.getChannelData(0);
+          for (let e = 0; e < r; e++) a[e] = (Math.random() * 2 - 1) * (1 - e / r);
+          const o = ctx.createBufferSource();
+          o.buffer = i;
+          const s = ctx.createBiquadFilter();
+          s.type = 'bandpass';
+          s.frequency.value = 1600;
+          const c = ctx.createGain();
+          const l = ctx.currentTime + delay;
+          c.gain.setValueAtTime(volume, l);
+          o.connect(s);
+          s.connect(c);
+          c.connect(ctx.destination);
+          o.start(l);
+        } catch(e) {}
+      },
+      play(type) {
+        if (!sfxEnabled) return;
+        const t = this.getContext();
+        if (!t) return;
+        switch(type) {
+          case 'roll':
+            // Realistic multi-stage tumbling rattle with wooden dice bounce
+            this.noise(t, 0.18, 0.24, 0);
+            this.noise(t, 0.15, 0.20, 0.08);
+            this.noise(t, 0.14, 0.18, 0.16);
+            this.noise(t, 0.12, 0.15, 0.25);
+            this.noise(t, 0.10, 0.14, 0.35);
+            this.tone(t, 'triangle', 250, 110, 0.09, 0.22, 0.44);
+            break;
+          case 'step':
+            // Crisp wooden token running / hop step
+            this.tone(t, 'sine', 640, 480, 0.065, 0.25);
+            this.tone(t, 'triangle', 360, 180, 0.045, 0.12);
+            break;
+          case 'move':
+            // Token released onto track
+            this.tone(t, 'triangle', 720, 260, 0.13, 0.22);
+            break;
+          case 'six':
+            // Celebration fanfare for rolling 6
+            [523, 659, 784, 1047].forEach((f, idx) => {
+              this.tone(t, 'triangle', f, f * 1.01, 0.18, 0.18, idx * 0.07);
+            });
+            break;
+          case 'capture':
+            this.tone(t, 'sawtooth', 260, 72, 0.26, 0.25);
+            this.tone(t, 'triangle', 760, 150, 0.22, 0.18, 0.035);
+            this.noise(t, 0.18, 0.20);
+            break;
+          case 'win':
+            [440, 554, 659, 880, 1109].forEach((f, idx) => {
+              this.tone(t, 'triangle', f, f * 1.02, 0.22, 0.18, idx * 0.09);
+            });
+            break;
+        }
+      }
+    };
 
     function playSound(type) {
-      if (!sfxEnabled) return;
-      try {
-        const ctx = getAudioCtx();
-        const now = ctx.currentTime;
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain); gain.connect(ctx.destination);
-
-        if (type === 'roll') {
-          osc.type = 'triangle';
-          osc.frequency.setValueAtTime(150, now);
-          osc.frequency.exponentialRampToValueAtTime(320, now + 0.15);
-          gain.gain.setValueAtTime(0.2, now);
-          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-          osc.start(now); osc.stop(now + 0.15);
-        } else if (type === 'move') {
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(440, now);
-          osc.frequency.exponentialRampToValueAtTime(620, now + 0.08);
-          gain.gain.setValueAtTime(0.25, now);
-          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
-          osc.start(now); osc.stop(now + 0.08);
-        } else if (type === 'capture') {
-          osc.type = 'sawtooth';
-          osc.frequency.setValueAtTime(320, now);
-          osc.frequency.exponentialRampToValueAtTime(100, now + 0.25);
-          gain.gain.setValueAtTime(0.3, now);
-          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
-          osc.start(now); osc.stop(now + 0.25);
-        } else if (type === 'win') {
-          [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => {
-            const o = ctx.createOscillator();
-            const g = ctx.createGain();
-            o.connect(g); g.connect(ctx.destination);
-            o.type = 'sine';
-            o.frequency.setValueAtTime(f, now + i * 0.1);
-            g.gain.setValueAtTime(0.3, now + i * 0.1);
-            g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.25);
-            o.start(now + i * 0.1); o.stop(now + i * 0.1 + 0.25);
-          });
-        }
-      } catch(e) {}
+      soundSystem.play(type);
     }
+
+    // Auto-unlock WebAudio on mobile touch
+    ['touchstart', 'pointerdown', 'click'].forEach(evt => {
+      document.addEventListener(evt, () => soundSystem.init(), { once: true });
+    });
 
     function toggleAmbientMusic(enable) {
       try {
@@ -2749,8 +2812,10 @@
       }
     }
 
+    let isMovingToken = false;
+
     function handleTokenClick(color, id) {
-      if (!hasRolled || isRolling || color !== getCurrentPlayer()) return;
+      if (!hasRolled || isRolling || isMovingToken || color !== getCurrentPlayer()) return;
       if (color !== myColor && !isPlayerBot(color)) return;
 
       const tok = tokenState[color][id];
@@ -2760,72 +2825,96 @@
       moveToken(color, id, currentDiceValue);
     }
 
-    function moveToken(color, id, roll) {
-      const tok = tokenState[color][id];
-      playSound('move');
-      triggerHaptic('light');
+    async function moveToken(color, id, roll) {
+      if (isMovingToken) return;
+      isMovingToken = true;
 
-      const isBaseExit = (tok.step === -1);
-      if (isBaseExit) tok.step = 0;
-      else tok.step += roll;
+      try {
+        const tok = tokenState[color][id];
+        const pName = getPlayerDisplayName(color);
+        const isBaseExit = (tok.step === -1);
 
-      renderAllTokens();
-
-      const pName = lobbySeats[color]?.name || capitalize(color);
-      addLogEvent(isBaseExit ? `${pName} released a token onto track.` : `${pName} advanced a token +${roll} steps.`, "Token move");
-
-      if (currentRoomCode) {
-        fetch("/api/ludo/room/action", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            code: currentRoomCode,
-            action: "move_token",
-            color: color,
-            id: id,
-            step: tok.step,
-            name: pName
-          })
-        }).catch(() => {});
-      }
-
-      let captured = false;
-      if (tok.step < 51) {
-        const myTrackIdx = (START_OFFSETS[color] + tok.step) % 52;
-        if (!SAFE_SQUARES.includes(myTrackIdx)) {
-          activePlayers.forEach(oppColor => {
-            if (oppColor !== color) {
-              tokenState[oppColor].forEach(oppTok => {
-                if (oppTok.step >= 0 && oppTok.step < 51) {
-                  if ((START_OFFSETS[oppColor] + oppTok.step) % 52 === myTrackIdx) {
-                    oppTok.step = -1;
-                    captured = true;
-                    playSound('capture');
-                    triggerHaptic('success');
-                    const oppName = lobbySeats[oppColor]?.name || capitalize(oppColor);
-                    updateTurnBanner(`Boom! ${pName} captured ${oppName}'s token!`);
-                    addLogEvent(`${pName} captured ${oppName}'s token! 💥`, "Capture");
-                  }
-                }
-              });
+        if (isBaseExit) {
+          tok.step = 0;
+          renderAllTokens();
+          soundSystem.play('move');
+          triggerHaptic('medium');
+          addLogEvent(`${pName} released a token onto track.`, "Token move");
+          await new Promise(r => setTimeout(r, 220));
+        } else {
+          // Token running animation: hop step-by-step with sound!
+          const targetStep = tok.step + roll;
+          while (tok.step < targetStep) {
+            tok.step++;
+            renderAllTokens();
+            
+            const el = tokenElements[color]?.[id];
+            if (el) {
+              el.classList.add("hopping");
+              setTimeout(() => el.classList.remove("hopping"), 110);
             }
-          });
+            soundSystem.play('step');
+            triggerHaptic('light');
+            await new Promise(r => setTimeout(r, 130)); // 130ms cadence per running step
+          }
+          addLogEvent(`${pName} advanced a token +${roll} steps.`, "Token move");
         }
-      }
 
-      renderAllTokens();
+        if (currentRoomCode) {
+          fetch("/api/ludo/room/action", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              code: currentRoomCode,
+              action: "move_token",
+              color: color,
+              id: id,
+              step: tok.step,
+              name: pName
+            })
+          }).catch(() => {});
+        }
 
-      if (tokenState[color].every(t => t.step >= 56)) {
-        handleVictory(color);
-        return;
-      }
+        let captured = false;
+        if (tok.step < 51) {
+          const myTrackIdx = (START_OFFSETS[color] + tok.step) % 52;
+          if (!SAFE_SQUARES.includes(myTrackIdx)) {
+            activePlayers.forEach(oppColor => {
+              if (oppColor !== color) {
+                tokenState[oppColor].forEach(oppTok => {
+                  if (oppTok.step >= 0 && oppTok.step < 51) {
+                    if ((START_OFFSETS[oppColor] + oppTok.step) % 52 === myTrackIdx) {
+                      oppTok.step = -1;
+                      captured = true;
+                      soundSystem.play('capture');
+                      triggerHaptic('success');
+                      const oppName = getPlayerDisplayName(oppColor);
+                      updateTurnBanner(`Boom! ${pName} captured ${oppName}'s token!`);
+                      addLogEvent(`${pName} captured ${oppName}'s token! 💥`, "Capture");
+                    }
+                  }
+                });
+              }
+            });
+          }
+        }
 
-      if (roll === 6 || captured) {
-        hasRolled = false;
-        updateTurnBanner(`${pName} gets an extra roll!`);
-        if (isPlayerBot(color)) setTimeout(() => executeDiceRoll(), 900);
-      } else {
-        setTimeout(() => endTurn(), 400);
+        renderAllTokens();
+
+        if (tokenState[color].every(t => t.step >= 56)) {
+          handleVictory(color);
+          return;
+        }
+
+        if (roll === 6 || captured) {
+          hasRolled = false;
+          updateTurnBanner(`${pName} gets an extra roll!`);
+          if (isPlayerBot(color)) setTimeout(() => executeDiceRoll(), 900);
+        } else {
+          setTimeout(() => endTurn(), 400);
+        }
+      } finally {
+        isMovingToken = false;
       }
     }
 
