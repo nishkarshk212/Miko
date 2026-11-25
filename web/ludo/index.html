@@ -437,6 +437,60 @@
     }
     .ctrl-icon-btn:active { transform: scale(0.92); }
 
+
+    /* Screen Effect Burst Animation (SIX! etc.) */
+    .ludo-screen-fx {
+      position: absolute;
+      inset: 0;
+      z-index: 99;
+      pointer-events: none;
+      display: none;
+      place-items: center;
+      justify-content: center;
+      align-items: center;
+    }
+    .ludo-screen-fx.active {
+      display: flex;
+    }
+    .ludo-screen-fx__burst {
+      position: absolute;
+      width: clamp(170px, 52vw, 240px);
+      height: clamp(170px, 52vw, 240px);
+      border-radius: 50%;
+      border: 3.5px solid rgba(255, 212, 90, 0.85);
+      box-shadow: 0 0 0 10px rgba(255, 212, 90, 0.3), 0 0 0 24px rgba(239, 143, 36, 0.2), 0 0 50px rgba(255, 212, 90, 0.6);
+      animation: fxBurst 0.95s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    }
+    @keyframes fxBurst {
+      0% { transform: scale(0.2); opacity: 0; }
+      35% { opacity: 1; }
+      100% { transform: scale(1.65); opacity: 0; }
+    }
+    .ludo-screen-fx__text {
+      position: relative;
+      z-index: 2;
+      font-family: 'Outfit', sans-serif;
+      font-size: clamp(52px, 15vw, 76px);
+      font-weight: 900;
+      font-style: italic;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-align: center;
+      background: linear-gradient(180deg, #FFFFFF 20%, #FFD45A 55%, #EF8F24 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      -webkit-text-stroke: 2px #5C2D00;
+      filter: drop-shadow(0 8px 22px rgba(0, 0, 0, 0.6));
+      animation: fxTextPop 1.15s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+    @keyframes fxTextPop {
+      0% { transform: scale(0.15) rotate(-14deg); opacity: 0; }
+      30% { transform: scale(1.28) rotate(4deg); opacity: 1; }
+      55% { transform: scale(1) rotate(0deg); opacity: 1; }
+      80% { transform: scale(1.06); opacity: 1; }
+      100% { transform: scale(1.35); opacity: 0; }
+    }
+
     .turn-banner {
       background: var(--card-bg);
       padding: 7px 18px;
@@ -1322,9 +1376,14 @@
         </div>
       </div>
 
+      <!-- Screen FX Burst (SIX! Animation) -->
+      <div class="ludo-screen-fx" id="screenFx">
+        <div class="ludo-screen-fx__burst"></div>
+        <div class="ludo-screen-fx__text" id="screenFxText">SIX! 🎲</div>
+      </div>
       <div class="turn-banner" id="turnBanner">
         <div class="pulse-dot" id="turnDot"></div>
-        <span id="turnMessage">Your turn - roll the dice</span>
+        <span id="turnMessage">Roll the dice to start</span>
       </div>
 
       <div class="players-container">
@@ -1965,6 +2024,9 @@
           currentDiceValue = room.dice;
           setDiceFace(currentDiceValue);
           hasRolled = true;
+          if (currentDiceValue === 6) {
+            triggerScreenFX("SIX! 🎲");
+          }
           evaluateMovesAfterRoll();
         }
         if (room.token_state) {
@@ -2325,6 +2387,9 @@
 
       restartGame();
       switchView("viewGame");
+      const firstPlayer = getCurrentPlayer();
+      const firstName = getPlayerDisplayName(firstPlayer);
+      updateTurnBanner(`${firstName}'s turn - roll the dice`);
     }
 
     /* =========================================================================
@@ -2560,6 +2625,26 @@
 
     function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
+    function getPlayerDisplayName(color) {
+      if (lobbySeats[color]?.name) return lobbySeats[color].name;
+      if (color === myColor) return currentUser.name || "Player";
+      return capitalize(color);
+    }
+
+    function triggerScreenFX(text = "SIX! 🎲") {
+      const fx = document.getElementById("screenFx");
+      const txt = document.getElementById("screenFxText");
+      if (!fx || !txt) return;
+      txt.textContent = text;
+      fx.classList.remove("active");
+      void fx.offsetWidth; // trigger reflow
+      fx.classList.add("active");
+      setTimeout(() => {
+        fx.classList.remove("active");
+      }, 1200);
+    }
+
+
     function getCurrentPlayer() { return activePlayers[currentTurnIndex]; }
     function isHumanTurn() { return getCurrentPlayer() === myColor; }
 
@@ -2613,8 +2698,12 @@
           }).catch(() => {});
         }
 
-        if (currentDiceValue === 6) consecutiveSixes++;
-        else consecutiveSixes = 0;
+        if (currentDiceValue === 6) {
+          consecutiveSixes++;
+          triggerScreenFX("SIX! 🎲");
+        } else {
+          consecutiveSixes = 0;
+        }
 
         if (consecutiveSixes >= 3) {
           updateTurnBanner("3 Sixes! Turn forfeited.");
@@ -2642,21 +2731,19 @@
         return;
       }
 
+      const pName = getPlayerDisplayName(color);
       if (isPlayerBot(color)) {
-        const botName = lobbySeats[color]?.name || capitalize(color);
-        updateTurnBanner(`${botName} rolled a ${currentDiceValue}!`);
+        updateTurnBanner(`${pName} rolled a ${currentDiceValue}!`);
         setTimeout(() => chooseBotMove(color, validTokens), 750);
       } else {
         // Human player
-        const isMe = (color === myColor);
-        const pName = isMe ? "You" : (lobbySeats[color]?.name || capitalize(color));
         updateTurnBanner(`${pName} rolled a ${currentDiceValue}! Tap a glowing token.`);
         validTokens.forEach(tok => {
           if (tokenElements[color] && tokenElements[color][tok.id]) {
             tokenElements[color][tok.id].classList.add("can-move");
           }
         });
-        if (validTokens.length === 1 && isMe) {
+        if (validTokens.length === 1 && color === myColor) {
           setTimeout(() => handleTokenClick(color, validTokens[0].id), 450);
         }
       }
@@ -2749,17 +2836,13 @@
       currentTurnIndex = (currentTurnIndex + 1) % activePlayers.length;
 
       const nextPlayer = getCurrentPlayer();
-      const nextName = lobbySeats[nextPlayer]?.name || capitalize(nextPlayer);
+      const nextName = getPlayerDisplayName(nextPlayer);
 
       if (isPlayerBot(nextPlayer)) {
-        updateTurnBanner(`${nextName} is thinking...`);
+        updateTurnBanner(`${nextName}'s turn (thinking...)`);
         setTimeout(() => executeDiceRoll(), 1000);
       } else {
-        if (nextPlayer === myColor) {
-          updateTurnBanner("Your turn - roll the dice");
-        } else {
-          updateTurnBanner(`${nextName}'s turn - roll the dice`);
-        }
+        updateTurnBanner(`${nextName}'s turn - roll the dice`);
       }
     }
 
@@ -2855,17 +2938,13 @@
       renderAllTokens();
 
       const nextPlayer = getCurrentPlayer();
-      const nextName = lobbySeats[nextPlayer]?.name || capitalize(nextPlayer);
+      const nextName = getPlayerDisplayName(nextPlayer);
 
       if (isPlayerBot(nextPlayer)) {
-        updateTurnBanner(`${nextName} is thinking...`);
+        updateTurnBanner(`${nextName}'s turn (thinking...)`);
         setTimeout(() => executeDiceRoll(), 1000);
       } else {
-        if (nextPlayer === myColor) {
-          updateTurnBanner("Your turn - roll the dice");
-        } else {
-          updateTurnBanner(`${nextName}'s turn - roll the dice`);
-        }
+        updateTurnBanner(`${nextName}'s turn - roll the dice`);
       }
     }
 
