@@ -536,6 +536,239 @@
       margin-bottom: 12px;
     }
 
+    /* Match Results Screen */
+    .results-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: #FBF6EF;
+      background-image: repeating-conic-gradient(from 0deg at 50% 32%,
+        rgba(244, 228, 202, 0.5) 0deg 12deg,
+        transparent 12deg 24deg);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 24px 20px 30px;
+      z-index: 1000;
+      overflow-y: auto;
+    }
+
+    .results-overlay.open {
+      display: flex;
+      animation: fadeInResults 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes fadeInResults {
+      0% { opacity: 0; transform: scale(0.96); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    .results-trophy-badge {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #FFFFFF;
+      border: 2px solid #E5C378;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(209, 161, 66, 0.2);
+      margin-top: 14px;
+      margin-bottom: 6px;
+    }
+
+    .results-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      background: linear-gradient(180deg, #E8C882 0%, #B88A36 45%, #8B5F1F 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 2px 2px rgba(110, 75, 20, 0.35));
+      margin-bottom: 3px;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .results-subtitle {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1.8px;
+      color: #8C7561;
+      position: relative;
+      display: inline-block;
+      padding-bottom: 8px;
+      margin-bottom: 28px;
+      text-align: center;
+    }
+
+    .results-subtitle::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 15%;
+      right: 15%;
+      height: 1.5px;
+      background: #D9C3A5;
+      border-radius: 2px;
+    }
+
+    .results-podium-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 8px;
+      position: relative;
+    }
+
+    .podium-crown {
+      font-size: 28px;
+      margin-bottom: -8px;
+      filter: drop-shadow(0 2px 4px rgba(218, 165, 32, 0.5));
+      animation: floatCrown 2.2s ease-in-out infinite;
+      z-index: 3;
+    }
+
+    @keyframes floatCrown {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+
+    .winner-avatar {
+      width: 78px;
+      height: 78px;
+      border-radius: 50%;
+      background: #D4F4DC;
+      border: 4px solid #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+      font-size: 34px;
+      overflow: hidden;
+      position: relative;
+      z-index: 2;
+    }
+
+    .winner-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .winner-name {
+      font-size: 16px;
+      font-weight: 800;
+      color: #382B22;
+      margin-top: 8px;
+    }
+
+    .winner-tag {
+      font-size: 10px;
+      font-weight: 800;
+      color: #2CA85D;
+      letter-spacing: 1px;
+      margin-top: 2px;
+      margin-bottom: 14px;
+      text-transform: uppercase;
+    }
+
+    .podium-pillar {
+      width: 130px;
+      height: 165px;
+      background: linear-gradient(180deg, #53D27E 0%, #30A85B 100%);
+      border-radius: 16px 16px 0 0;
+      box-shadow: 0 10px 25px rgba(48, 168, 91, 0.35);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .pillar-rank {
+      color: #FFFFFF;
+      font-weight: 800;
+      font-size: 14px;
+      letter-spacing: 0.5px;
+      margin-top: 14px;
+      z-index: 2;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+
+    .pillar-num {
+      position: absolute;
+      bottom: 15px;
+      font-size: 85px;
+      font-weight: 900;
+      color: rgba(255, 255, 255, 0.22);
+      line-height: 1;
+      user-select: none;
+    }
+
+    .results-banner-pill {
+      background: #FFFDF9;
+      border: 1px solid #E8D6BD;
+      border-radius: 30px;
+      padding: 9px 24px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #6C5542;
+      margin-top: 30px;
+      margin-bottom: 14px;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .results-buttons {
+      width: 100%;
+      max-width: 280px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .res-close-btn {
+      width: 100%;
+      padding: 13px 20px;
+      background: #FFFDF8;
+      border: 1px solid #DFC9B0;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #685038;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(104, 80, 56, 0.08);
+      transition: transform 0.1s;
+    }
+
+    .res-close-btn:active {
+      transform: scale(0.97);
+    }
+
+    .res-playagain-btn {
+      width: 100%;
+      padding: 10px 20px;
+      background: transparent;
+      border: none;
+      font-size: 13px;
+      font-weight: 700;
+      color: #8C7561;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
     /* Modals */
     .modal-overlay {
       position: fixed;
@@ -811,14 +1044,46 @@
     </div>
   </div>
 
-  <!-- Victory Modal -->
-  <div class="modal-overlay" id="victoryModal">
-    <div class="modal-box">
-      <h3 class="modal-title" id="victoryTitle">🏆 Victory!</h3>
-      <div class="modal-body" id="victoryDesc">
-        Congratulations! You guided all 4 tokens safely into the home triangle!
+  <!-- MATCH RESULTS Overlay (Matching Image 3) -->
+  <div class="results-overlay" id="resultsOverlay">
+    <div class="results-trophy-badge">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D1A142" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
+        <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+        <path d="M4 22h16"/>
+        <path d="M10 14.66V17c0 .55-.45 1-1 1H8c-.55 0-1 .45-1 1v1h10v-1c0-.55-.45-1-1-1h-1c-.55 0-1-.45-1-1v-2.34"/>
+        <path d="M6 4h12v7a6 6 0 0 1-12 0V4z"/>
+      </svg>
+    </div>
+
+    <h1 class="results-title">MATCH RESULTS</h1>
+    <div class="results-subtitle">FINAL STANDINGS</div>
+
+    <div class="results-podium-area">
+      <div class="podium-crown">👑</div>
+      <div class="winner-avatar" id="resWinnerAvatar">
+        <span id="resWinnerEmoji">🤖</span>
       </div>
-      <button class="modal-btn" onclick="restartGame()">Play Again</button>
+      <div class="winner-name" id="resWinnerName">Bot Alpha</div>
+      <div class="winner-tag" id="resWinnerTag">BOT</div>
+      <div class="podium-pillar" id="resPodiumPillar">
+        <div class="pillar-rank">1ST</div>
+        <div class="pillar-num">1</div>
+      </div>
+    </div>
+
+    <div class="results-banner-pill" id="resBannerPill">
+      <span>🏆</span>
+      <span id="resBannerText"><b>Bot Alpha</b> wins the match!</span>
+    </div>
+
+    <div class="results-buttons">
+      <button class="res-close-btn" onclick="closeGameAction()">
+        <span>➔</span> Close game
+      </button>
+      <button class="res-playagain-btn" onclick="restartGame()">
+        <span>🔄</span> Play Again
+      </button>
     </div>
   </div>
 
@@ -1406,24 +1671,71 @@
     }
 
     /* =====================================================================
-       Victory & Confetti
+       Victory & Match Results Screen (Matching Image 3)
        ===================================================================== */
     function handleVictory(winnerColor) {
       playSound('win');
       triggerHaptic('success');
 
       const isMe = (winnerColor === 'red');
-      document.getElementById("victoryTitle").textContent = isMe ? "🏆 Congratulations!" : "Game Over!";
-      document.getElementById("victoryDesc").textContent = isMe
-        ? "You dominated the board and guided all 4 tokens safely into the home triangle!"
-        : `${capitalize(winnerColor)} won the match! Better luck next time!`;
+      let name = currentUser.name;
+      if (!isMe) {
+        if (winnerColor === 'green') name = (gameMode === 'bot') ? "Bot Alpha" : "Player 2";
+        else if (winnerColor === 'yellow') name = "Player 3";
+        else if (winnerColor === 'blue') name = "Player 4";
+      }
 
-      openModal('victoryModal');
+      const isBot = (gameMode === 'bot' && winnerColor !== 'red');
+      const tag = isBot ? "BOT" : (isMe ? "YOU" : "PLAYER");
+
+      document.getElementById("resWinnerName").textContent = name;
+      document.getElementById("resWinnerTag").textContent = tag;
+      document.getElementById("resBannerText").innerHTML = `<b>${name}</b> wins the match!`;
+
+      const avatar = document.getElementById("resWinnerAvatar");
+      const pillar = document.getElementById("resPodiumPillar");
+
+      if (isMe && currentUser.photo_url) {
+        avatar.innerHTML = `<img src="${currentUser.photo_url}" alt="winner">`;
+      } else {
+        avatar.innerHTML = `<span>${isBot ? "🤖" : (isMe ? "🧑" : "👤")}</span>`;
+      }
+
+      // Theme colors for winner
+      if (winnerColor === 'green') {
+        avatar.style.background = '#D4F4DC';
+        pillar.style.background = 'linear-gradient(180deg, #53D27E 0%, #30A85B 100%)';
+        pillar.style.boxShadow = '0 10px 25px rgba(48, 168, 91, 0.35)';
+      } else if (winnerColor === 'red') {
+        avatar.style.background = '#FEE7E7';
+        pillar.style.background = 'linear-gradient(180deg, #F66060 0%, #D83B3B 100%)';
+        pillar.style.boxShadow = '0 10px 25px rgba(216, 59, 59, 0.35)';
+      } else if (winnerColor === 'yellow') {
+        avatar.style.background = '#FFF6E0';
+        pillar.style.background = 'linear-gradient(180deg, #F8BA3A 0%, #D99C23 100%)';
+        pillar.style.boxShadow = '0 10px 25px rgba(217, 156, 35, 0.35)';
+      } else if (winnerColor === 'blue') {
+        avatar.style.background = '#E7EFFF';
+        pillar.style.background = 'linear-gradient(180deg, #4D8BFA 0%, #3070E2 100%)';
+        pillar.style.boxShadow = '0 10px 25px rgba(48, 112, 226, 0.35)';
+      }
+
+      document.getElementById("resultsOverlay").classList.add("open");
       launchConfetti();
     }
 
+    function closeGameAction() {
+      if (tg && tg.close) {
+        try {
+          tg.close();
+          return;
+        } catch(e) {}
+      }
+      restartGame();
+    }
+
     function restartGame() {
-      closeModal('victoryModal');
+      document.getElementById("resultsOverlay").classList.remove("open");
       PLAYERS.forEach(c => {
         tokenState[c].forEach(t => t.step = -1);
       });
