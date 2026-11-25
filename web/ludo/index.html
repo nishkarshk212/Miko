@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Ludo - Telegram Mini App</title>
   <!-- Telegram Web App SDK -->
@@ -99,6 +102,207 @@
       0% { opacity: 0; transform: translateY(6px); }
       100% { opacity: 1; transform: translateY(0); }
     }
+
+    /* =========================================================================
+       LANDING SCREEN: 3 CLEAN OPTIONS (Play with Bot, Create Room, Join Room)
+       ========================================================================= */
+    #viewMenu {
+      width: 100%;
+      height: 100%;
+      max-height: 100dvh;
+      display: none;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 12px 18px;
+      box-sizing: border-box;
+      background: radial-gradient(circle at 50% 20%, #1e4572 0%, #102747 60%, #08162b 100%);
+      border-radius: 20px;
+      color: #FFFFFF;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+    #viewMenu.active { display: flex; }
+
+    #viewMenu::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: 
+        radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+        linear-gradient(45deg, rgba(255, 255, 255, 0.02) 25%, transparent 25%, transparent 75%, rgba(255, 255, 255, 0.02) 75%);
+      background-size: 20px 20px, 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .menu-top-bar {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .menu-top-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .menu-hero-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      margin: 10px 0 14px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .menu-crown {
+      font-size: 38px;
+      filter: drop-shadow(0 4px 14px rgba(245, 197, 66, 0.7));
+      animation: floatCrown 2.5s ease-in-out infinite alternate;
+    }
+    @keyframes floatCrown {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-7px); }
+    }
+
+    .menu-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 32px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      background: linear-gradient(180deg, #FFFFFF 25%, #F5C542 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-top: 4px;
+      margin-bottom: 4px;
+    }
+
+    .menu-subtitle {
+      font-size: 13.5px;
+      color: #A9BDD6;
+      font-weight: 600;
+    }
+
+    /* 3 Big Mode Option Cards */
+    .mode-cards-container {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 13px;
+      margin: 8px 0;
+      position: relative;
+      z-index: 2;
+    }
+
+    .mode-card {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1.5px solid rgba(255, 255, 255, 0.16);
+      border-radius: 18px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+      transition: transform 0.15s ease, background 0.2s ease, border-color 0.2s ease;
+      position: relative;
+    }
+    .mode-card:active {
+      transform: scale(0.97);
+    }
+
+    .mode-card.card-bot {
+      background: linear-gradient(135deg, rgba(75, 198, 115, 0.22) 0%, rgba(255, 255, 255, 0.06) 100%);
+      border-color: rgba(75, 198, 115, 0.5);
+    }
+    .mode-card.card-create {
+      background: linear-gradient(135deg, rgba(77, 139, 250, 0.22) 0%, rgba(255, 255, 255, 0.06) 100%);
+      border-color: rgba(77, 139, 250, 0.5);
+    }
+    .mode-card.card-join {
+      background: linear-gradient(135deg, rgba(248, 186, 58, 0.22) 0%, rgba(255, 255, 255, 0.06) 100%);
+      border-color: rgba(248, 186, 58, 0.5);
+    }
+
+    .mode-card-icon-wrap {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+    .mode-card-icon-wrap.bg-green { background: linear-gradient(135deg, #4BC673, #2E9450); }
+    .mode-card-icon-wrap.bg-blue { background: linear-gradient(135deg, #4D8BFA, #2863CE); }
+    .mode-card-icon-wrap.bg-yellow { background: linear-gradient(135deg, #F8BA3A, #D6971A); }
+
+    .mode-card-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .mode-card-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 17.5px;
+      font-weight: 800;
+      color: #FFFFFF;
+      letter-spacing: 0.3px;
+    }
+
+    .mode-card-desc {
+      font-size: 12px;
+      color: #BFD0E5;
+      font-weight: 500;
+    }
+
+    .mode-card-arrow {
+      font-size: 18px;
+      color: #FFFFFF;
+      opacity: 0.7;
+      font-weight: 900;
+    }
+
+    .menu-profile-pill {
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 24px;
+      padding: 6px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      position: relative;
+      z-index: 2;
+    }
+    .menu-avatar-small {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #F5C542;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .menu-avatar-small img { width: 100%; height: 100%; object-fit: cover; }
+    .menu-user-info { display: flex; flex-direction: column; }
+    .menu-user-name { font-size: 12px; font-weight: 800; color: #FFFFFF; }
+    .menu-user-tag { font-size: 10px; color: #4BC673; font-weight: 600; }
 
     /* =========================================================================
        SCREEN 1: LOBBY / "PICK YOUR CORNER" (Matching Image 1)
@@ -1295,10 +1499,10 @@
 
   <div class="app-wrapper">
     <!-- =========================================================================
-         SCREEN 1: LOBBY / "PICK YOUR CORNER" (Matching Image 1)
+         SCREEN 1: GAME MODE MENU (Only 3 Clean Options: Play with Bot, Create Room, Join Room)
          ========================================================================= -->
-    <div class="view-screen active" id="viewLobby">
-      <div class="lobby-header-row">
+    <div class="view-screen active" id="viewMenu">
+      <div class="menu-top-bar">
         <div class="ludo-logo-pill">
           <div class="logo-dots">
             <span class="logo-dot" style="background:#F66060;"></span>
@@ -1308,90 +1512,64 @@
           </div>
           <span>LUDO</span>
         </div>
-
-        <div class="lobby-header-right">
+        <div class="menu-top-right">
           <div class="help-icon-btn" onclick="openModal('rulesModal')">?</div>
-          <div class="room-code-badge" onclick="openModal('roomModal')" title="Room Code & Settings">
-            <span id="roomCodeText">0Q62UQ</span>
-            <span>📋</span>
+          <div class="help-icon-btn" onclick="openModal('settingsModal')">⚙️</div>
+        </div>
+      </div>
+
+      <div class="menu-hero-area">
+        <div class="menu-crown">👑</div>
+        <h1 class="menu-title">LUDO KING</h1>
+        <p class="menu-subtitle">Select a mode to start playing</p>
+      </div>
+
+      <!-- ONLY 3 OPTIONS SHOWN -->
+      <div class="mode-cards-container">
+        <!-- Option 1: Play with Bot -->
+        <div class="mode-card card-bot" onclick="startPlayWithBot()">
+          <div class="mode-card-icon-wrap bg-green">
+            <span class="mode-icon">🤖</span>
           </div>
-        </div>
-      </div>
-
-      <div class="room-type-badge">
-        <span>🔒</span>
-        <span id="seatedBadge">Private room • 1/4 seated</span>
-      </div>
-
-      <div class="lobby-title-area">
-        <span class="lobby-crown">👑</span>
-        <div class="lobby-subtitle">✨ Choose your color ✨</div>
-        <h2 class="lobby-title">Pick your corner</h2>
-      </div>
-
-      <!-- 4 Corners Tray -->
-      <div class="corner-picker-board">
-        <!-- Green Corner -->
-        <div class="corner-box green" id="cornerBoxGreen" onclick="toggleCorner('green')">
-          <div class="corner-circle-btn green-btn" id="cornerBtnGreen">+</div>
-          <span class="corner-name" id="cornerNameGreen">Green</span>
-          <span class="corner-status" id="cornerStatusGreen">Choose ✨</span>
-        </div>
-
-        <!-- Yellow Corner -->
-        <div class="corner-box yellow" id="cornerBoxYellow" onclick="toggleCorner('yellow')">
-          <div class="corner-circle-btn yellow-btn" id="cornerBtnYellow">+</div>
-          <span class="corner-name" id="cornerNameYellow">Yellow</span>
-          <span class="corner-status" id="cornerStatusYellow">Choose ✨</span>
-        </div>
-
-        <!-- Red Corner (Selected by User by default) -->
-        <div class="corner-box red occupied" id="cornerBoxRed" onclick="toggleCorner('red')">
-          <div class="corner-avatar" id="cornerAvatarRed" style="background:var(--red-light);">
-            <span>🧑</span>
-            <span class="corner-crown-badge">👑</span>
+          <div class="mode-card-body">
+            <div class="mode-card-title">Play with Bot</div>
+            <div class="mode-card-desc">Instant 1v1 match against smart AI</div>
           </div>
-          <span class="corner-name" id="cornerNameRed">You</span>
-          <span class="corner-status" style="color:var(--red-color);" id="cornerStatusRed">Your color ✨</span>
+          <div class="mode-card-arrow">➔</div>
         </div>
 
-        <!-- Blue Corner -->
-        <div class="corner-box blue" id="cornerBoxBlue" onclick="toggleCorner('blue')">
-          <div class="corner-circle-btn blue-btn" id="cornerBtnBlue">+</div>
-          <span class="corner-name" id="cornerNameBlue">Blue</span>
-          <span class="corner-status" id="cornerStatusBlue">Choose ✨</span>
+        <!-- Option 2: Create Room -->
+        <div class="mode-card card-create" onclick="openCreateRoomModal()">
+          <div class="mode-card-icon-wrap bg-blue">
+            <span class="mode-icon">➕</span>
+          </div>
+          <div class="mode-card-body">
+            <div class="mode-card-title">Create Room</div>
+            <div class="mode-card-desc">Host private match & invite a friend</div>
+          </div>
+          <div class="mode-card-arrow">➔</div>
         </div>
-      </div>
 
-      <div class="lobby-info-pill">
-        <span>📶 <span id="lobbyNeedSub">One more player needed</span></span>
-        <span>|</span>
-        <span style="cursor:pointer;" onclick="openModal('roomModal')">&lt;/&gt; Invite code</span>
-        <span>|</span>
-        <span style="cursor:pointer; color:var(--blue-color); font-weight:800;" onclick="openModal('roomModal')">🔑 Join code</span>
-      </div>
-
-      <!-- Action Card -->
-      <div class="lobby-action-card">
-        <div class="lobby-status-row">
-          <span id="lobbyNeedText">🚩 One more player needed</span>
-          <span>Minimum 2 players</span>
-        </div>
-        <div class="lobby-btn-row">
-          <button class="lobby-btn add-bot-btn" id="addBotBtn" onclick="addBotToLobby()">
-            <span>👤+</span> Add bot
-          </button>
-          <button class="lobby-btn start-match-btn disabled" id="startMatchBtn" onclick="startMatchFromLobby()">
-            <span>▶</span> Start match
-          </button>
+        <!-- Option 3: Join Room -->
+        <div class="mode-card card-join" onclick="openJoinRoomModal()">
+          <div class="mode-card-icon-wrap bg-yellow">
+            <span class="mode-icon">🔑</span>
+          </div>
+          <div class="mode-card-body">
+            <div class="mode-card-title">Join Room</div>
+            <div class="mode-card-desc">Enter 6-digit code to join match</div>
+          </div>
+          <div class="mode-card-arrow">➔</div>
         </div>
       </div>
 
-      <!-- Decorative bottom leaves & clouds -->
-      <div class="tray-deco-bg" style="position:relative; width:100%; margin-top:10px;">
-        <div class="deco-leaf"></div>
-        <div class="deco-cloud"></div>
-        <div class="deco-leaf right"></div>
+      <!-- Player Profile Footer -->
+      <div class="menu-profile-pill">
+        <div class="menu-avatar-small" id="menuUserAvatar">🧑</div>
+        <div class="menu-user-info">
+          <span class="menu-user-name" id="menuUserName">Player</span>
+          <span class="menu-user-tag">● Online</span>
+        </div>
       </div>
     </div>
 
@@ -1423,7 +1601,7 @@
 
         <!-- Center Controls Bar -->
         <div class="lk-center-bar">
-          <div class="lk-top-pill" onclick="switchView('viewLobby')" title="Lobby">‹</div>
+          <div class="lk-top-pill" onclick="switchView('viewMenu')" title="Menu">‹</div>
           <div class="lk-top-pill" onclick="openModal('spectatorsModal')" title="Spectators">👁️ <span id="specCountDisplay">0</span></div>
           <div class="lk-top-pill" onclick="toggleSound()" title="Sound"><span id="soundIcon">🔊</span></div>
           <div class="lk-top-pill" onclick="openModal('chatModal')" title="Chat">💬</div>
@@ -1739,43 +1917,61 @@
     </div>
   </div>
 
-  <!-- Modal 5: Room Code & Join (Create & Join Room) -->
-  <div class="app-modal-overlay" id="roomModal">
+  <!-- Modal 5: Create Room Modal -->
+  <div class="app-modal-overlay" id="createRoomModal">
     <div class="app-modal-card" style="padding-top:28px;">
       <div class="modal-top-tab">
-        <span style="color:#4D8BFA;">🔑</span> Room Code
+        <span style="color:#4D8BFA;">➕</span> Create Room
       </div>
-      <div class="modal-close-round" onclick="closeModal('roomModal')">✕</div>
+      <div class="modal-close-round" onclick="closeModal('createRoomModal')">✕</div>
 
       <div style="font-size:13px; font-weight:700; color:var(--text-muted); margin-top:8px; margin-bottom:14px; text-align:center;">
-        Share with friends or join an existing room
+        Share code or invite link with a friend (2-Player Match)
       </div>
 
       <!-- Current Room Box -->
-      <div style="width:100%; background:#F8F3EC; border-radius:18px; padding:12px 14px; display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border:1px solid rgba(0,0,0,0.05);">
+      <div style="width:100%; background:#F8F3EC; border-radius:18px; padding:12px 14px; display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border:1px solid rgba(0,0,0,0.05);">
         <div>
-          <div style="font-size:10.5px; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Current Room</div>
-          <div style="font-size:19px; font-weight:900; letter-spacing:2px; color:var(--text-dark);" id="modalRoomCodeText">0Q62UQ</div>
+          <div style="font-size:10.5px; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Room Code</div>
+          <div style="font-size:20px; font-weight:900; letter-spacing:2px; color:var(--text-dark);" id="createRoomCodeText">0Q62UQ</div>
         </div>
         <button class="lobby-btn" style="flex:none; padding:8px 14px; background:#4BC673; color:#fff; border-radius:12px; font-size:12.5px;" onclick="copyRoomCode()">
           <span>📋</span> Copy Link
         </button>
       </div>
 
-      <!-- Join Another Room Input -->
-      <div style="width:100%; margin-bottom:14px;">
-        <label style="font-size:11px; font-weight:800; color:var(--text-dark); display:block; margin-bottom:6px; letter-spacing:0.5px;">JOIN WITH ROOM CODE</label>
-        <div style="display:flex; gap:8px;">
-          <input type="text" id="inputRoomCode" placeholder="Enter 6-char code" maxlength="8" style="flex:1; border:1px solid #E6D8C8; border-radius:14px; padding:10px 14px; font-size:14px; font-weight:800; text-transform:uppercase; outline:none; background:#FFF; letter-spacing:1.5px; color:var(--text-dark);" onkeyup="this.value = this.value.toUpperCase()">
-          <button class="lobby-btn" style="flex:none; padding:10px 18px; background:var(--blue-color); color:#fff; border-radius:14px;" onclick="submitJoinRoom()">
-            Join
-          </button>
-        </div>
+      <!-- Status row -->
+      <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.03); border-radius:12px; padding:8px 12px; margin-bottom:16px;">
+        <span style="font-size:12px; font-weight:700; color:#4BC673;" id="createRoomStatusText">● Waiting for Player 2 (1/2)</span>
+        <button class="lobby-btn" style="padding:6px 10px; font-size:11px; background:#EAE5DD; color:#333;" onclick="fillRoomWithBot()">🤖 Add Bot</button>
       </div>
 
-      <!-- Create New Room Button -->
-      <button class="lobby-btn add-bot-btn" style="width:100%; margin-top:4px;" onclick="createNewRoom()">
-        <span>➕</span> Create New Room
+      <!-- Start button -->
+      <button class="lobby-btn start-match-btn" id="btnStartRoomMatch" style="width:100%; padding:12px; font-size:14px;" onclick="startRoomMatch()">
+        <span>▶</span> Start Match
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal 6: Join Room Modal -->
+  <div class="app-modal-overlay" id="joinRoomModal">
+    <div class="app-modal-card" style="padding-top:28px;">
+      <div class="modal-top-tab">
+        <span style="color:#F8BA3A;">🔑</span> Join Room
+      </div>
+      <div class="modal-close-round" onclick="closeModal('joinRoomModal')">✕</div>
+
+      <div style="font-size:13px; font-weight:700; color:var(--text-muted); margin-top:8px; margin-bottom:16px; text-align:center;">
+        Enter the 6-character room code to join
+      </div>
+
+      <div style="width:100%; margin-bottom:16px;">
+        <label style="font-size:11px; font-weight:800; color:var(--text-dark); display:block; margin-bottom:6px; letter-spacing:0.5px;">ROOM CODE</label>
+        <input type="text" id="inputJoinRoomCode" placeholder="E.G. 0Q62UQ" maxlength="8" style="width:100%; border:2px solid #E6D8C8; border-radius:14px; padding:12px 14px; font-size:16px; font-weight:900; text-transform:uppercase; outline:none; background:#FFF; letter-spacing:2px; color:var(--text-dark); text-align:center; box-sizing:border-box;" onkeyup="this.value = this.value.toUpperCase()">
+      </div>
+
+      <button class="lobby-btn" style="width:100%; padding:12px; background:var(--blue-color); color:#fff; border-radius:14px; font-size:14px;" onclick="submitJoinRoom()">
+        <span>🚀</span> Join Match
       </button>
     </div>
   </div>
@@ -1817,7 +2013,7 @@
       <button class="res-close-btn" onclick="closeGameAction()">
         <span>➔</span> Close game
       </button>
-      <button class="res-playagain-btn" onclick="switchView('viewLobby')">
+      <button class="res-playagain-btn" onclick="switchView('viewMenu')">
         <span>🔄</span> Play Again
       </button>
     </div>
@@ -1850,13 +2046,13 @@
 
     const bannerBlue = document.getElementById("bannerBlue");
     if (bannerBlue) bannerBlue.textContent = currentUser.name;
-    const cornerNameBlue = document.getElementById("cornerNameBlue");
-    if (cornerNameBlue) cornerNameBlue.textContent = currentUser.name;
+    const menuUserName = document.getElementById("menuUserName");
+    if (menuUserName) menuUserName.textContent = currentUser.name;
     if (currentUser.photo_url) {
       const avBlue = document.getElementById("avatarImgBlue");
       if (avBlue) avBlue.src = currentUser.photo_url;
-      const cornerAvBlue = document.getElementById("cornerAvatarBlue");
-      if (cornerAvBlue) cornerAvBlue.innerHTML = `<img src="${currentUser.photo_url}" alt="avatar"><span class="corner-crown-badge">👑</span>`;
+      const menuAvatar = document.getElementById("menuUserAvatar");
+      if (menuAvatar) menuAvatar.innerHTML = `<img src="${currentUser.photo_url}" alt="user">`;
     }
 
     /* Screen Views */
@@ -1942,6 +2138,13 @@
     let currentRoomCode = "0Q62UQ";
     let isHost = true;
     let roomPollInterval = null;
+    let myColor = 'blue';
+    let lobbySeats = {
+      blue:   { type: 'me',  name: currentUser.name, avatar: currentUser.photo_url },
+      green:  { type: 'bot', name: "Bot Alpha" },
+      red:    null,
+      yellow: null
+    };
 
     function showToast(msg) {
       if (tg && tg.showPopup) {
@@ -1953,7 +2156,7 @@
 
     /* Room Code Copy & Share */
     function copyRoomCode() {
-      const code = currentRoomCode || document.getElementById("roomCodeText").textContent;
+      const code = currentRoomCode || "0Q62UQ";
       const botUname = "im_Radhabot";
       const inviteLink = `https://t.me/${botUname}/ludo?startapp=${code}`;
       navigator.clipboard.writeText(inviteLink).then(() => {
@@ -1961,6 +2164,136 @@
       }).catch(() => {
         showToast(`Room code: ${code}`);
       });
+    }
+
+    /* =========================================================================
+       3 CLEAN GAME MODES: Play with Bot, Create Room, Join Room
+       ========================================================================= */
+    function isPlayerBot(color) {
+      const seat = lobbySeats[color];
+      return Boolean(seat && seat.type === 'bot');
+    }
+
+    function startPlayWithBot() {
+      // 2-Player match: You (Blue) vs Bot Alpha (Green)
+      activePlayers = ['blue', 'green'];
+      myColor = 'blue';
+      lobbySeats = {
+        blue:   { type: 'me',  name: currentUser.name, avatar: currentUser.photo_url },
+        green:  { type: 'bot', name: "Bot Alpha" },
+        red:    null,
+        yellow: null
+      };
+
+      // Set base banners
+      const bBlue = document.getElementById("bannerBlue");
+      if (bBlue) bBlue.textContent = currentUser.name || "Nishkarsh";
+      const bGreen = document.getElementById("bannerGreen");
+      if (bGreen) bGreen.textContent = "Bot Alpha";
+      const bRed = document.getElementById("bannerRed");
+      if (bRed) bRed.textContent = "Empty";
+      const bYellow = document.getElementById("bannerYellow");
+      if (bYellow) bYellow.textContent = "Empty";
+
+      // Hide inactive stations (Red & Yellow) and dim bases
+      PLAYERS.forEach(c => {
+        const station = document.getElementById(`station${capitalize(c)}`);
+        const base = document.getElementById(`base${capitalize(c)}`);
+        if (activePlayers.includes(c)) {
+          if (station) {
+            station.style.visibility = "visible";
+            station.style.pointerEvents = "auto";
+          }
+          if (base) base.style.opacity = "1";
+        } else {
+          if (station) {
+            station.style.visibility = "hidden";
+            station.style.pointerEvents = "none";
+          }
+          if (base) base.style.opacity = "0.35";
+        }
+      });
+
+      switchView("viewGame");
+      restartGame();
+    }
+
+    function openCreateRoomModal() {
+      createNewRoom(false);
+      openModal("createRoomModal");
+      const code = currentRoomCode || "0Q62UQ";
+      const cEl = document.getElementById("createRoomCodeText");
+      if (cEl) cEl.textContent = code;
+      const sEl = document.getElementById("createRoomStatusText");
+      if (sEl) sEl.textContent = "● Waiting for Player 2 (1/2)";
+    }
+
+    function openJoinRoomModal() {
+      openModal("joinRoomModal");
+      const inp = document.getElementById("inputJoinRoomCode");
+      if (inp) {
+        inp.value = "";
+        setTimeout(() => inp.focus(), 250);
+      }
+    }
+
+    function fillRoomWithBot() {
+      lobbySeats['green'] = { type: 'bot', name: "Bot Alpha" };
+      activePlayers = ['blue', 'green'];
+      const sEl = document.getElementById("createRoomStatusText");
+      if (sEl) sEl.textContent = "● Ready! (2/2 Players)";
+      showToast("Bot Alpha joined room as Player 2!");
+    }
+
+    function startRoomMatch() {
+      closeModal("createRoomModal");
+      closeModal("joinRoomModal");
+
+      // 2 players only: Host (Blue) vs Guest/Bot (Green)
+      if (!lobbySeats['green']) {
+        lobbySeats['green'] = { type: 'bot', name: "Bot Alpha" };
+      }
+      if (!lobbySeats['blue']) {
+        lobbySeats['blue'] = { type: 'me', name: currentUser.name, avatar: currentUser.photo_url };
+      }
+      activePlayers = ['blue', 'green'];
+
+      const bBlue = document.getElementById("bannerBlue");
+      if (bBlue) bBlue.textContent = lobbySeats['blue']?.name || currentUser.name;
+      const bGreen = document.getElementById("bannerGreen");
+      if (bGreen) bGreen.textContent = lobbySeats['green']?.name || "Player 2";
+      const bRed = document.getElementById("bannerRed");
+      if (bRed) bRed.textContent = "Empty";
+      const bYellow = document.getElementById("bannerYellow");
+      if (bYellow) bYellow.textContent = "Empty";
+
+      // Hide inactive stations (Red & Yellow) and dim bases
+      PLAYERS.forEach(c => {
+        const station = document.getElementById(`station${capitalize(c)}`);
+        const base = document.getElementById(`base${capitalize(c)}`);
+        if (activePlayers.includes(c)) {
+          if (station) {
+            station.style.visibility = "visible";
+            station.style.pointerEvents = "auto";
+          }
+          if (base) base.style.opacity = "1";
+        } else {
+          if (station) {
+            station.style.visibility = "hidden";
+            station.style.pointerEvents = "none";
+          }
+          if (base) base.style.opacity = "0.35";
+        }
+      });
+
+      switchView("viewGame");
+      restartGame();
+
+      fetch("/api/ludo/room/action", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: currentRoomCode, action: "start_game" })
+      }).catch(() => {});
     }
 
     async function createNewRoom(showNotice = true) {
@@ -1972,34 +2305,30 @@
             user_id: currentUser.id,
             name: currentUser.name,
             avatar: currentUser.photo_url,
-            color: myColor
+            color: 'blue'
           })
         });
         const data = await res.json();
         if (data.success && data.room) {
           applyRoomData(data.room);
           isHost = true;
-          if (showNotice) {
-            closeModal('roomModal');
-            showToast(`New room created: ${data.room.code}`);
-          }
+          const cEl = document.getElementById("createRoomCodeText");
+          if (cEl) cEl.textContent = data.room.code;
+          if (showNotice) showToast(`Room created: ${data.room.code}`);
         }
       } catch (e) {
         const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
         let c = "";
         for (let i = 0; i < 6; i++) c += chars.charAt(Math.floor(Math.random() * chars.length));
         currentRoomCode = c;
-        document.getElementById("roomCodeText").textContent = c;
-        document.getElementById("modalRoomCodeText").textContent = c;
-        if (showNotice) {
-          closeModal('roomModal');
-          showToast(`New room: ${c}`);
-        }
+        const cEl = document.getElementById("createRoomCodeText");
+        if (cEl) cEl.textContent = c;
+        if (showNotice) showToast(`Room: ${c}`);
       }
     }
 
     async function submitJoinRoom(targetCode) {
-      const code = (targetCode || document.getElementById("inputRoomCode").value || "").trim().toUpperCase();
+      const code = (targetCode || document.getElementById("inputJoinRoomCode")?.value || "").trim().toUpperCase();
       if (!code) {
         showToast("Please enter a room code");
         return;
@@ -2013,34 +2342,31 @@
             user_id: currentUser.id,
             name: currentUser.name,
             avatar: currentUser.photo_url,
-            color: myColor
+            color: 'green' // joiner is 2nd player
           })
         });
         const data = await res.json();
         if (data.success && data.room) {
-          applyRoomData(data.room);
-          closeModal('roomModal');
+          closeModal('joinRoomModal');
           showToast(`Joined room: ${code}`);
+          applyRoomData(data.room);
+          startRoomMatch();
         } else {
           showToast(data.error || "Could not join room");
         }
       } catch (e) {
         currentRoomCode = code;
-        document.getElementById("roomCodeText").textContent = code;
-        document.getElementById("modalRoomCodeText").textContent = code;
-        closeModal('roomModal');
+        closeModal('joinRoomModal');
         showToast(`Joined room: ${code}`);
+        startRoomMatch();
       }
     }
 
     function applyRoomData(room) {
       if (!room) return;
       currentRoomCode = room.code;
-      document.getElementById("roomCodeText").textContent = room.code;
-      document.getElementById("modalRoomCodeText").textContent = room.code;
-
-      const specCode = document.getElementById("specRoomCode");
-      if (specCode) specCode.textContent = room.code;
+      const cEl = document.getElementById("createRoomCodeText");
+      if (cEl) cEl.textContent = room.code;
 
       const players = room.players || {};
       ['green', 'yellow', 'red', 'blue'].forEach(c => {
@@ -2058,15 +2384,47 @@
           lobbySeats[c] = null;
         }
       });
-      updateLobbyCornerUI();
 
-      if (room.status === 'playing' && document.getElementById("viewLobby").classList.contains("active")) {
-        startMatchFromLobby();
+      const seatedCount = Object.keys(lobbySeats).filter(c => lobbySeats[c] !== null).length;
+      const sEl = document.getElementById("createRoomStatusText");
+      if (sEl) {
+        if (seatedCount >= 2) sEl.textContent = "● Ready! (2/2 Players)";
+        else sEl.textContent = "● Waiting for Player 2 (1/2)";
+      }
+
+      if (room.status === 'playing' && !document.getElementById("viewGame").classList.contains("active")) {
+        startRoomMatch();
+      }
+
+      // Synchronize in-game action if gameplay is active
+      if (document.getElementById("viewGame").classList.contains("active")) {
+        if (room.turn && room.turn !== myColor && room.dice && room.dice !== currentDiceValue && !isRolling && !hasRolled) {
+          currentDiceValue = room.dice;
+          setDiceFace(currentDiceValue, room.turn);
+          hasRolled = true;
+          evaluateMovesAfterRoll();
+        }
+        if (room.token_state) {
+          let stateChanged = false;
+          Object.keys(room.token_state).forEach(color => {
+            if (color !== myColor && tokenState[color]) {
+              Object.keys(room.token_state[color]).forEach(idStr => {
+                const step = room.token_state[color][idStr];
+                const tok = tokenState[color][parseInt(idStr)];
+                if (tok && tok.step !== step) {
+                  tok.step = step;
+                  stateChanged = true;
+                }
+              });
+            }
+          });
+          if (stateChanged) renderAllTokens();
+        }
       }
     }
 
     async function pollRoomState() {
-      if (!document.getElementById("viewLobby").classList.contains("active")) return;
+      if (!currentRoomCode) return;
       try {
         const res = await fetch(`/api/ludo/room/state?code=${currentRoomCode}`);
         const data = await res.json();
@@ -2088,262 +2446,7 @@
       if (code && code.length >= 4 && code !== "LUDO") {
         currentRoomCode = code;
         submitJoinRoom(code);
-      } else {
-        createNewRoom(false);
       }
-    }
-
-    /* =========================================================================
-       Settings: Theme & Audio/Vibe Switches
-       ========================================================================= */
-    let sfxEnabled = true;
-    let musicEnabled = false;
-    let vibeEnabled = true;
-    let ambientOsc = null;
-
-    function setBoardTheme(theme) {
-      if (theme === 'moonlit') {
-        document.body.classList.add("theme-moonlit");
-        document.getElementById("themeMoonlit").style.borderColor = "var(--red-color)";
-        document.getElementById("themeSunlit").style.borderColor = "transparent";
-      } else {
-        document.body.classList.remove("theme-moonlit");
-        document.getElementById("themeSunlit").style.borderColor = "var(--red-color)";
-        document.getElementById("themeMoonlit").style.borderColor = "transparent";
-      }
-    }
-
-    function toggleSwitch(which) {
-      if (which === 'sound') {
-        sfxEnabled = !sfxEnabled;
-        document.getElementById("swSound").classList.toggle("on", sfxEnabled);
-        document.getElementById("soundIcon").textContent = sfxEnabled ? "🔊" : "🔇";
-      } else if (which === 'music') {
-        musicEnabled = !musicEnabled;
-        document.getElementById("swMusic").classList.toggle("on", musicEnabled);
-        toggleAmbientMusic(musicEnabled);
-      } else if (which === 'vibe') {
-        vibeEnabled = !vibeEnabled;
-        document.getElementById("swVibe").classList.toggle("on", vibeEnabled);
-      }
-    }
-
-    function toggleSound() {
-      toggleSwitch('sound');
-    }
-
-    /* Audio Context */
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    let audioCtx = null;
-
-    function getAudioCtx() {
-      if (!audioCtx) audioCtx = new AudioContext();
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-      return audioCtx;
-    }
-
-    function playSound(type) {
-      if (!sfxEnabled) return;
-      try {
-        const ctx = getAudioCtx();
-        const now = ctx.currentTime;
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain); gain.connect(ctx.destination);
-
-        if (type === 'roll') {
-          osc.type = 'triangle';
-          osc.frequency.setValueAtTime(150, now);
-          osc.frequency.exponentialRampToValueAtTime(320, now + 0.15);
-          gain.gain.setValueAtTime(0.2, now);
-          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-          osc.start(now); osc.stop(now + 0.15);
-        } else if (type === 'move') {
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(440, now);
-          osc.frequency.exponentialRampToValueAtTime(620, now + 0.08);
-          gain.gain.setValueAtTime(0.25, now);
-          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
-          osc.start(now); osc.stop(now + 0.08);
-        } else if (type === 'capture') {
-          osc.type = 'sawtooth';
-          osc.frequency.setValueAtTime(320, now);
-          osc.frequency.exponentialRampToValueAtTime(100, now + 0.25);
-          gain.gain.setValueAtTime(0.3, now);
-          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
-          osc.start(now); osc.stop(now + 0.25);
-        } else if (type === 'win') {
-          [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => {
-            const o = ctx.createOscillator();
-            const g = ctx.createGain();
-            o.connect(g); g.connect(ctx.destination);
-            o.type = 'sine';
-            o.frequency.setValueAtTime(f, now + i * 0.1);
-            g.gain.setValueAtTime(0.3, now + i * 0.1);
-            g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.25);
-            o.start(now + i * 0.1); o.stop(now + i * 0.1 + 0.25);
-          });
-        }
-      } catch(e) {}
-    }
-
-    function toggleAmbientMusic(enable) {
-      try {
-        if (!enable) {
-          if (ambientOsc) { ambientOsc.stop(); ambientOsc = null; }
-          return;
-        }
-        const ctx = getAudioCtx();
-        ambientOsc = ctx.createOscillator();
-        const g = ctx.createGain();
-        ambientOsc.type = 'sine';
-        ambientOsc.frequency.setValueAtTime(220, ctx.currentTime);
-        g.gain.setValueAtTime(0.04, ctx.currentTime);
-        ambientOsc.connect(g);
-        g.connect(ctx.destination);
-        ambientOsc.start();
-      } catch(e) {}
-    }
-
-    function triggerHaptic(type = 'light') {
-      if (!vibeEnabled || !tg || !tg.HapticFeedback) return;
-      try {
-        if (type === 'success') tg.HapticFeedback.notificationOccurred('success');
-        else if (type === 'medium') tg.HapticFeedback.impactOccurred('medium');
-        else tg.HapticFeedback.impactOccurred('light');
-      } catch(e) {}
-    }
-
-    /* =========================================================================
-       LOBBY CORNER PICKER STATE (Exact Ludo King Profile Setup)
-       ========================================================================= */
-    let myColor = 'blue';
-    let lobbySeats = {
-      red: { type: 'bot', name: "SpikeDom" },
-      green: { type: 'bot', name: "SolarToady" },
-      yellow: { type: 'bot', name: "ReconVenus" },
-      blue: { type: 'me', name: currentUser.name }
-    };
-
-    function toggleCorner(color) {
-      if (myColor === color) return; // already me
-      // Move me to this corner
-      lobbySeats[myColor] = null;
-      myColor = color;
-      lobbySeats[color] = { type: 'me', name: currentUser.name };
-      updateLobbyCornerUI();
-      fetch("/api/ludo/room/action", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          code: currentRoomCode,
-          action: "select_corner",
-          user_id: currentUser.id,
-          color: color,
-          name: currentUser.name,
-          avatar: currentUser.photo_url
-        })
-      }).catch(() => {});
-    }
-
-    function addBotToLobby() {
-      // Find first empty seat
-      const emptyColor = ['green', 'yellow', 'blue', 'red'].find(c => !lobbySeats[c]);
-      if (emptyColor) {
-        lobbySeats[emptyColor] = { type: 'bot', name: "Bot Alpha" };
-        addLogEvent(`Bot Alpha was added to the room.`, "Room event");
-        updateLobbyCornerUI();
-        fetch("/api/ludo/room/action", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ code: currentRoomCode, action: "add_bot" })
-        }).catch(() => {});
-      }
-    }
-
-    function updateLobbyCornerUI() {
-      let seatedCount = 0;
-      ['green', 'yellow', 'red', 'blue'].forEach(c => {
-        const box = document.getElementById(`cornerBox${capitalize(c)}`);
-        const seat = lobbySeats[c];
-        if (seat) {
-          seatedCount++;
-          box.classList.add("occupied");
-          if (seat.type === 'me') {
-            box.innerHTML = `
-              <div class="corner-avatar" style="background:var(--${c}-light);">
-                ${currentUser.photo_url ? `<img src="${currentUser.photo_url}">` : `<span>🧑</span>`}
-                <span class="corner-crown-badge">👑</span>
-              </div>
-              <span class="corner-name">${currentUser.name}</span>
-              <span class="corner-status" style="color:var(--${c}-color);">Your color ✨</span>
-            `;
-          } else if (seat.type === 'bot') {
-            box.innerHTML = `
-              <div class="corner-avatar" style="background:var(--${c}-light);">
-                <span>🤖</span>
-              </div>
-              <span class="corner-name">${seat.name}</span>
-              <span class="corner-status" style="color:var(--${c}-color);">Ready</span>
-            `;
-          } else if (seat.type === 'player') {
-            box.innerHTML = `
-              <div class="corner-avatar" style="background:var(--${c}-light);">
-                ${seat.avatar ? `<img src="${seat.avatar}">` : `<span>👤</span>`}
-              </div>
-              <span class="corner-name">${seat.name}</span>
-              <span class="corner-status" style="color:var(--${c}-color);">Ready</span>
-            `;
-          }
-        } else {
-          box.classList.remove("occupied");
-          box.innerHTML = `
-            <div class="corner-circle-btn ${c}-btn">+</div>
-            <span class="corner-name">${capitalize(c)}</span>
-            <span class="corner-status">Choose ✨</span>
-          `;
-        }
-      });
-
-      document.getElementById("seatedBadge").textContent = `Private room • ${seatedCount}/4 seated`;
-      const canStart = (seatedCount >= 2);
-      const startBtn = document.getElementById("startMatchBtn");
-      startBtn.classList.toggle("disabled", !canStart);
-
-      document.getElementById("lobbyNeedText").textContent = canStart ? "✅ Ready to start!" : "🚩 One more player needed";
-      const subNeed = document.getElementById("lobbyNeedSub");
-      if (subNeed) subNeed.textContent = canStart ? "Ready to start" : "One more player needed";
-    }
-
-    function startMatchFromLobby() {
-      const seated = Object.keys(lobbySeats).filter(c => lobbySeats[c] !== null);
-      if (seated.length < 2) {
-        addBotToLobby();
-      }
-      activePlayers = Object.keys(lobbySeats).filter(c => lobbySeats[c] !== null);
-      addLogEvent(`The game has started.`, "Room event");
-
-      fetch("/api/ludo/room/action", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: currentRoomCode, action: "start_game" })
-      }).catch(() => {});
-
-      // Update in-game base banners
-      ['red', 'green', 'blue', 'yellow'].forEach(c => {
-        const seat = lobbySeats[c];
-        const banner = document.getElementById(`banner${capitalize(c)}`);
-        if (banner) {
-          if (seat && seat.name) banner.textContent = seat.name;
-          else if (c === 'red') banner.textContent = "SpikeDom";
-          else if (c === 'green') banner.textContent = "SolarToady";
-          else if (c === 'blue') banner.textContent = currentUser.name || "Nishkarsh";
-          else if (c === 'yellow') banner.textContent = "ReconVenus";
-        }
-      });
-
-      restartGame();
-      switchView("viewGame");
     }
 
     /* =========================================================================
@@ -2418,8 +2521,8 @@
        GAME STATE & LUDO KING TEARDROP TOKENS ENGINE
        ========================================================================= */
     const PLAYERS = ['red', 'green', 'yellow', 'blue'];
-    let activePlayers = ['red', 'green', 'yellow', 'blue'];
-    let currentTurnIndex = 3; // Start on Blue (You - Nishkarsh) to match screenshot!
+    let activePlayers = ['blue', 'green']; // 2-player match by default (Blue vs Green)
+    let currentTurnIndex = 0; // Blue (You) starts!
     let currentDiceValue = 4;
     let hasRolled = false;
     let isRolling = false;
@@ -2479,6 +2582,14 @@
       document.querySelectorAll(".token").forEach(e => e.remove());
       PLAYERS.forEach(color => {
         tokenElements[color] = [];
+        // Empty out all base slots first
+        for (let i = 0; i < 4; i++) {
+          const baseSlot = document.getElementById(`base_${color}_${i}`);
+          if (baseSlot) baseSlot.innerHTML = "";
+        }
+        // ONLY create gotis for active players in current match
+        if (!activePlayers.includes(color)) return;
+
         for (let i = 0; i < 4; i++) {
           const tok = document.createElement("div");
           tok.className = `token token-${color}`;
@@ -2528,9 +2639,20 @@
       const cellTokensMap = {};
 
       PLAYERS.forEach(color => {
+        if (!activePlayers.includes(color)) {
+          for (let i = 0; i < 4; i++) {
+            const baseSlot = document.getElementById(`base_${color}_${i}`);
+            if (baseSlot) baseSlot.innerHTML = "";
+          }
+          const scoreBadge = document.getElementById(`score${capitalize(color)}`);
+          if (scoreBadge) scoreBadge.textContent = `-`;
+          return;
+        }
+
         let homeCount = 0;
         tokenState[color].forEach((tok, idx) => {
-          const el = tokenElements[color][idx];
+          const el = tokenElements[color]?.[idx];
+          if (!el) return;
           if (tok.step === -1) {
             const baseSlot = document.getElementById(`base_${color}_${idx}`);
             if (baseSlot && el.parentElement !== baseSlot) baseSlot.appendChild(el);
@@ -2581,11 +2703,17 @@
 
     function getCurrentPlayer() { return activePlayers[currentTurnIndex]; }
     function isHumanTurn() { return getCurrentPlayer() === myColor; }
+    function isRemoteRoom() {
+      return Boolean(currentRoomCode && Object.keys(lobbySeats).filter(c => lobbySeats[c]?.type === 'player').length > 1);
+    }
 
     function handleDiceClick(color) {
       if (isRolling || hasRolled) return;
       if (color !== getCurrentPlayer()) return;
-      if (!isHumanTurn()) return;
+      // Do not allow manual click on an AI Bot seat
+      if (isPlayerBot(color)) return;
+      // In remote room, only player controlling this color can roll
+      if (isRemoteRoom() && color !== myColor) return;
       executeDiceRoll();
     }
 
@@ -2621,6 +2749,20 @@
         const pName = lobbySeats[curPlayer]?.name || capitalize(curPlayer);
         addLogEvent(`${pName} rolled a ${currentDiceValue}.`, "Dice roll");
 
+        if (currentRoomCode) {
+          fetch("/api/ludo/room/action", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              code: currentRoomCode,
+              action: "roll_dice",
+              color: curPlayer,
+              value: currentDiceValue,
+              name: pName
+            })
+          }).catch(() => {});
+        }
+
         if (currentDiceValue === 6) consecutiveSixes++;
         else consecutiveSixes = 0;
 
@@ -2650,21 +2792,31 @@
         return;
       }
 
-      if (isHumanTurn()) {
-        updateTurnBanner(`You rolled a ${currentDiceValue}! Tap a glowing goti.`);
-        validTokens.forEach(tok => tokenElements[color][tok.id].classList.add("can-move"));
-        if (validTokens.length === 1) {
+      if (isPlayerBot(color)) {
+        const botName = lobbySeats[color]?.name || capitalize(color);
+        updateTurnBanner(`${botName} (Bot) rolled a ${currentDiceValue}!`);
+        setTimeout(() => chooseBotMove(color, validTokens), 750);
+      } else {
+        // Human player turn (never auto-pick unless single move)
+        const isMe = (color === myColor);
+        const pName = isMe ? "You" : (lobbySeats[color]?.name || capitalize(color));
+        updateTurnBanner(`${pName} rolled a ${currentDiceValue}! Tap a glowing goti.`);
+        validTokens.forEach(tok => {
+          if (tokenElements[color] && tokenElements[color][tok.id]) {
+            tokenElements[color][tok.id].classList.add("can-move");
+          }
+        });
+        if (validTokens.length === 1 && (isMe || !isRemoteRoom())) {
           setTimeout(() => handleTokenClick(color, validTokens[0].id), 450);
         }
-      } else {
-        const botName = lobbySeats[color]?.name || capitalize(color);
-        updateTurnBanner(`${botName} rolled a ${currentDiceValue}!`);
-        setTimeout(() => chooseBotMove(color, validTokens), 750);
       }
     }
 
     function handleTokenClick(color, id) {
       if (!hasRolled || isRolling || color !== getCurrentPlayer()) return;
+      if (isPlayerBot(color)) return;
+      if (isRemoteRoom() && color !== myColor) return;
+
       const tok = tokenState[color][id];
       if (!canTokenMove(color, tok, currentDiceValue)) return;
 
@@ -2685,6 +2837,21 @@
 
       const pName = lobbySeats[color]?.name || capitalize(color);
       addLogEvent(isBaseExit ? `${pName} released a goti onto the track.` : `${pName} advanced a goti +${roll} steps.`, "Token move");
+
+      if (currentRoomCode) {
+        fetch("/api/ludo/room/action", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            code: currentRoomCode,
+            action: "move_token",
+            color: color,
+            id: id,
+            step: tok.step,
+            name: pName
+          })
+        }).catch(() => {});
+      }
 
       let captured = false;
       if (tok.step < 51) {
@@ -2720,7 +2887,9 @@
       if (roll === 6 || captured) {
         hasRolled = false;
         updateTurnBanner(`${pName} gets an extra roll!`);
-        if (!isHumanTurn()) setTimeout(() => executeDiceRoll(), 900);
+        if (isPlayerBot(color)) {
+          setTimeout(() => executeDiceRoll(), 900);
+        }
       } else {
         setTimeout(() => endTurn(), 400);
       }
@@ -2734,11 +2903,18 @@
       updateTurnCardUI();
 
       const nextPlayer = getCurrentPlayer();
-      if (isHumanTurn()) updateTurnBanner("Your turn - roll the dice");
-      else {
-        const botName = lobbySeats[nextPlayer]?.name || capitalize(nextPlayer);
-        updateTurnBanner(`${botName} is thinking...`);
+      const nextName = lobbySeats[nextPlayer]?.name || capitalize(nextPlayer);
+
+      if (isPlayerBot(nextPlayer)) {
+        updateTurnBanner(`${nextName} (Bot) is thinking...`);
         setTimeout(() => executeDiceRoll(), 1000);
+      } else {
+        // Human player turn! STRICTLY NEVER AUTO-ROLL!
+        if (nextPlayer === myColor) {
+          updateTurnBanner("Your turn - tap your dice to roll!");
+        } else {
+          updateTurnBanner(`${nextName}'s turn - roll the dice`);
+        }
       }
     }
 
@@ -2852,12 +3028,13 @@
       if (tg && tg.close) {
         try { tg.close(); return; } catch(e) {}
       }
-      switchView("viewLobby");
+      switchView("viewMenu");
     }
 
     function restartGame() {
       document.getElementById("resultsOverlay").classList.remove("open");
-      PLAYERS.forEach(c => {
+      initTokenElements();
+      activePlayers.forEach(c => {
         tokenState[c].forEach(t => t.step = -1);
       });
       const myIdx = activePlayers.indexOf(myColor);
@@ -2866,12 +3043,19 @@
       isRolling = false;
       renderAllTokens();
       updateTurnCardUI();
-      if (isHumanTurn()) updateTurnBanner("Your turn - roll the dice");
-      else {
-        const nextPlayer = getCurrentPlayer();
-        const pName = lobbySeats[nextPlayer]?.name || capitalize(nextPlayer);
-        updateTurnBanner(`${pName} is thinking...`);
+
+      const nextPlayer = getCurrentPlayer();
+      const nextName = lobbySeats[nextPlayer]?.name || capitalize(nextPlayer);
+
+      if (isPlayerBot(nextPlayer)) {
+        updateTurnBanner(`${nextName} (Bot) is thinking...`);
         setTimeout(() => executeDiceRoll(), 1000);
+      } else {
+        if (nextPlayer === myColor) {
+          updateTurnBanner("Your turn - tap your dice to roll!");
+        } else {
+          updateTurnBanner(`${nextName}'s turn - roll the dice`);
+        }
       }
     }
 
@@ -2911,7 +3095,6 @@
 
     // Initialize
     initTokenElements();
-    updateLobbyCornerUI();
     detectInitialRoom();
     roomPollInterval = setInterval(pollRoomState, 2000);
   </script>

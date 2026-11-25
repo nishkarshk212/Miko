@@ -13,6 +13,7 @@ LUDO_COVER_PHOTO = "https://cdn.imageurlgenerator.com/uploads/856e0adb-1891-441e
 
 
 def get_ludo_url(mode: Optional[str] = None, user_id: Optional[int] = None, name: Optional[str] = None, room: Optional[str] = None) -> str:
+    import time
     url = os.getenv("LUDO_WEBAPP_URL", DEFAULT_LUDO_URL)
     sep = "&" if "?" in url else "?"
     params = []
@@ -24,9 +25,8 @@ def get_ludo_url(mode: Optional[str] = None, user_id: Optional[int] = None, name
         params.append(f"name={name}")
     if room:
         params.append(f"room={room}")
-    if params:
-        return f"{url}{sep}{'&'.join(params)}"
-    return url
+    params.append(f"v={int(time.time())}")
+    return f"{url}{sep}{'&'.join(params)}"
 
 
 def build_ludo_keyboard(

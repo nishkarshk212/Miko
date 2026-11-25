@@ -392,7 +392,15 @@ async def handle_ludo_page(request: web.Request) -> web.Response:
     if os.path.exists(ludo_file):
         with open(ludo_file, "r", encoding="utf-8") as f:
             content = f.read()
-        return web.Response(text=content, content_type="text/html")
+        return web.Response(
+            text=content,
+            content_type="text/html",
+            headers={
+                "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
+                "Pragma": "no-cache",
+                "Expires": "0",
+            }
+        )
     return web.Response(text="Ludo game not found", status=404)
 
 
@@ -608,6 +616,27 @@ async def handle_ludo_room_action(request: web.Request) -> web.Response:
         text = data.get("text", "")
         if text:
             room["chat"].append({"name": sender, "text": text, "time": time.time()})
+
+    elif action == "roll_dice":
+        roll_val = data.get("value", 1)
+        player_color = data.get("color")
+        room["dice"] = roll_val
+        room["turn"] = player_color
+        room["events"].append({"text": f"{data.get('name', player_color)} rolled a {roll_val}.", "type": "Dice roll"})
+
+    elif action == "move_token":
+        token_id = data.get("id")
+        step = data.get("step")
+        next_turn = data.get("next_turn")
+        player_color = data.get("color")
+        room["turn"] = next_turn
+        room["dice"] = 0
+        if "token_state" not in room:
+            room["token_state"] = {}
+        if player_color not in room["token_state"]:
+            room["token_state"][player_color] = {}
+        room["token_state"][player_color][str(token_id)] = step
+        room["events"].append({"text": f"{data.get('name', player_color)} moved goti #{token_id}.", "type": "Token move"})
 
     return web.json_response({"success": True, "room": room})
 
