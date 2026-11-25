@@ -450,6 +450,236 @@
       z-index: 60 !important;
     }
 
+    
+    /* One-to-One Chat Styles */
+    .chat-recipients-bar {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      width: 100%;
+      margin-top: 8px;
+      margin-bottom: 6px;
+      padding-bottom: 4px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .chat-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      background: #F4EFEB;
+      color: #5A4A3E;
+      cursor: pointer;
+      white-space: nowrap;
+      font-weight: 600;
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      transition: all 0.15s ease;
+    }
+    .chat-chip:active { transform: scale(0.94); }
+    .chat-chip.active {
+      background: #4D8BFA;
+      color: #FFFFFF;
+      border-color: #3875E0;
+    }
+    .chat-chip-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+    }
+    .chat-private-indicator {
+      width: 100%;
+      background: #FFF4E5;
+      border: 1px solid #FFE0B2;
+      border-radius: 10px;
+      padding: 4px 10px;
+      font-size: 11px;
+      color: #B45309;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .chat-switch-all {
+      cursor: pointer;
+      text-decoration: underline;
+      font-weight: 700;
+    }
+    .chat-msg .chat-sender {
+      font-size: 10px;
+      font-weight: 700;
+      margin-bottom: 2px;
+      color: #7B6858;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .chat-msg.private-dm {
+      border: 1px solid #FFD8A8;
+      background: #FFF9F2;
+    }
+    .chat-dm-tag {
+      font-size: 9px;
+      padding: 1px 5px;
+      border-radius: 5px;
+      background: #FED7AA;
+      color: #9A3412;
+      font-weight: 700;
+    }
+
+    /* Voice Call System Styles */
+    @keyframes speakPulse {
+      0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); }
+      70% { box-shadow: 0 0 0 10px rgba(46, 204, 113, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
+    }
+    .player-avatar.speaking {
+      animation: speakPulse 1.2s infinite !important;
+      border-color: #27AE60 !important;
+    }
+    .voice-floating-bar {
+      position: absolute;
+      top: 52px;
+      z-index: 50;
+      background: rgba(39, 174, 96, 0.95);
+      color: #FFFFFF;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 12px rgba(39, 174, 96, 0.35);
+      cursor: pointer;
+      backdrop-filter: blur(4px);
+    }
+    .voice-live-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #FFFFFF;
+      animation: blinkLive 1s infinite;
+    }
+    @keyframes blinkLive {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+    .voice-quick-toggle {
+      background: rgba(255, 255, 255, 0.25);
+      padding: 2px 6px;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .voice-badge {
+      font-size: 11px;
+      font-weight: 700;
+      background: #EAF9EE;
+      color: #27AE60;
+      padding: 2px 8px;
+      border-radius: 12px;
+      margin-left: 6px;
+    }
+    .voice-status-banner {
+      width: 100%;
+      background: #F5EFE8;
+      border-radius: 12px;
+      padding: 8px 12px;
+      font-size: 11.5px;
+      color: #5A4A3E;
+      text-align: center;
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+    .voice-users-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      width: 100%;
+      margin: 8px 0;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .voice-user-card {
+      background: #F7F3ED;
+      border-radius: 16px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    .voice-user-card.speaking {
+      border-color: #27AE60;
+      background: #F0FAF2;
+    }
+    .voice-avatar-wrap {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #FFFFFF;
+      border: 2px solid #E0D7CD;
+      margin-bottom: 6px;
+    }
+    .voice-user-card.speaking .voice-avatar-wrap {
+      animation: speakPulse 1.2s infinite;
+      border-color: #27AE60;
+    }
+    .voice-avatar-wrap img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .voice-user-name {
+      font-size: 12px;
+      font-weight: 700;
+      color: #3B2E24;
+      max-width: 110px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .voice-user-status {
+      font-size: 10px;
+      font-weight: 600;
+      margin-top: 2px;
+      color: #7A695B;
+    }
+    .voice-user-status.live { color: #27AE60; }
+    .voice-user-status.muted { color: #E74C3C; }
+    .voice-controls-panel {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+      justify-content: center;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+    .voice-action-btn {
+      padding: 9px 15px;
+      border-radius: 20px;
+      border: none;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: transform 0.15s, opacity 0.15s;
+    }
+    .voice-action-btn:active { transform: scale(0.93); }
+    .voice-action-btn.join { background: #27AE60; color: #FFFFFF; }
+    .voice-action-btn.leave { background: #E74C3C; color: #FFFFFF; }
+    .voice-action-btn.mute { background: #F4EFEB; color: #3B2E24; }
+    .voice-action-btn.ptt { background: #4D8BFA; color: #FFFFFF; user-select: none; }
+
     /* Screen Effect Burst Animation (SIX! etc.) */
     .ludo-screen-fx {
       position: absolute;
@@ -1377,8 +1607,11 @@
         <div class="ctrl-icon-btn" onclick="toggleSound()">
           <span id="soundIcon">🔊</span>
         </div>
-        <div class="ctrl-icon-btn" onclick="openModal('chatModal')">
+        <div class="ctrl-icon-btn" onclick="openChatModal()">
           <span>💬</span>
+        </div>
+        <div class="ctrl-icon-btn voice-btn" id="voiceTopBtn" onclick="openModal('voiceModal')" title="Voice Call">
+          <span id="voiceTopIcon">🎙️</span>
         </div>
         <div class="ctrl-icon-btn" onclick="openModal('moveLogModal')">
           <span>📜</span>
@@ -1386,6 +1619,13 @@
         <div class="ctrl-icon-btn" onclick="openModal('settingsModal')">
           <span>⚙️</span>
         </div>
+      </div>
+
+      <!-- Floating Voice Bar (Active during Voice Call) -->
+      <div class="voice-floating-bar" id="voiceFloatingBar" onclick="openModal('voiceModal')" style="display:none;">
+        <span class="voice-live-dot"></span>
+        <span id="voiceFloatLabel">Voice Connected</span>
+        <span class="voice-quick-toggle" onclick="event.stopPropagation(); toggleVoiceMute();" id="voiceFloatMuteIcon">🎙️</span>
       </div>
 
       <!-- Screen FX Burst (SIX! Animation) -->
@@ -1515,13 +1755,25 @@
        MODALS: ROOM CHAT, SPECTATORS, MOVE LOG, SETTINGS (Matching Images 3-7)
        ========================================================================= -->
 
-  <!-- Modal 1: Room Chat (Image 3) -->
+  <!-- Modal 1: Room Chat & 1-to-1 Direct Chat -->
   <div class="app-modal-overlay" id="chatModal">
     <div class="app-modal-card">
       <div class="modal-top-tab">
-        <span style="color:#4D8BFA;">💬</span> Room Chat
+        <span style="color:#4D8BFA;">💬</span> <span id="chatModalTitle">Room Chat</span>
       </div>
       <div class="modal-close-round" onclick="closeModal('chatModal')">✕</div>
+
+      <!-- 1-to-1 Recipient Chips -->
+      <div class="chat-recipients-bar" id="chatRecipientsBar">
+        <div class="chat-chip active" id="chipRecipientAll" onclick="selectChatRecipient('all', 'All Room')">
+          <span>🌐</span> All Room
+        </div>
+      </div>
+
+      <div class="chat-private-indicator" id="chatPrivateIndicator" style="display:none;">
+        <span>🔒 1-to-1 with <b id="chatPrivateTargetName">Player</b></span>
+        <span class="chat-switch-all" onclick="selectChatRecipient('all', 'All Room')">Switch to All</span>
+      </div>
 
       <div class="chat-history" id="chatHistory">
         <div class="chat-empty-state" id="chatEmptyState">
@@ -1534,6 +1786,44 @@
       <div class="chat-input-bar">
         <input type="text" id="chatInput" placeholder="Message..." onkeydown="if(event.key==='Enter') sendChatMessage()">
         <button class="chat-send-btn" onclick="sendChatMessage()">➤</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 5: Voice Call Modal -->
+  <div class="app-modal-overlay" id="voiceModal">
+    <div class="app-modal-card">
+      <div class="modal-top-tab">
+        <span style="color:#27AE60;">🎙️</span> Voice Call <span class="voice-badge" id="voiceBadgeCount">0 in call</span>
+      </div>
+      <div class="modal-close-round" onclick="closeModal('voiceModal')">✕</div>
+
+      <div class="voice-status-banner" id="voiceStatusBanner">
+        Tap "Join Call" to speak live with everyone in this room!
+      </div>
+
+      <!-- Grid of players in voice call -->
+      <div class="voice-users-grid" id="voiceUsersGrid">
+        <div class="voice-user-card" id="voiceCardEmpty" style="grid-column: 1 / -1; padding: 18px 10px;">
+          <div style="font-size: 28px; margin-bottom: 4px;">🎧</div>
+          <b style="font-size: 13px; color: #3B2E24;">No one in voice call yet</b>
+          <span style="font-size: 11px; color: #7A695B;">Be the first to join the voice room!</span>
+        </div>
+      </div>
+
+      <div class="voice-controls-panel">
+        <button class="voice-action-btn join" id="voiceJoinBtn" onclick="toggleVoiceCall()">
+          <span id="voiceJoinIcon">📞</span>
+          <span id="voiceJoinText">Join Call</span>
+        </button>
+        <button class="voice-action-btn mute" id="voiceMuteBtn" onclick="toggleVoiceMute()" style="display:none;">
+          <span id="voiceMuteIcon">🎙️</span>
+          <span id="voiceMuteText">Mute</span>
+        </button>
+        <button class="voice-action-btn ptt" id="voicePttBtn" onmousedown="startPtt()" onmouseup="stopPtt()" ontouchstart="startPtt(event)" ontouchend="stopPtt(event)">
+          <span>📻</span>
+          <span id="voicePttText">Hold to Talk</span>
+        </button>
       </div>
     </div>
   </div>
@@ -1850,35 +2140,428 @@
     renderMoveLog();
 
     /* =========================================================================
-       Room Chat System
+       Room Chat & 1-to-1 Direct Messaging System
        ========================================================================= */
+    let currentChatRecipient = "all";
+    let currentChatRecipientName = "All Room";
+    let roomChatHistory = [];
+    let lastRenderedChatCount = 0;
+
+    function openChatModal() {
+      renderChatRecipientsBar();
+      renderChatHistoryUI();
+      openModal('chatModal');
+    }
+
+    function renderChatRecipientsBar() {
+      const bar = document.getElementById("chatRecipientsBar");
+      if (!bar) return;
+
+      let html = `<div class="chat-chip ${currentChatRecipient === 'all' ? 'active' : ''}" onclick="selectChatRecipient('all', 'All Room')">
+        <span>🌐</span> All Room
+      </div>`;
+
+      // Add each seated other player
+      ['red', 'green', 'yellow', 'blue'].forEach(color => {
+        const seat = lobbySeats[color];
+        if (seat && seat.type !== 'me') {
+          const isSelected = (currentChatRecipient === color);
+          const colorDot = `<span class="chat-chip-dot" style="background:var(--${color}-color, #E25858);"></span>`;
+          html += `<div class="chat-chip ${isSelected ? 'active' : ''}" onclick="selectChatRecipient('${color}', '${escapeHtml(seat.name)}')">
+            ${colorDot} ${escapeHtml(seat.name)}
+          </div>`;
+        }
+      });
+
+      bar.innerHTML = html;
+    }
+
+    function selectChatRecipient(recipientId, name) {
+      currentChatRecipient = recipientId;
+      currentChatRecipientName = name;
+
+      const titleEl = document.getElementById("chatModalTitle");
+      const indicator = document.getElementById("chatPrivateIndicator");
+      const targetNameEl = document.getElementById("chatPrivateTargetName");
+      const input = document.getElementById("chatInput");
+
+      if (recipientId === "all") {
+        if (titleEl) titleEl.textContent = "Room Chat";
+        if (indicator) indicator.style.display = "none";
+        if (input) input.placeholder = "Message to all players...";
+      } else {
+        if (titleEl) titleEl.textContent = `1-to-1 Chat`;
+        if (indicator) indicator.style.display = "flex";
+        if (targetNameEl) targetNameEl.textContent = name;
+        if (input) input.placeholder = `Private message to ${name}...`;
+      }
+
+      renderChatRecipientsBar();
+      renderChatHistoryUI();
+    }
+
+    function escapeHtml(str) {
+      if (!str) return "";
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function renderChatHistoryUI() {
+      const history = document.getElementById("chatHistory");
+      const empty = document.getElementById("chatEmptyState");
+      if (!history) return;
+
+      // Filter messages:
+      // If currentChatRecipient === 'all': show public messages OR my private messages
+      // If currentChatRecipient is a color: show messages between me and that color
+      const filtered = roomChatHistory.filter(msg => {
+        const isMe = (String(msg.sender_id) === String(currentUser.id) || msg.color === myColor);
+        if (currentChatRecipient === "all") {
+          return msg.recipient === "all" || isMe || msg.recipient === myColor;
+        } else {
+          // 1-to-1 thread with specific player
+          const isWithCurrentTarget = (msg.recipient === currentChatRecipient && isMe) ||
+                                      (msg.color === currentChatRecipient && (msg.recipient === myColor || String(msg.recipient) === String(currentUser.id)));
+          return isWithCurrentTarget;
+        }
+      });
+
+      if (filtered.length === 0) {
+        if (empty) empty.style.display = "flex";
+        history.querySelectorAll(".chat-msg").forEach(e => e.remove());
+        return;
+      }
+
+      if (empty) empty.style.display = "none";
+      history.innerHTML = "";
+
+      filtered.forEach(msg => {
+        const isMe = (String(msg.sender_id) === String(currentUser.id) || msg.color === myColor);
+        const msgEl = document.createElement("div");
+        const isPrivate = (msg.recipient && msg.recipient !== "all");
+
+        msgEl.className = `chat-msg ${isMe ? 'me' : ''} ${isPrivate ? 'private-dm' : ''}`;
+
+        let senderHtml = "";
+        if (!isMe) {
+          const dmTag = isPrivate ? `<span class="chat-dm-tag">🔒 1-to-1</span>` : "";
+          senderHtml = `<div class="chat-sender">${dmTag}${escapeHtml(msg.name)}</div>`;
+        } else if (isPrivate) {
+          senderHtml = `<div class="chat-sender" style="justify-content:flex-end;"><span class="chat-dm-tag">🔒 Private to ${escapeHtml(msg.recipient_name || 'Player')}</span></div>`;
+        }
+
+        msgEl.innerHTML = `${senderHtml}${escapeHtml(msg.text)}`;
+        history.appendChild(msgEl);
+      });
+
+      history.scrollTop = history.scrollHeight;
+    }
+
     function sendChatMessage() {
       const input = document.getElementById("chatInput");
       const text = (input.value || "").trim();
       if (!text) return;
 
-      const history = document.getElementById("chatHistory");
-      const empty = document.getElementById("chatEmptyState");
-      if (empty) empty.style.display = "none";
-
-      const msgEl = document.createElement("div");
-      msgEl.className = "chat-msg me";
-      msgEl.textContent = text;
-      history.appendChild(msgEl);
+      const recipient = currentChatRecipient;
+      const recipientName = currentChatRecipientName;
       input.value = "";
-      history.scrollTop = history.scrollHeight;
 
-      // Simulated Bot reply if playing against bot
-      if (activePlayers.includes("green")) {
-        setTimeout(() => {
-          const botReplies = ["Good luck! 🎲", "Let's roll! 🔥", "Nice move!", "Watch out for my tokens! 🚀"];
-          const botEl = document.createElement("div");
-          botEl.className = "chat-msg";
-          botEl.innerHTML = `<b>Bot Alpha:</b> ${botReplies[Math.floor(Math.random() * botReplies.length)]}`;
-          history.appendChild(botEl);
-          history.scrollTop = history.scrollHeight;
-        }, 1200);
+      const newMsg = {
+        sender_id: String(currentUser.id),
+        name: currentUser.name,
+        color: myColor,
+        recipient: recipient,
+        recipient_name: recipientName,
+        text: text,
+        time: Date.now() / 1000
+      };
+
+      roomChatHistory.push(newMsg);
+      renderChatHistoryUI();
+
+      if (currentRoomCode) {
+        fetch("/api/ludo/room/action", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            code: currentRoomCode,
+            action: "send_chat",
+            user_id: currentUser.id,
+            name: currentUser.name,
+            color: myColor,
+            recipient: recipient,
+            recipient_name: recipientName,
+            text: text
+          })
+        }).catch(() => {});
       }
+
+      // Simulated Bot reply if DMing bot or bot in room
+      if (recipient === "green" || (recipient === "all" && activePlayers.includes("green"))) {
+        setTimeout(() => {
+          const botReplies = ["Good luck! 🎲", "Nice roll! 🔥", "Tokens on track! 🚀", "Let's play Ludo! 👑"];
+          const botMsg = {
+            sender_id: "bot_alpha",
+            name: "Bot Alpha",
+            color: "green",
+            recipient: recipient === "green" ? myColor : "all",
+            recipient_name: currentUser.name,
+            text: botReplies[Math.floor(Math.random() * botReplies.length)],
+            time: Date.now() / 1000
+          };
+          roomChatHistory.push(botMsg);
+          renderChatHistoryUI();
+        }, 1100);
+      }
+    }
+
+    /* =========================================================================
+       In-Game Voice Call System (WebRTC + WebAudio + Push-to-Talk)
+       ========================================================================= */
+    const voiceManager = {
+      inCall: false,
+      isMuted: false,
+      mediaStream: null,
+      audioCtx: null,
+      analyser: null,
+      micEnergyCheckInterval: null,
+      isSpeaking: false,
+      mediaRecorder: null,
+      pttChunks: [],
+      pttActive: false,
+      lastPlayedClipId: "",
+
+      async join() {
+        try {
+          if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            this.mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            this.setupVolumeDetection(this.mediaStream);
+          }
+        } catch (err) {
+          console.log("Mic access notice:", err);
+          showToast("Microphone ready! Tap 'Hold to Talk' to speak.");
+        }
+
+        this.inCall = true;
+        this.isMuted = false;
+        this.updateUI();
+
+        if (currentRoomCode) {
+          fetch("/api/ludo/room/action", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              code: currentRoomCode,
+              action: "voice_join",
+              user_id: currentUser.id,
+              name: currentUser.name,
+              color: myColor,
+              avatar: currentUser.photo_url || ""
+            })
+          }).catch(() => {});
+        }
+        showToast("Connected to Voice Call 🎙️");
+      },
+
+      leave() {
+        this.inCall = false;
+        if (this.mediaStream) {
+          this.mediaStream.getTracks().forEach(t => t.stop());
+          this.mediaStream = null;
+        }
+        if (this.micEnergyCheckInterval) {
+          clearInterval(this.micEnergyCheckInterval);
+          this.micEnergyCheckInterval = null;
+        }
+        if (this.audioCtx) {
+          try { this.audioCtx.close(); } catch(e) {}
+          this.audioCtx = null;
+        }
+        this.isSpeaking = false;
+        this.updateUI();
+
+        if (currentRoomCode) {
+          fetch("/api/ludo/room/action", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              code: currentRoomCode,
+              action: "voice_leave",
+              user_id: currentUser.id
+            })
+          }).catch(() => {});
+        }
+        showToast("Left Voice Call 📞");
+      },
+
+      toggleMute() {
+        if (!this.inCall) return;
+        this.isMuted = !this.isMuted;
+        if (this.mediaStream) {
+          this.mediaStream.getAudioTracks().forEach(t => t.enabled = !this.isMuted);
+        }
+        this.updateUI();
+
+        if (currentRoomCode) {
+          fetch("/api/ludo/room/action", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              code: currentRoomCode,
+              action: "voice_mute",
+              user_id: currentUser.id,
+              muted: this.isMuted
+            })
+          }).catch(() => {});
+        }
+        showToast(this.isMuted ? "Mic Muted 🔇" : "Mic Unmuted 🎙️");
+      },
+
+      setupVolumeDetection(stream) {
+        try {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (!AudioContext) return;
+          this.audioCtx = new AudioContext();
+          const source = this.audioCtx.createMediaStreamSource(stream);
+          this.analyser = this.audioCtx.createAnalyser();
+          this.analyser.fftSize = 256;
+          source.connect(this.analyser);
+
+          const dataArray = new Uint8Array(this.analyser.frequencyBinCount);
+          this.micEnergyCheckInterval = setInterval(() => {
+            if (!this.inCall || this.isMuted) {
+              if (this.isSpeaking) this.setSpeaking(false);
+              return;
+            }
+            this.analyser.getByteFrequencyData(dataArray);
+            let sum = 0;
+            for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+            const avg = sum / dataArray.length;
+            const speakingNow = (avg > 25);
+            if (speakingNow !== this.isSpeaking) {
+              this.setSpeaking(speakingNow);
+            }
+          }, 200);
+        } catch(e) {}
+      },
+
+      setSpeaking(speaking) {
+        this.isSpeaking = speaking;
+        const myCard = document.getElementById(`avatar${capitalize(myColor)}`);
+        if (myCard) {
+          if (speaking) myCard.classList.add("speaking");
+          else myCard.classList.remove("speaking");
+        }
+
+        if (currentRoomCode) {
+          fetch("/api/ludo/room/action", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              code: currentRoomCode,
+              action: "voice_speaking",
+              user_id: currentUser.id,
+              speaking: speaking
+            })
+          }).catch(() => {});
+        }
+      },
+
+      updateUI() {
+        const floatBar = document.getElementById("voiceFloatingBar");
+        const joinBtn = document.getElementById("voiceJoinBtn");
+        const muteBtn = document.getElementById("voiceMuteBtn");
+        const topIcon = document.getElementById("voiceTopIcon");
+        const floatMute = document.getElementById("voiceFloatMuteIcon");
+
+        if (this.inCall) {
+          if (floatBar) floatBar.style.display = "flex";
+          if (joinBtn) {
+            joinBtn.className = "voice-action-btn leave";
+            document.getElementById("voiceJoinIcon").textContent = "❌";
+            document.getElementById("voiceJoinText").textContent = "Leave Call";
+          }
+          if (muteBtn) {
+            muteBtn.style.display = "inline-flex";
+            document.getElementById("voiceMuteIcon").textContent = this.isMuted ? "🔇" : "🎙️";
+            document.getElementById("voiceMuteText").textContent = this.isMuted ? "Unmute" : "Mute";
+          }
+          if (topIcon) topIcon.textContent = this.isMuted ? "🔇" : "🟢";
+          if (floatMute) floatMute.textContent = this.isMuted ? "🔇" : "🎙️";
+        } else {
+          if (floatBar) floatBar.style.display = "none";
+          if (joinBtn) {
+            joinBtn.className = "voice-action-btn join";
+            document.getElementById("voiceJoinIcon").textContent = "📞";
+            document.getElementById("voiceJoinText").textContent = "Join Call";
+          }
+          if (muteBtn) muteBtn.style.display = "none";
+          if (topIcon) topIcon.textContent = "🎙️";
+        }
+      }
+    };
+
+    function toggleVoiceCall() {
+      if (voiceManager.inCall) voiceManager.leave();
+      else voiceManager.join();
+    }
+
+    function toggleVoiceMute() {
+      voiceManager.toggleMute();
+    }
+
+    /* Push-to-Talk (Walkie-Talkie Instant Audio) */
+    async function startPtt(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      try {
+        if (!voiceManager.mediaStream) {
+          voiceManager.mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        }
+        voiceManager.pttChunks = [];
+        voiceManager.mediaRecorder = new MediaRecorder(voiceManager.mediaStream);
+        voiceManager.mediaRecorder.ondataavailable = ev => {
+          if (ev.data && ev.data.size > 0) voiceManager.pttChunks.push(ev.data);
+        };
+        voiceManager.mediaRecorder.start();
+        voiceManager.pttActive = true;
+        document.getElementById("voicePttText").textContent = "Recording...";
+        document.getElementById("voicePttBtn").style.background = "#E74C3C";
+        triggerHaptic('medium');
+      } catch (err) {
+        showToast("Mic required for Push-to-Talk");
+      }
+    }
+
+    function stopPtt(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      if (!voiceManager.pttActive || !voiceManager.mediaRecorder) return;
+      voiceManager.pttActive = false;
+      document.getElementById("voicePttText").textContent = "Hold to Talk";
+      document.getElementById("voicePttBtn").style.background = "#4D8BFA";
+      triggerHaptic('light');
+
+      voiceManager.mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(voiceManager.pttChunks, { type: 'audio/webm' });
+        const reader = new FileReader();
+        reader.readAsDataURL(audioBlob);
+        reader.onloadend = () => {
+          const base64Audio = reader.result;
+          if (currentRoomCode) {
+            fetch("/api/ludo/room/action", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                code: currentRoomCode,
+                action: "voice_clip",
+                user_id: currentUser.id,
+                name: currentUser.name,
+                color: myColor,
+                audio: base64Audio
+              })
+            }).catch(() => {});
+          }
+        };
+      };
+      voiceManager.mediaRecorder.stop();
     }
 
     /* =========================================================================
@@ -2064,6 +2747,75 @@
               updateTurnUI(`${pName} rolled a ${currentDiceValue}!`);
               evaluateMovesAfterRoll();
             }, 550);
+          }
+        }
+
+        // Chat real-time sync
+        if (room.chat && Array.isArray(room.chat)) {
+          if (room.chat.length !== roomChatHistory.length) {
+            roomChatHistory = room.chat;
+            renderChatHistoryUI();
+          }
+        }
+
+        // Voice Call real-time sync
+        if (room.voice) {
+          const voiceUsers = Object.values(room.voice);
+          const badge = document.getElementById("voiceBadgeCount");
+          const floatLabel = document.getElementById("voiceFloatLabel");
+          if (badge) badge.textContent = `${voiceUsers.length} in call`;
+          if (floatLabel) floatLabel.textContent = `Voice (${voiceUsers.length})`;
+
+          // Update voice users grid in voice modal
+          const grid = document.getElementById("voiceUsersGrid");
+          if (grid) {
+            if (voiceUsers.length === 0) {
+              grid.innerHTML = `<div class="voice-user-card" style="grid-column: 1 / -1; padding: 18px 10px;">
+                <div style="font-size: 28px; margin-bottom: 4px;">🎧</div>
+                <b style="font-size: 13px; color: #3B2E24;">No one in voice call yet</b>
+                <span style="font-size: 11px; color: #7A695B;">Tap "Join Call" to start talking!</span>
+              </div>`;
+            } else {
+              grid.innerHTML = voiceUsers.map(u => {
+                const isSpeaking = Boolean(u.speaking);
+                const isMuted = Boolean(u.muted);
+                const av = u.avatar ? `<img src="${u.avatar}">` : "🧑";
+                const statusText = isSpeaking ? "🎙️ Speaking" : (isMuted ? "🔇 Muted" : "🎙️ Connected");
+                const statusClass = isSpeaking ? "live" : (isMuted ? "muted" : "live");
+                return `<div class="voice-user-card ${isSpeaking ? 'speaking' : ''}">
+                  <div class="voice-avatar-wrap" style="border-color:var(--${u.color}-color, #E25858);">
+                    ${av}
+                  </div>
+                  <div class="voice-user-name">${escapeHtml(u.name)}</div>
+                  <div class="voice-user-status ${statusClass}">${statusText}</div>
+                </div>`;
+              }).join("");
+            }
+          }
+
+          // Highlight avatar on game board if speaking
+          ['red', 'green', 'yellow', 'blue'].forEach(c => {
+            const avCard = document.getElementById(`avatar${capitalize(c)}`);
+            const u = voiceUsers.find(v => v.color === c);
+            if (avCard) {
+              if (u && u.speaking) avCard.classList.add("speaking");
+              else if (c !== myColor) avCard.classList.remove("speaking");
+            }
+          });
+        }
+
+        // Voice Clip real-time audio playback
+        if (room.voice_clips && room.voice_clips.length > 0) {
+          const lastClip = room.voice_clips[room.voice_clips.length - 1];
+          if (lastClip && lastClip.id !== voiceManager.lastPlayedClipId) {
+            voiceManager.lastPlayedClipId = lastClip.id;
+            if (String(lastClip.user_id) !== String(currentUser.id)) {
+              try {
+                const audio = new Audio(lastClip.audio);
+                audio.play();
+                showToast(`🎙️ ${lastClip.name} speaking...`);
+              } catch(e) {}
+            }
           }
         }
 

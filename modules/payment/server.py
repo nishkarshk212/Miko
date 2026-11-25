@@ -466,6 +466,9 @@ async def handle_ludo_room_create(request: web.Request) -> web.Response:
         "dice": 0,
         "roll_id": 0,
         "turn_version": 1,
+        "voice": {},
+        "voice_signals": [],
+        "voice_clips": [],
     }
     return web.json_response({"success": True, "room": LUDO_ROOMS[code]})
 
@@ -633,9 +636,81 @@ async def handle_ludo_room_action(request: web.Request) -> web.Response:
 
     elif action == "send_chat":
         sender = data.get("name", "Player")
-        text = data.get("text", "")
+        sender_id = str(data.get("user_id", ""))
+        sender_color = data.get("color", "")
+        recipient = data.get("recipient", "all")
+        recipient_name = data.get("recipient_name", "")
+        text = str(data.get("text", "")).strip()
         if text:
-            room["chat"].append({"name": sender, "text": text, "time": time.time()})
+            if "chat" not in room:
+                room["chat"] = []
+            room["chat"].append({
+                "sender_id": sender_id,
+                "name": sender,
+                "color": sender_color,
+                "recipient": recipient,
+                "recipient_name": recipient_name,
+                "text": text,
+                "time": time.time()
+            })
+            if len(room["chat"]) > 120:
+                room["chat"] = room["chat"][-120:]
+
+    elif action == "voice_join":
+        user_id = str(data.get("user_id", "guest"))
+        name = data.get("name", "Player")
+        color = data.get("color", "red")
+        avatar = data.get("avatar", "")
+        if "voice" not in room:
+            room["voice"] = {}
+        room["voice"][user_id] = {
+            "id": user_id,
+            "name": name,
+            "color": color,
+            "avatar": avatar,
+            "muted": False,
+            "speaking": False,
+            "time": time.time()
+        }
+
+    elif action == "voice_leave":
+        user_id = str(data.get("user_id", "guest"))
+        if "voice" in room and user_id in room["voice"]:
+            del room["voice"][user_id]
+
+    elif action == "voice_mute":
+        user_id = str(data.get("user_id", "guest"))
+        muted = bool(data.get("muted", True))
+        if "voice" in room and user_id in room["voice"]:
+            room["voice"][user_id]["muted"] = muted
+            if muted:
+                room["voice"][user_id]["speaking"] = False
+
+    elif action == "voice_speaking":
+        user_id = str(data.get("user_id", "guest"))
+        speaking = bool(data.get("speaking", False))
+        if "voice" in room and user_id in room["voice"]:
+            room["voice"][user_id]["speaking"] = speaking
+
+    elif action == "voice_clip":
+        clip = data.get("audio")
+        sender = data.get("name", "Player")
+        sender_color = data.get("color", "red")
+        user_id = str(data.get("user_id", ""))
+        if clip:
+            if "voice_clips" not in room:
+                room["voice_clips"] = []
+            clip_entry = {
+                "id": str(time.time()),
+                "user_id": user_id,
+                "name": sender,
+                "color": sender_color,
+                "audio": clip,
+                "time": time.time()
+            }
+            room["voice_clips"].append(clip_entry)
+            if len(room["voice_clips"]) > 10:
+                room["voice_clips"] = room["voice_clips"][-10:]
 
     elif action == "roll_dice":
         roll_val = int(data.get("value", 1))

@@ -119,10 +119,11 @@ async def cmd_ludo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not os.path.exists(local_banner):
         local_banner = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "web", "ludo", "card_preview.jpg")
 
+    sent_msg = None
     try:
         if os.path.exists(local_banner):
             with open(local_banner, "rb") as photo_f:
-                await msg.reply_photo(
+                sent_msg = await msg.reply_photo(
                     photo=photo_f,
                     caption=caption,
                     parse_mode="HTML",
@@ -130,7 +131,7 @@ async def cmd_ludo(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     auto_delete=False,
                 )
         else:
-            await msg.reply_photo(
+            sent_msg = await msg.reply_photo(
                 photo=LUDO_COVER_PHOTO,
                 caption=caption,
                 parse_mode="HTML",
@@ -140,12 +141,23 @@ async def cmd_ludo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         print(f"Ludo reply_photo notice ({e}), falling back to text")
         # Fallback to rich text card
-        await msg.reply_text(
+        sent_msg = await msg.reply_text(
             caption,
             parse_mode="HTML",
             reply_markup=reply_markup,
             auto_delete=False,
         )
+
+    # Auto-pin Ludo message in group / supergroup
+    if sent_msg and not is_private and chat:
+        try:
+            await context.bot.pin_chat_message(
+                chat_id=chat.id,
+                message_id=sent_msg.message_id,
+                disable_notification=True,
+            )
+        except Exception as pin_err:
+            print(f"Could not pin Ludo message in {chat.id}: {pin_err}")
 
 
 async def ludo_callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
