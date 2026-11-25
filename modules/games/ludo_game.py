@@ -12,7 +12,7 @@ DEFAULT_LUDO_URL = os.getenv("LUDO_WEBAPP_URL", "https://addition-ruby-skip-road
 LUDO_COVER_PHOTO = "https://cdn.imageurlgenerator.com/uploads/856e0adb-1891-441e-ae03-1987d6befbf6.jpg"
 
 
-def get_ludo_url(mode: Optional[str] = None, user_id: Optional[int] = None, name: Optional[str] = None) -> str:
+def get_ludo_url(mode: Optional[str] = None, user_id: Optional[int] = None, name: Optional[str] = None, room: Optional[str] = None) -> str:
     url = os.getenv("LUDO_WEBAPP_URL", DEFAULT_LUDO_URL)
     sep = "&" if "?" in url else "?"
     params = []
@@ -22,6 +22,8 @@ def get_ludo_url(mode: Optional[str] = None, user_id: Optional[int] = None, name
         params.append(f"user_id={user_id}")
     if name:
         params.append(f"name={name}")
+    if room:
+        params.append(f"room={room}")
     if params:
         return f"{url}{sep}{'&'.join(params)}"
     return url
@@ -32,8 +34,9 @@ def build_ludo_keyboard(
     user_name: str,
     is_private: bool = False,
     bot_username: Optional[str] = None,
+    room_code: Optional[str] = None,
 ) -> InlineKeyboardMarkup:
-    play_url = get_ludo_url(mode="bot", user_id=user_id, name=user_name)
+    play_url = get_ludo_url(mode="pvp" if room_code else "bot", user_id=user_id, name=user_name, room=room_code)
     bot_uname = bot_username or "im_Radhabot"
 
     if is_private:
@@ -41,14 +44,15 @@ def build_ludo_keyboard(
         btn_play = InlineKeyboardButton("Play Ludo", web_app=WebAppInfo(url=play_url))
     else:
         # In groups/supergroups, direct Telegram Mini App link
-        app_direct_link = f"https://t.me/{bot_uname}/ludo?startapp=ludo"
+        start_param = room_code if room_code else "ludo"
+        app_direct_link = f"https://t.me/{bot_uname}/ludo?startapp={start_param}"
         btn_play = InlineKeyboardButton("Play Ludo", url=app_direct_link)
 
     return InlineKeyboardMarkup([[btn_play]])
 
 
 async def cmd_ludo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Command: /ludo - Sends the Ludo Mini Web Telegram Game card matching exact Nova layout."""
+    """Command: /ludo [room_code] - Sends the Ludo Mini Web Telegram Game card."""
     msg = update.effective_message
     user = update.effective_user
     chat = update.effective_chat
@@ -59,13 +63,20 @@ async def cmd_ludo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     is_private = (chat.type == "private") if chat else False
     bot_uname = (context.bot.username if context.bot else None) or "im_Radhabot"
 
+    # Optional room code (e.g. /ludo 0Q62UQ)
+    room_code = None
+    if context.args and len(context.args) > 0:
+        room_code = context.args[0].strip().upper()
+
     caption = (
         "<b>ludo</b>\n"
         "<i>ludo</i>\n\n"
         "Roll the dice, race your tokens home, capture rivals, and climb the leaderboard in a fast Telegram Ludo match."
     )
+    if room_code:
+        caption += f"\n\n🔑 <b>Room:</b> <code>{room_code}</code>\n✨ <i>Tap Play Ludo to join this room!</i>"
 
-    reply_markup = build_ludo_keyboard(user.id, name, is_private=is_private, bot_username=bot_uname)
+    reply_markup = build_ludo_keyboard(user.id, name, is_private=is_private, bot_username=bot_uname, room_code=room_code)
 
     # Local banner path (high-res 640x360 3D Ludo cover)
     local_banner = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "web", "ludo", "banner.jpg")

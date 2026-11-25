@@ -1169,7 +1169,7 @@
 
         <div class="lobby-header-right">
           <div class="help-icon-btn" onclick="openModal('rulesModal')">?</div>
-          <div class="room-code-badge" onclick="copyRoomCode()">
+          <div class="room-code-badge" onclick="openModal('roomModal')" title="Room Code & Settings">
             <span id="roomCodeText">0Q62UQ</span>
             <span>📋</span>
           </div>
@@ -1222,9 +1222,11 @@
       </div>
 
       <div class="lobby-info-pill">
-        <span>📶 One more player needed</span>
+        <span>📶 <span id="lobbyNeedSub">One more player needed</span></span>
         <span>|</span>
-        <span style="cursor:pointer;" onclick="copyRoomCode()">&lt;/&gt; Invite code</span>
+        <span style="cursor:pointer;" onclick="openModal('roomModal')">&lt;/&gt; Invite code</span>
+        <span>|</span>
+        <span style="cursor:pointer; color:var(--blue-color); font-weight:800;" onclick="openModal('roomModal')">🔑 Join code</span>
       </div>
 
       <!-- Action Card -->
@@ -1564,6 +1566,47 @@
     </div>
   </div>
 
+  <!-- Modal 5: Room Code & Join (Create & Join Room) -->
+  <div class="app-modal-overlay" id="roomModal">
+    <div class="app-modal-card" style="padding-top:28px;">
+      <div class="modal-top-tab">
+        <span style="color:#4D8BFA;">🔑</span> Room Code
+      </div>
+      <div class="modal-close-round" onclick="closeModal('roomModal')">✕</div>
+
+      <div style="font-size:13px; font-weight:700; color:var(--text-muted); margin-top:8px; margin-bottom:14px; text-align:center;">
+        Share with friends or join an existing room
+      </div>
+
+      <!-- Current Room Box -->
+      <div style="width:100%; background:#F8F3EC; border-radius:18px; padding:12px 14px; display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border:1px solid rgba(0,0,0,0.05);">
+        <div>
+          <div style="font-size:10.5px; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Current Room</div>
+          <div style="font-size:19px; font-weight:900; letter-spacing:2px; color:var(--text-dark);" id="modalRoomCodeText">0Q62UQ</div>
+        </div>
+        <button class="lobby-btn" style="flex:none; padding:8px 14px; background:#4BC673; color:#fff; border-radius:12px; font-size:12.5px;" onclick="copyRoomCode()">
+          <span>📋</span> Copy Link
+        </button>
+      </div>
+
+      <!-- Join Another Room Input -->
+      <div style="width:100%; margin-bottom:14px;">
+        <label style="font-size:11px; font-weight:800; color:var(--text-dark); display:block; margin-bottom:6px; letter-spacing:0.5px;">JOIN WITH ROOM CODE</label>
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="inputRoomCode" placeholder="Enter 6-char code" maxlength="8" style="flex:1; border:1px solid #E6D8C8; border-radius:14px; padding:10px 14px; font-size:14px; font-weight:800; text-transform:uppercase; outline:none; background:#FFF; letter-spacing:1.5px; color:var(--text-dark);" onkeyup="this.value = this.value.toUpperCase()">
+          <button class="lobby-btn" style="flex:none; padding:10px 18px; background:var(--blue-color); color:#fff; border-radius:14px;" onclick="submitJoinRoom()">
+            Join
+          </button>
+        </div>
+      </div>
+
+      <!-- Create New Room Button -->
+      <button class="lobby-btn add-bot-btn" style="width:100%; margin-top:4px;" onclick="createNewRoom()">
+        <span>➕</span> Create New Room
+      </button>
+    </div>
+  </div>
+
   <!-- MATCH RESULTS Overlay (Image from Previous Turn) -->
   <div class="results-overlay" id="resultsOverlay">
     <div class="results-trophy-badge">
@@ -1716,16 +1759,161 @@
       }
     }
 
-    /* Room Code Copy */
+    /* =========================================================================
+       ROOM MANAGEMENT & MULTIPLAYER SYNC
+       ========================================================================= */
+    let currentRoomCode = "0Q62UQ";
+    let isHost = true;
+    let roomPollInterval = null;
+
+    function showToast(msg) {
+      if (tg && tg.showPopup) {
+        tg.showPopup({ title: "Ludo Room", message: msg });
+      } else {
+        alert(msg);
+      }
+    }
+
+    /* Room Code Copy & Share */
     function copyRoomCode() {
-      const code = document.getElementById("roomCodeText").textContent;
-      navigator.clipboard.writeText(code).then(() => {
-        if (tg && tg.showPopup) {
-          tg.showPopup({ title: "Copied!", message: `Room code ${code} copied to clipboard.` });
-        } else {
-          alert(`Room code ${code} copied!`);
+      const code = currentRoomCode || document.getElementById("roomCodeText").textContent;
+      const botUname = "im_Radhabot";
+      const inviteLink = `https://t.me/${botUname}/ludo?startapp=${code}`;
+      navigator.clipboard.writeText(inviteLink).then(() => {
+        showToast(`Invite link copied!\n\n${inviteLink}\n\nShare with friends to join room ${code}!`);
+      }).catch(() => {
+        showToast(`Room code: ${code}`);
+      });
+    }
+
+    async function createNewRoom(showNotice = true) {
+      try {
+        const res = await fetch("/api/ludo/room/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            user_id: currentUser.id,
+            name: currentUser.name,
+            avatar: currentUser.photo_url,
+            color: myColor
+          })
+        });
+        const data = await res.json();
+        if (data.success && data.room) {
+          applyRoomData(data.room);
+          isHost = true;
+          if (showNotice) {
+            closeModal('roomModal');
+            showToast(`New room created: ${data.room.code}`);
+          }
         }
-      }).catch(() => {});
+      } catch (e) {
+        const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+        let c = "";
+        for (let i = 0; i < 6; i++) c += chars.charAt(Math.floor(Math.random() * chars.length));
+        currentRoomCode = c;
+        document.getElementById("roomCodeText").textContent = c;
+        document.getElementById("modalRoomCodeText").textContent = c;
+        if (showNotice) {
+          closeModal('roomModal');
+          showToast(`New room: ${c}`);
+        }
+      }
+    }
+
+    async function submitJoinRoom(targetCode) {
+      const code = (targetCode || document.getElementById("inputRoomCode").value || "").trim().toUpperCase();
+      if (!code) {
+        showToast("Please enter a room code");
+        return;
+      }
+      try {
+        const res = await fetch("/api/ludo/room/join", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            code: code,
+            user_id: currentUser.id,
+            name: currentUser.name,
+            avatar: currentUser.photo_url,
+            color: myColor
+          })
+        });
+        const data = await res.json();
+        if (data.success && data.room) {
+          applyRoomData(data.room);
+          closeModal('roomModal');
+          showToast(`Joined room: ${code}`);
+        } else {
+          showToast(data.error || "Could not join room");
+        }
+      } catch (e) {
+        currentRoomCode = code;
+        document.getElementById("roomCodeText").textContent = code;
+        document.getElementById("modalRoomCodeText").textContent = code;
+        closeModal('roomModal');
+        showToast(`Joined room: ${code}`);
+      }
+    }
+
+    function applyRoomData(room) {
+      if (!room) return;
+      currentRoomCode = room.code;
+      document.getElementById("roomCodeText").textContent = room.code;
+      document.getElementById("modalRoomCodeText").textContent = room.code;
+
+      const specCode = document.getElementById("specRoomCode");
+      if (specCode) specCode.textContent = room.code;
+
+      const players = room.players || {};
+      ['green', 'yellow', 'red', 'blue'].forEach(c => {
+        const p = players[c];
+        if (p) {
+          if (p.id == currentUser.id) {
+            lobbySeats[c] = { type: 'me', name: currentUser.name };
+            myColor = c;
+          } else if (p.is_bot) {
+            lobbySeats[c] = { type: 'bot', name: p.name || "Bot Alpha" };
+          } else {
+            lobbySeats[c] = { type: 'player', name: p.name || "Player", avatar: p.avatar };
+          }
+        } else {
+          lobbySeats[c] = null;
+        }
+      });
+      updateLobbyCornerUI();
+
+      if (room.status === 'playing' && document.getElementById("viewLobby").classList.contains("active")) {
+        startMatchFromLobby();
+      }
+    }
+
+    async function pollRoomState() {
+      if (!document.getElementById("viewLobby").classList.contains("active")) return;
+      try {
+        const res = await fetch(`/api/ludo/room/state?code=${currentRoomCode}`);
+        const data = await res.json();
+        if (data.success && data.room) {
+          applyRoomData(data.room);
+        }
+      } catch (e) {}
+    }
+
+    function detectInitialRoom() {
+      let code = "";
+      if (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) {
+        code = tg.initDataUnsafe.start_param.trim().toUpperCase();
+      }
+      if (!code) {
+        const params = new URLSearchParams(window.location.search);
+        code = (params.get("room") || "").trim().toUpperCase();
+      }
+      if (code && code.length >= 4 && code !== "LUDO") {
+        currentRoomCode = code;
+        submitJoinRoom(code);
+      } else {
+        createNewRoom(false);
+      }
     }
 
     /* =========================================================================
@@ -1867,6 +2055,18 @@
       myColor = color;
       lobbySeats[color] = { type: 'me', name: currentUser.name };
       updateLobbyCornerUI();
+      fetch("/api/ludo/room/action", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code: currentRoomCode,
+          action: "select_corner",
+          user_id: currentUser.id,
+          color: color,
+          name: currentUser.name,
+          avatar: currentUser.photo_url
+        })
+      }).catch(() => {});
     }
 
     function addBotToLobby() {
@@ -1876,6 +2076,11 @@
         lobbySeats[emptyColor] = { type: 'bot', name: "Bot Alpha" };
         addLogEvent(`Bot Alpha was added to the room.`, "Room event");
         updateLobbyCornerUI();
+        fetch("/api/ludo/room/action", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code: currentRoomCode, action: "add_bot" })
+        }).catch(() => {});
       }
     }
 
@@ -1904,6 +2109,14 @@
               <span class="corner-name">${seat.name}</span>
               <span class="corner-status" style="color:var(--${c}-color);">Ready</span>
             `;
+          } else if (seat.type === 'player') {
+            box.innerHTML = `
+              <div class="corner-avatar" style="background:var(--${c}-light);">
+                ${seat.avatar ? `<img src="${seat.avatar}">` : `<span>👤</span>`}
+              </div>
+              <span class="corner-name">${seat.name}</span>
+              <span class="corner-status" style="color:var(--${c}-color);">Ready</span>
+            `;
           }
         } else {
           box.classList.remove("occupied");
@@ -1921,6 +2134,8 @@
       startBtn.classList.toggle("disabled", !canStart);
 
       document.getElementById("lobbyNeedText").textContent = canStart ? "✅ Ready to start!" : "🚩 One more player needed";
+      const subNeed = document.getElementById("lobbyNeedSub");
+      if (subNeed) subNeed.textContent = canStart ? "Ready to start" : "One more player needed";
     }
 
     function startMatchFromLobby() {
@@ -1930,6 +2145,12 @@
       }
       activePlayers = Object.keys(lobbySeats).filter(c => lobbySeats[c] !== null);
       addLogEvent(`The game has started.`, "Room event");
+
+      fetch("/api/ludo/room/action", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: currentRoomCode, action: "start_game" })
+      }).catch(() => {});
 
       // Update in-game player card names & icons
       ['green', 'yellow', 'red', 'blue'].forEach(c => {
@@ -1941,6 +2162,8 @@
           if (seat.type === 'bot') avEl.innerHTML = "<span>🤖</span>";
           else if (seat.type === 'me') {
             avEl.innerHTML = currentUser.photo_url ? `<img src="${currentUser.photo_url}">` : "<span>🧑</span>";
+          } else if (seat.type === 'player') {
+            avEl.innerHTML = seat.avatar ? `<img src="${seat.avatar}">` : "<span>👤</span>";
           }
         } else {
           nameEl.textContent = "Open seat";
@@ -2399,6 +2622,8 @@
     // Initialize
     initTokenElements();
     updateLobbyCornerUI();
+    detectInitialRoom();
+    roomPollInterval = setInterval(pollRoomState, 2000);
   </script>
 </body>
 </html>

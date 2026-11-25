@@ -1,5 +1,7 @@
 import os
 import json
+import time
+import random
 import asyncio
 from aiohttp import web
 from typing import Optional
@@ -404,6 +406,212 @@ async def handle_ludo_banner(request: web.Request) -> web.Response:
     return web.Response(text="Banner not found", status=404)
 
 
+# In-Memory Ludo Multiplayer Rooms
+LUDO_ROOMS: dict[str, dict] = {}
+
+
+async def handle_ludo_room_create(request: web.Request) -> web.Response:
+    """POST /api/ludo/room/create"""
+    try:
+        data = await request.json()
+    except Exception:
+        data = {}
+
+    host_id = data.get("user_id", 0)
+    host_name = data.get("name", "Host")
+    avatar = data.get("avatar", "")
+    color = data.get("color", "red")
+
+    # Generate unique 6-character room code (e.g. 0Q62UQ)
+    chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+    code = "".join(random.choices(chars, k=6))
+    while code in LUDO_ROOMS:
+        code = "".join(random.choices(chars, k=6))
+
+    players = {
+        "red": None,
+        "green": None,
+        "yellow": None,
+        "blue": None,
+    }
+    players[color] = {
+        "id": host_id,
+        "name": host_name,
+        "avatar": avatar,
+        "is_bot": False,
+        "is_host": True
+    }
+
+    LUDO_ROOMS[code] = {
+        "code": code,
+        "host_id": host_id,
+        "status": "lobby",
+        "seated": 1,
+        "created_at": time.time(),
+        "players": players,
+        "chat": [],
+        "events": [
+            {"text": f"{host_name} created room {code}.", "type": "Room event"},
+            {"text": f"{host_name} is now the host.", "type": "Room event"}
+        ],
+        "turn": color,
+        "dice": 0,
+    }
+    return web.json_response({"success": True, "room": LUDO_ROOMS[code]})
+
+
+async def handle_ludo_room_join(request: web.Request) -> web.Response:
+    """POST /api/ludo/room/join"""
+    try:
+        data = await request.json()
+    except Exception:
+        data = {}
+
+    code = str(data.get("code", "")).strip().upper()
+    if not code:
+        return web.json_response({"success": False, "error": "Room code required"}, status=400)
+
+    user_id = data.get("user_id", 0)
+    name = data.get("name", "Player")
+    avatar = data.get("avatar", "")
+    pref_color = data.get("color")
+
+    # Auto-initialize room if joining by code for first time
+    if code not in LUDO_ROOMS:
+        LUDO_ROOMS[code] = {
+            "code": code,
+            "host_id": user_id,
+            "status": "lobby",
+            "seated": 1,
+            "created_at": time.time(),
+            "players": {
+                "red": {"id": user_id, "name": name, "avatar": avatar, "is_bot": False, "is_host": True},
+                "green": None,
+                "yellow": None,
+                "blue": None,
+            },
+            "chat": [],
+            "events": [
+                {"text": f"{name} created room {code}.", "type": "Room event"},
+                {"text": f"{name} is now the host.", "type": "Room event"}
+            ],
+            "turn": "red",
+            "dice": 0,
+        }
+        return web.json_response({"success": True, "room": LUDO_ROOMS[code]})
+
+    room = LUDO_ROOMS[code]
+    players = room["players"]
+
+    # Check if already seated
+    already_color = None
+    for c, p in players.items():
+        if p and p.get("id") == user_id:
+            already_color = c
+            # Update name/avatar if changed
+            p["name"] = name
+            if avatar:
+                p["avatar"] = avatar
+            break
+
+    if not already_color:
+        chosen_color = None
+        if pref_color and players.get(pref_color) is None:
+            chosen_color = pref_color
+        else:
+            for c in ["green", "yellow", "blue", "red"]:
+                if players.get(c) is None:
+                    chosen_color = c
+                    break
+
+        if not chosen_color:
+            return web.json_response({"success": False, "error": "Room is full (4/4 seated)", "room": room}, status=400)
+
+        players[chosen_color] = {
+            "id": user_id,
+            "name": name,
+            "avatar": avatar,
+            "is_bot": False,
+            "is_host": False
+        }
+        room["seated"] = sum(1 for p in players.values() if p is not None)
+        room["events"].append({"text": f"{name} joined the room.", "type": "Room event"})
+
+    return web.json_response({"success": True, "room": room})
+
+
+async def handle_ludo_room_state(request: web.Request) -> web.Response:
+    """GET /api/ludo/room/state?code=..."""
+    code = request.query.get("code", "").strip().upper()
+    if not code:
+        return web.json_response({"success": False, "error": "Code required"}, status=400)
+    if code not in LUDO_ROOMS:
+        return web.json_response({"success": False, "error": "Room not found"}, status=404)
+    return web.json_response({"success": True, "room": LUDO_ROOMS[code]})
+
+
+async def handle_ludo_room_action(request: web.Request) -> web.Response:
+    """POST /api/ludo/room/action"""
+    try:
+        data = await request.json()
+    except Exception:
+        data = {}
+
+    code = str(data.get("code", "")).strip().upper()
+    if not code or code not in LUDO_ROOMS:
+        return web.json_response({"success": False, "error": "Room not found"}, status=404)
+
+    room = LUDO_ROOMS[code]
+    action = data.get("action")
+
+    if action == "add_bot":
+        for c in ["green", "yellow", "blue"]:
+            if room["players"].get(c) is None:
+                room["players"][c] = {"id": "bot_alpha", "name": "Bot Alpha", "avatar": "🤖", "is_bot": True}
+                room["events"].append({"text": "Bot Alpha was added to the room.", "type": "Room event"})
+                break
+        room["seated"] = sum(1 for p in room["players"].values() if p is not None)
+
+    elif action == "remove_bot":
+        for c in ["green", "yellow", "blue"]:
+            if room["players"].get(c) and room["players"][c].get("is_bot"):
+                room["players"][c] = None
+                room["events"].append({"text": "Bot Alpha left.", "type": "Room event"})
+                break
+        room["seated"] = sum(1 for p in room["players"].values() if p is not None)
+
+    elif action == "select_corner":
+        user_id = data.get("user_id")
+        target_color = data.get("color")
+        name = data.get("name", "Player")
+        avatar = data.get("avatar", "")
+        if target_color in ["red", "green", "yellow", "blue"] and room["players"].get(target_color) is None:
+            # clear previous seat
+            for c, p in room["players"].items():
+                if p and p.get("id") == user_id:
+                    room["players"][c] = None
+            room["players"][target_color] = {
+                "id": user_id,
+                "name": name,
+                "avatar": avatar,
+                "is_bot": False,
+                "is_host": (user_id == room["host_id"])
+            }
+            room["seated"] = sum(1 for p in room["players"].values() if p is not None)
+
+    elif action == "start_game":
+        room["status"] = "playing"
+        room["events"].append({"text": "The game has started.", "type": "Room event"})
+
+    elif action == "send_chat":
+        sender = data.get("name", "Player")
+        text = data.get("text", "")
+        if text:
+            room["chat"].append({"name": sender, "text": text, "time": time.time()})
+
+    return web.json_response({"success": True, "room": room})
+
+
 def create_payment_app() -> web.Application:
     app = web.Application()
     async def cors_middleware(app, handler):
@@ -439,5 +647,9 @@ def create_payment_app() -> web.Application:
     app.router.add_get("/ludo.html", handle_ludo_page)
     app.router.add_get("/ludo/banner.jpg", handle_ludo_banner)
     app.router.add_get("/ludo/card_preview.jpg", handle_ludo_banner)
+    app.router.add_post("/api/ludo/room/create", handle_ludo_room_create)
+    app.router.add_post("/api/ludo/room/join", handle_ludo_room_join)
+    app.router.add_get("/api/ludo/room/state", handle_ludo_room_state)
+    app.router.add_post("/api/ludo/room/action", handle_ludo_room_action)
     return app
 
