@@ -61,21 +61,26 @@
       overflow-x: hidden;
       overflow-y: auto;
       min-height: 100vh;
+      min-height: 100dvh;
+      height: 100dvh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding-bottom: 24px;
       transition: background-color 0.3s ease, color 0.3s ease;
     }
 
     .app-wrapper {
       width: 100%;
       max-width: 440px;
-      padding: 12px 14px 20px;
+      height: 100%;
+      max-height: 100dvh;
+      padding: 4px 10px 8px;
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: space-between;
       position: relative;
+      box-sizing: border-box;
     }
 
     /* Views */
@@ -458,22 +463,22 @@
     }
 
     /* Player Slots Grid */
-    .players-container {
+    .players-container, .bottom-players {
       width: 100%;
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 8px;
+      gap: 6px;
+      margin: 2px 0;
     }
 
     .player-card {
       background: var(--card-bg);
-      border-radius: 16px;
-      padding: 7px 12px;
+      border-radius: 14px;
+      padding: 4px 8px;
       display: flex;
       align-items: center;
-      gap: 8px;
-      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.03);
+      gap: 6px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
       border: 2px solid transparent;
       position: relative;
       transition: border-color 0.25s, transform 0.15s;
@@ -485,13 +490,13 @@
     }
 
     .player-avatar {
-      width: 32px;
-      height: 32px;
+      width: 26px;
+      height: 26px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 16px;
+      font-size: 13px;
       background: #F0ECE4;
       flex-shrink: 0;
       overflow: hidden;
@@ -499,20 +504,20 @@
     .player-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
     .player-info { display: flex; flex-direction: column; overflow: hidden; }
-    .player-name { font-size: 12px; font-weight: 700; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
-    .player-progress { font-size: 11px; color: var(--text-muted); font-weight: 600; }
+    .player-name { font-size: 11px; font-weight: 700; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+    .player-progress { font-size: 9.5px; color: var(--text-muted); font-weight: 600; }
 
-    /* Ludo Board Area */
+    /* Ludo Board Area (Responsive Phone Scaling) */
     .board-container {
-      width: 100%;
+      width: min(90vw, 360px, 42dvh);
       aspect-ratio: 1 / 1;
-      max-width: 380px;
       background: var(--card-bg);
-      border-radius: 24px;
-      padding: 8px;
-      box-shadow: 0 12px 30px rgba(180, 150, 120, 0.15);
+      border-radius: 20px;
+      padding: 5px;
+      box-shadow: 0 10px 25px rgba(180, 150, 120, 0.12);
       position: relative;
-      margin-bottom: 10px;
+      margin: 2px auto;
+      flex-shrink: 0;
     }
 
     .ludo-board {
@@ -521,11 +526,11 @@
       display: grid;
       grid-template-columns: repeat(15, 1fr);
       grid-template-rows: repeat(15, 1fr);
-      gap: 2px;
+      gap: 1.5px;
       background: #F1ECE2;
-      border-radius: 18px;
+      border-radius: 16px;
       overflow: hidden;
-      padding: 2px;
+      padding: 1.5px;
     }
 
     .cell {
@@ -534,41 +539,54 @@
       align-items: center;
       justify-content: center;
       background: var(--card-bg);
-      border-radius: 3px;
+      border-radius: 2px;
     }
 
-    .cell.path-red { background: var(--red-light); }
-    .cell.path-green { background: var(--green-light); }
-    .cell.path-yellow { background: var(--yellow-light); }
-    .cell.path-blue { background: var(--blue-light); }
+    .cell.path-red { background: #FFD4D4; }
+    .cell.path-green { background: #D4F7DD; }
+    .cell.path-yellow { background: #FFF0CC; }
+    .cell.path-blue { background: #D6EAFF; }
 
-    .cell.home-red { background: var(--red-color); }
-    .cell.home-green { background: var(--green-color); }
-    .cell.home-yellow { background: var(--yellow-color); }
-    .cell.home-blue { background: var(--blue-color); }
+    .cell.home-red { background: #E74C3C; }
+    .cell.home-green { background: #27AE60; }
+    .cell.home-yellow { background: #F39C12; }
+    .cell.home-blue { background: #2980B9; }
 
     .cell.star-cell::after {
       content: '★';
-      font-size: 12px;
+      font-size: 11px;
       color: #F8BA3A;
       position: absolute;
     }
 
-    /* Bases */
+    /* Bases (Ludo King Style: Solid Outer, Crisp White Inner, Ringed Slots) */
     .base-box {
       border-radius: 14px;
+      padding: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.12);
+    }
+
+    .base-green { grid-column: 1 / 7; grid-row: 1 / 7; background: #27AE60; }
+    .base-yellow { grid-column: 10 / 16; grid-row: 1 / 7; background: #F39C12; }
+    .base-red { grid-column: 1 / 7; grid-row: 10 / 16; background: #E74C3C; }
+    .base-blue { grid-column: 10 / 16; grid-row: 10 / 16; background: #2980B9; }
+
+    .base-inner {
+      width: 82%;
+      height: 82%;
+      background: #FFFFFF;
+      border-radius: 12px;
       display: grid;
       grid-template-columns: 1fr 1fr;
       grid-template-rows: 1fr 1fr;
-      padding: 8px;
-      gap: 6px;
-      position: relative;
+      padding: 5px;
+      gap: 5px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
     }
-
-    .base-green { grid-column: 1 / 7; grid-row: 1 / 7; background: var(--green-light); border: 3px solid var(--green-color); }
-    .base-yellow { grid-column: 10 / 16; grid-row: 1 / 7; background: var(--yellow-light); border: 3px solid var(--yellow-color); }
-    .base-red { grid-column: 1 / 7; grid-row: 10 / 16; background: var(--red-light); border: 3px solid var(--red-color); }
-    .base-blue { grid-column: 10 / 16; grid-row: 10 / 16; background: var(--blue-light); border: 3px solid var(--blue-color); }
 
     .base-slot {
       background: #FFFFFF;
@@ -576,10 +594,16 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
       position: relative;
+      border: 2px solid;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.08);
     }
+    .base-green .base-slot { border-color: #27AE60; background: #F0FAF2; }
+    .base-yellow .base-slot { border-color: #F39C12; background: #FEF9EE; }
+    .base-red .base-slot { border-color: #E74C3C; background: #FDF1F0; }
+    .base-blue .base-slot { border-color: #2980B9; background: #EEF6FC; }
 
+    /* Center Finish Triangle Alignments (Matches Home Paths) */
     .center-finish {
       grid-column: 7 / 10;
       grid-row: 7 / 10;
@@ -587,39 +611,52 @@
       background: #FFF;
       border-radius: 4px;
       overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
-    .tri-red { position: absolute; bottom: 0; left: 0; right: 0; height: 50%; clip-path: polygon(0% 100%, 50% 0%, 100% 100%); background: var(--red-color); }
-    .tri-green { position: absolute; top: 0; bottom: 0; left: 0; width: 50%; clip-path: polygon(0% 0%, 100% 50%, 0% 100%); background: var(--green-color); }
-    .tri-yellow { position: absolute; top: 0; left: 0; right: 0; height: 50%; clip-path: polygon(0% 0%, 50% 100%, 100% 0%); background: var(--yellow-color); }
-    .tri-blue { position: absolute; top: 0; bottom: 0; right: 0; width: 50%; clip-path: polygon(100% 0%, 0% 50%, 100% 100%); background: var(--blue-color); }
+    .tri-red { position: absolute; top: 0; bottom: 0; left: 0; width: 50%; clip-path: polygon(0% 0%, 100% 50%, 0% 100%); background: #E74C3C; }
+    .tri-green { position: absolute; top: 0; left: 0; right: 0; height: 50%; clip-path: polygon(0% 0%, 50% 100%, 100% 0%); background: #27AE60; }
+    .tri-yellow { position: absolute; top: 0; bottom: 0; right: 0; width: 50%; clip-path: polygon(100% 0%, 0% 50%, 100% 100%); background: #F39C12; }
+    .tri-blue { position: absolute; bottom: 0; left: 0; right: 0; height: 50%; clip-path: polygon(0% 100%, 50% 0%, 100% 100%); background: #2980B9; }
 
-    /* Tokens */
-    .token {
-      width: 80%;
-      height: 80%;
+    .center-emblem {
+      position: absolute;
+      width: 20px;
+      height: 20px;
       border-radius: 50%;
+      background: #FFFFFF;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.22);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      z-index: 3;
+    }
+
+    /* 3D Gotis / Pawns (Ludo King Style) */
+    .token {
+      width: 78%;
+      height: 78%;
       position: relative;
       cursor: pointer;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.3), inset 0 2px 3px rgba(255,255,255,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
       transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      z-index: 5;
+      z-index: 8;
     }
-    .token-red { background: radial-gradient(circle at 35% 30%, #FF9999, var(--red-color) 60%, var(--red-shadow)); }
-    .token-green { background: radial-gradient(circle at 35% 30%, #99EEB3, var(--green-color) 60%, var(--green-shadow)); }
-    .token-yellow { background: radial-gradient(circle at 35% 30%, #FFE299, var(--yellow-color) 60%, var(--yellow-shadow)); }
-    .token-blue { background: radial-gradient(circle at 35% 30%, #A3C5FF, var(--blue-color) 60%, var(--blue-shadow)); }
 
     .token.can-move {
       animation: bounceToken 0.7s infinite alternate;
-      filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.95));
-      z-index: 10;
+      z-index: 12;
     }
     @keyframes bounceToken {
-      0% { transform: scale(1) translateY(0); }
-      100% { transform: scale(1.18) translateY(-3px); }
+      0% { transform: scale(1) translateY(0); filter: drop-shadow(0 0 3px #F8BA3A); }
+      100% { transform: scale(1.18) translateY(-4px); filter: drop-shadow(0 0 8px #F8BA3A); }
     }
 
-    /* Dice Tray */
+    /* Dice Tray (Scaled for Phone Viewport) */
     .roll-area {
       width: 100%;
       display: flex;
@@ -627,13 +664,15 @@
       align-items: center;
       position: relative;
       margin-top: 2px;
+      margin-bottom: 2px;
+      flex-shrink: 0;
     }
 
     .tray-deco-bg {
       position: absolute;
-      bottom: -6px;
+      bottom: -4px;
       width: 90%;
-      height: 60px;
+      height: 48px;
       display: flex;
       justify-content: space-between;
       align-items: flex-end;
@@ -641,31 +680,31 @@
       z-index: 1;
       opacity: 0.85;
     }
-    .deco-leaf { width: 44px; height: 52px; background: #B6DEC2; border-radius: 40px 0 40px 0; transform: rotate(-15deg); }
+    .deco-leaf { width: 36px; height: 42px; background: #B6DEC2; border-radius: 36px 0 36px 0; transform: rotate(-15deg); }
     .deco-leaf.right { transform: rotate(15deg) scaleX(-1); }
-    .deco-cloud { width: 56px; height: 28px; background: #E8F4F8; border-radius: 30px; }
+    .deco-cloud { width: 44px; height: 22px; background: #E8F4F8; border-radius: 22px; }
 
     .roll-btn-top {
       background: var(--card-bg);
-      padding: 7px 22px;
-      border-radius: 20px;
-      font-size: 13px;
+      padding: 4px 16px;
+      border-radius: 14px;
+      font-size: 11px;
       font-weight: 800;
       color: var(--text-dark);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-      margin-bottom: 10px;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.04);
+      margin-bottom: 6px;
       z-index: 2;
     }
 
     .dice-tray {
-      width: 135px;
-      height: 58px;
+      width: 115px;
+      height: 46px;
       background: linear-gradient(180deg, #FA6A6A, #E44848);
-      border-radius: 35px;
+      border-radius: 28px;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 8px 20px rgba(228, 72, 72, 0.35), inset 0 2px 4px rgba(255, 255, 255, 0.4);
+      box-shadow: 0 6px 16px rgba(228, 72, 72, 0.35), inset 0 2px 4px rgba(255, 255, 255, 0.4);
       position: relative;
       cursor: pointer;
       z-index: 2;
@@ -674,38 +713,38 @@
 
     .dice-tray-label {
       position: absolute;
-      bottom: 5px;
-      font-size: 10.5px;
+      bottom: 3.5px;
+      font-size: 9px;
       font-weight: 800;
       color: #FFFFFF;
       letter-spacing: 1px;
     }
 
     .dice-cube {
-      width: 48px;
-      height: 48px;
+      width: 40px;
+      height: 40px;
       background: #FFFFFF;
-      border-radius: 12px;
-      box-shadow: 0 6px 14px rgba(0,0,0,0.22);
+      border-radius: 9px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.22);
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       grid-template-rows: repeat(3, 1fr);
-      padding: 6px;
+      padding: 4.5px;
       position: absolute;
-      top: -24px;
+      top: -18px;
       transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
     .dice-cube.rolling {
       animation: diceRollAnim 0.6s cubic-bezier(0.25, 1, 0.5, 1);
     }
     @keyframes diceRollAnim {
-      0% { transform: translateY(-20px) rotate(0deg) scale(0.85); }
-      30% { transform: translateY(-45px) rotate(180deg) scale(1.15); }
-      70% { transform: translateY(-15px) rotate(320deg) scale(0.95); }
+      0% { transform: translateY(-16px) rotate(0deg) scale(0.85); }
+      30% { transform: translateY(-36px) rotate(180deg) scale(1.15); }
+      70% { transform: translateY(-12px) rotate(320deg) scale(0.95); }
       100% { transform: translateY(0) rotate(360deg) scale(1); }
     }
 
-    .pip { width: 7px; height: 7px; background: #2D2825; border-radius: 50%; align-self: center; justify-self: center; opacity: 0; }
+    .pip { width: 6px; height: 6px; background: #2D2825; border-radius: 50%; align-self: center; justify-self: center; opacity: 0; }
     .pip.active { opacity: 1; }
 
     .bottom-players {
@@ -1309,34 +1348,43 @@
       <div class="board-container">
         <div class="ludo-board" id="boardGrid">
           <div class="base-box base-green">
-            <div class="base-slot" id="base_green_0"></div>
-            <div class="base-slot" id="base_green_1"></div>
-            <div class="base-slot" id="base_green_2"></div>
-            <div class="base-slot" id="base_green_3"></div>
+            <div class="base-inner">
+              <div class="base-slot" id="base_green_0"></div>
+              <div class="base-slot" id="base_green_1"></div>
+              <div class="base-slot" id="base_green_2"></div>
+              <div class="base-slot" id="base_green_3"></div>
+            </div>
           </div>
           <div class="base-box base-yellow">
-            <div class="base-slot" id="base_yellow_0"></div>
-            <div class="base-slot" id="base_yellow_1"></div>
-            <div class="base-slot" id="base_yellow_2"></div>
-            <div class="base-slot" id="base_yellow_3"></div>
+            <div class="base-inner">
+              <div class="base-slot" id="base_yellow_0"></div>
+              <div class="base-slot" id="base_yellow_1"></div>
+              <div class="base-slot" id="base_yellow_2"></div>
+              <div class="base-slot" id="base_yellow_3"></div>
+            </div>
           </div>
           <div class="base-box base-red">
-            <div class="base-slot" id="base_red_0"></div>
-            <div class="base-slot" id="base_red_1"></div>
-            <div class="base-slot" id="base_red_2"></div>
-            <div class="base-slot" id="base_red_3"></div>
+            <div class="base-inner">
+              <div class="base-slot" id="base_red_0"></div>
+              <div class="base-slot" id="base_red_1"></div>
+              <div class="base-slot" id="base_red_2"></div>
+              <div class="base-slot" id="base_red_3"></div>
+            </div>
           </div>
           <div class="base-box base-blue">
-            <div class="base-slot" id="base_blue_0"></div>
-            <div class="base-slot" id="base_blue_1"></div>
-            <div class="base-slot" id="base_blue_2"></div>
-            <div class="base-slot" id="base_blue_3"></div>
+            <div class="base-inner">
+              <div class="base-slot" id="base_blue_0"></div>
+              <div class="base-slot" id="base_blue_1"></div>
+              <div class="base-slot" id="base_blue_2"></div>
+              <div class="base-slot" id="base_blue_3"></div>
+            </div>
           </div>
           <div class="center-finish">
             <div class="tri-red"></div>
             <div class="tri-green"></div>
             <div class="tri-yellow"></div>
             <div class="tri-blue"></div>
+            <div class="center-emblem">👑</div>
           </div>
         </div>
       </div>
@@ -2253,6 +2301,47 @@
 
     const tokenElements = {};
 
+    function createPawnSVG(color) {
+      const colors = {
+        red: { light: '#FFA3A3', main: '#E74C3C', shadow: '#961B0E' },
+        green: { light: '#98F5B4', main: '#27AE60', shadow: '#145A32' },
+        yellow: { light: '#FFE485', main: '#F39C12', shadow: '#935116' },
+        blue: { light: '#99CBFF', main: '#2980B9', shadow: '#1B4F72' },
+      };
+      const c = colors[color] || colors.red;
+      return `
+        <svg viewBox="0 0 24 32" class="pawn-svg" style="width:100%; height:100%; overflow:visible; display:block;">
+          <defs>
+            <radialGradient id="phead_${color}" cx="35%" cy="30%" r="65%">
+              <stop offset="0%" stop-color="${c.light}"/>
+              <stop offset="60%" stop-color="${c.main}"/>
+              <stop offset="100%" stop-color="${c.shadow}"/>
+            </radialGradient>
+            <linearGradient id="pbody_${color}" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="${c.light}"/>
+              <stop offset="45%" stop-color="${c.main}"/>
+              <stop offset="100%" stop-color="${c.shadow}"/>
+            </linearGradient>
+            <linearGradient id="pbase_${color}" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="${c.main}"/>
+              <stop offset="100%" stop-color="${c.shadow}"/>
+            </linearGradient>
+            <filter id="pdrop_${color}" x="-30%" y="-20%" width="160%" height="150%">
+              <feDropShadow dx="0" dy="2.2" stdDeviation="1.5" flood-color="rgba(0,0,0,0.4)"/>
+            </filter>
+          </defs>
+          <g filter="url(#pdrop_${color})">
+            <ellipse cx="12" cy="27" rx="8.5" ry="3.2" fill="url(#pbase_${color})"/>
+            <ellipse cx="12" cy="25.5" rx="7.2" ry="2.2" fill="${c.light}" opacity="0.65"/>
+            <path d="M 6.8 25.5 C 7.5 19, 9.2 13.5, 9.8 12.5 L 14.2 12.5 C 14.8 13.5, 16.5 19, 17.2 25.5 Z" fill="url(#pbody_${color})"/>
+            <ellipse cx="12" cy="12.5" rx="3.8" ry="1.2" fill="${c.light}"/>
+            <circle cx="12" cy="7" r="5.2" fill="url(#phead_${color})"/>
+            <ellipse cx="10.2" cy="5.2" rx="1.6" ry="1" fill="#FFFFFF" opacity="0.85" transform="rotate(-25 10.2 5.2)"/>
+          </g>
+        </svg>
+      `;
+    }
+
     function initTokenElements() {
       document.querySelectorAll(".token").forEach(e => e.remove());
       PLAYERS.forEach(color => {
@@ -2262,6 +2351,7 @@
           tok.className = `token token-${color}`;
           tok.dataset.color = color;
           tok.dataset.id = i;
+          tok.innerHTML = createPawnSVG(color);
           tok.addEventListener("click", () => handleTokenClick(color, i));
           tokenElements[color].push(tok);
         }
@@ -2293,6 +2383,8 @@
     }
 
     function renderAllTokens() {
+      const cellTokensMap = {};
+
       PLAYERS.forEach(color => {
         let homeCount = 0;
         tokenState[color].forEach((tok, idx) => {
@@ -2300,27 +2392,46 @@
           if (tok.step === -1) {
             const baseSlot = document.getElementById(`base_${color}_${idx}`);
             if (baseSlot && el.parentElement !== baseSlot) baseSlot.appendChild(el);
+            el.style.transform = 'scale(0.85)';
           } else if (tok.step >= 56) {
             homeCount++;
             const center = document.querySelector(".center-finish");
             if (center && el.parentElement !== center) {
               center.appendChild(el);
-              el.style.transform = 'scale(0.65)';
+              el.style.transform = 'scale(0.55)';
             }
           } else {
             const coords = getCellCoordsForToken(color, tok.step);
             if (coords) {
               const [r, c] = coords;
-              const cell = cellMap[`${r}_${c}`];
+              const cellKey = `${r}_${c}`;
+              if (!cellTokensMap[cellKey]) cellTokensMap[cellKey] = [];
+              cellTokensMap[cellKey].push(el);
+
+              const cell = cellMap[cellKey];
               if (cell && el.parentElement !== cell) {
                 cell.appendChild(el);
-                el.style.transform = 'scale(1)';
               }
             }
           }
         });
         const scoreBadge = document.getElementById(`score${capitalize(color)}`);
         if (scoreBadge) scoreBadge.textContent = `${homeCount}/4`;
+      });
+
+      // Handle multi-tokens overlapping on same tile nicely
+      Object.keys(cellTokensMap).forEach(key => {
+        const list = cellTokensMap[key];
+        if (list.length === 1) {
+          list[0].style.transform = 'scale(1)';
+        } else if (list.length === 2) {
+          list[0].style.transform = 'scale(0.72) translate(-20%, -15%)';
+          list[1].style.transform = 'scale(0.72) translate(20%, 15%)';
+        } else {
+          list.forEach((t, i) => {
+            t.style.transform = `scale(0.6) translate(${(i % 2) * 26 - 13}%, ${Math.floor(i / 2) * 26 - 13}%)`;
+          });
+        }
       });
     }
 
