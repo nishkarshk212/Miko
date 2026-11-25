@@ -1464,7 +1464,7 @@
       </div>
 
       <div class="bottom-players">
-        <div class="player-card active-turn" id="cardRed">
+        <div class="player-card" id="cardRed">
           <div class="player-avatar" style="border: 2px solid var(--red-color);" id="avatarRed">
             <span>🧑</span>
           </div>
@@ -2027,20 +2027,47 @@
 
       // If room status is 'playing', start match for all players!
       if (room.status === 'playing' && document.getElementById("viewLobby").classList.contains("active")) {
-        startMatchFromLobby(false);
+        startMatchFromLobby(false, room.turn);
       }
 
-      // Synchronize in-game remote dice & tokens
+      // Synchronize in-game remote state (turns, dice, gotis)
       if (document.getElementById("viewGame").classList.contains("active")) {
-        if (room.turn && room.turn !== myColor && room.dice && room.dice !== currentDiceValue && !isRolling && !hasRolled) {
-          currentDiceValue = room.dice;
-          setDiceFace(currentDiceValue);
-          hasRolled = true;
-          if (currentDiceValue === 6) {
-            triggerScreenFX("SIX! 🎲");
+        // 1. Sync authoritative turn from room
+        if (room.turn && activePlayers.includes(room.turn)) {
+          const sIdx = activePlayers.indexOf(room.turn);
+          if (sIdx !== -1 && sIdx !== currentTurnIndex && !isRolling && !isMovingToken) {
+            currentTurnIndex = sIdx;
+            hasRolled = false;
+            updateTurnUI();
           }
-          evaluateMovesAfterRoll();
         }
+
+        // 2. Sync remote dice roll
+        if (room.roll_id && room.roll_id > lastProcessedRollId) {
+          lastProcessedRollId = room.roll_id;
+          if (room.turn !== myColor && room.dice > 0 && !isRolling) {
+            currentDiceValue = room.dice;
+            isRolling = true;
+            soundSystem.play('roll');
+            triggerHaptic('medium');
+            const cube = document.getElementById("diceCube");
+            if (cube) cube.classList.add("rolling");
+            setTimeout(() => {
+              if (cube) cube.classList.remove("rolling");
+              setDiceFace(currentDiceValue);
+              isRolling = false;
+              hasRolled = true;
+              if (currentDiceValue === 6) {
+                triggerScreenFX("SIX! 🎲");
+              }
+              const pName = getPlayerDisplayName(room.turn);
+              updateTurnUI(`${pName} rolled a ${currentDiceValue}!`);
+              evaluateMovesAfterRoll();
+            }, 550);
+          }
+        }
+
+        // 3. Sync remote goti positions
         if (room.token_state) {
           let stateChanged = false;
           Object.keys(room.token_state).forEach(color => {
@@ -2398,7 +2425,7 @@
       }
     }
 
-    function startMatchFromLobby(sendServerAction = true) {
+    function startMatchFromLobby(sendServerAction = true, initialTurn = null) {
       if (!isHost && sendServerAction) {
         showToast("Only the room leader can start the match!");
         return;
@@ -2408,6 +2435,7 @@
         addBotToLobby();
       }
       activePlayers = Object.keys(lobbySeats).filter(c => lobbySeats[c] !== null);
+      if (activePlayers.length === 0) activePlayers = ['red', 'green'];
       addLogEvent(`The game has started.`, "Room event");
 
       if (sendServerAction) {
@@ -2448,11 +2476,8 @@
         }
       });
 
-      restartGame();
+      restartGame(initialTurn);
       switchView("viewGame");
-      const firstPlayer = getCurrentPlayer();
-      const firstName = getPlayerDisplayName(firstPlayer);
-      updateTurnBanner(`${firstName}'s turn - roll the dice`);
     }
 
     /* =========================================================================
@@ -2520,6 +2545,7 @@
     let activePlayers = ['red', 'green'];
     let currentTurnIndex = 0;
     let currentDiceValue = 0;
+    let lastProcessedRollId = 0;
     let hasRolled = false;
     let isRolling = false;
     let consecutiveSixes = 0;
@@ -2723,6 +2749,7 @@
 
     function executeDiceRoll() {
       const curPlayer = getCurrentPlayer();
+      if (isPlayerBot(curPlayer) && !isHost) return;
       isRolling = true;
       playSound('roll');
       triggerHaptic('medium');
@@ -2797,17 +2824,23 @@
       const pName = getPlayerDisplayName(color);
       if (isPlayerBot(color)) {
         updateTurnBanner(`${pName} rolled a ${currentDiceValue}!`);
-        setTimeout(() => chooseBotMove(color, validTokens), 750);
+        if (isHost) {
+          setTimeout(() => chooseBotMove(color, validTokens), 750);
+        }
       } else {
         // Human player
-        updateTurnBanner(`${pName} rolled a ${currentDiceValue}! Tap a glowing token.`);
-        validTokens.forEach(tok => {
-          if (tokenElements[color] && tokenElements[color][tok.id]) {
-            tokenElements[color][tok.id].classList.add("can-move");
+        if (color === myColor) {
+          updateTurnBanner(`${pName} rolled a ${currentDiceValue}! Tap a glowing goti.`);
+          validTokens.forEach(tok => {
+            if (tokenElements[color] && tokenElements[color][tok.id]) {
+              tokenElements[color][tok.id].classList.add("can-move");
+            }
+          });
+          if (validTokens.length === 1) {
+            setTimeout(() => handleTokenClick(color, validTokens[0].id), 450);
           }
-        });
-        if (validTokens.length === 1 && color === myColor) {
-          setTimeout(() => handleTokenClick(color, validTokens[0].id), 450);
+        } else {
+          updateTurnBanner(`${pName} rolled a ${currentDiceValue}! Choosing a goti...`);
         }
       }
     }
@@ -2908,8 +2941,14 @@
 
         if (roll === 6 || captured) {
           hasRolled = false;
-          updateTurnBanner(`${pName} gets an extra roll!`);
-          if (isPlayerBot(color)) setTimeout(() => executeDiceRoll(), 900);
+          if (isPlayerBot(color) && isHost) {
+            updateTurnBanner(`${pName} gets an extra roll!`);
+            setTimeout(() => executeDiceRoll(), 900);
+          } else if (color === myColor) {
+            updateTurnUI(`${pName} gets an extra roll! Roll the dice.`);
+          } else {
+            updateTurnUI(`${pName} gets an extra roll! Waiting for roll...`);
+          }
         } else {
           setTimeout(() => endTurn(), 400);
         }
@@ -2921,17 +2960,28 @@
     function endTurn() {
       document.querySelectorAll(".token").forEach(t => t.classList.remove("can-move"));
       hasRolled = false;
+      isRolling = false;
       consecutiveSixes = 0;
       currentTurnIndex = (currentTurnIndex + 1) % activePlayers.length;
 
       const nextPlayer = getCurrentPlayer();
-      const nextName = getPlayerDisplayName(nextPlayer);
+      updateTurnUI();
 
-      if (isPlayerBot(nextPlayer)) {
-        updateTurnBanner(`${nextName}'s turn (thinking...)`);
+      if (currentRoomCode) {
+        fetch("/api/ludo/room/action", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            code: currentRoomCode,
+            action: "end_turn",
+            next_turn: nextPlayer,
+            user_id: currentUser.id
+          })
+        }).catch(() => {});
+      }
+
+      if (isPlayerBot(nextPlayer) && isHost) {
         setTimeout(() => executeDiceRoll(), 1000);
-      } else {
-        updateTurnBanner(`${nextName}'s turn - roll the dice`);
       }
     }
 
@@ -3014,26 +3064,83 @@
       switchView("viewLobby");
     }
 
-    function restartGame() {
+    function restartGame(initialTurnColor) {
       document.getElementById("resultsOverlay").classList.remove("open");
       initTokenElements();
       activePlayers.forEach(c => {
         tokenState[c].forEach(t => t.step = -1);
       });
-      const myIdx = activePlayers.indexOf(myColor);
-      currentTurnIndex = (myIdx !== -1) ? myIdx : 0;
+
+      // Synchronize initial turn: use provided turn or first active player
+      let startColor = initialTurnColor;
+      if (!startColor || !activePlayers.includes(startColor)) {
+        startColor = activePlayers[0] || 'red';
+      }
+      const startIdx = activePlayers.indexOf(startColor);
+      currentTurnIndex = (startIdx !== -1) ? startIdx : 0;
       hasRolled = false;
       isRolling = false;
       renderAllTokens();
+      updateTurnUI();
+    }
 
-      const nextPlayer = getCurrentPlayer();
-      const nextName = getPlayerDisplayName(nextPlayer);
+    function updateTurnUI(customMsg) {
+      const curPlayer = getCurrentPlayer();
+      const curName = getPlayerDisplayName(curPlayer);
+      const isMyTurn = (curPlayer === myColor);
 
-      if (isPlayerBot(nextPlayer)) {
-        updateTurnBanner(`${nextName}'s turn (thinking...)`);
-        setTimeout(() => executeDiceRoll(), 1000);
+      // 1. Highlight active player's card ONLY
+      ['green', 'yellow', 'red', 'blue'].forEach(c => {
+        const card = document.getElementById(`card${capitalize(c)}`);
+        if (card) {
+          if (c === curPlayer) {
+            card.classList.add("active-turn");
+          } else {
+            card.classList.remove("active-turn");
+          }
+        }
+      });
+
+      // 2. Turn dot indicator
+      const dot = document.getElementById("turnDot");
+      if (dot) dot.style.background = `var(--${curPlayer}-color, #E25858)`;
+
+      // 3. Turn banner message
+      if (customMsg) {
+        updateTurnBanner(customMsg);
       } else {
-        updateTurnBanner(`${nextName}'s turn - roll the dice`);
+        if (isPlayerBot(curPlayer)) {
+          updateTurnBanner(`${curName}'s turn (thinking...)`);
+        } else if (isMyTurn) {
+          updateTurnBanner(`${curName}'s turn - roll the dice`);
+        } else {
+          updateTurnBanner(`${curName}'s turn - waiting for roll...`);
+        }
+      }
+
+      // 4. Roll area interactive controls
+      const rollBtn = document.getElementById("rollTopBtn");
+      const tray = document.getElementById("diceTray");
+      if (isMyTurn) {
+        if (rollBtn) {
+          rollBtn.textContent = hasRolled ? "SELECT A GOTI" : "ROLL THE DICE";
+          rollBtn.style.opacity = "1";
+          rollBtn.style.pointerEvents = "auto";
+        }
+        if (tray) {
+          tray.style.opacity = "1";
+          tray.style.pointerEvents = "auto";
+        }
+      } else {
+        if (rollBtn) {
+          rollBtn.textContent = `WAITING FOR ${curName.toUpperCase()}...`;
+          rollBtn.style.opacity = "0.7";
+          rollBtn.style.pointerEvents = "none";
+        }
+        if (tray) {
+          tray.style.opacity = "0.55";
+          tray.style.pointerEvents = "none";
+        }
       }
     }
 
@@ -3075,7 +3182,7 @@
     initTokenElements();
     updateLobbyCornerUI();
     detectInitialRoom();
-    roomPollInterval = setInterval(pollRoomState, 2000);
+    roomPollInterval = setInterval(pollRoomState, 800);
   </script>
 </body>
 </html>

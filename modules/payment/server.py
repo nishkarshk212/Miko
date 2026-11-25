@@ -464,6 +464,8 @@ async def handle_ludo_room_create(request: web.Request) -> web.Response:
         ],
         "turn": color,
         "dice": 0,
+        "roll_id": 0,
+        "turn_version": 1,
     }
     return web.json_response({"success": True, "room": LUDO_ROOMS[code]})
 
@@ -617,6 +619,17 @@ async def handle_ludo_room_action(request: web.Request) -> web.Response:
     elif action == "start_game":
         room["status"] = "playing"
         room["events"].append({"text": "The game has started.", "type": "Room event"})
+        active_colors = [c for c in ["red", "green", "yellow", "blue"] if room["players"].get(c) is not None]
+        host_color = None
+        for c, p in room["players"].items():
+            if p and (p.get("is_host") or str(p.get("id")) == str(room.get("host_id"))):
+                host_color = c
+                break
+        first_turn = host_color if (host_color and host_color in active_colors) else (active_colors[0] if active_colors else "red")
+        room["turn"] = first_turn
+        room["dice"] = 0
+        room["roll_id"] = 0
+        room["turn_version"] = room.get("turn_version", 0) + 1
 
     elif action == "send_chat":
         sender = data.get("name", "Player")
@@ -625,19 +638,38 @@ async def handle_ludo_room_action(request: web.Request) -> web.Response:
             room["chat"].append({"name": sender, "text": text, "time": time.time()})
 
     elif action == "roll_dice":
-        roll_val = data.get("value", 1)
+        roll_val = int(data.get("value", 1))
         player_color = data.get("color")
         room["dice"] = roll_val
         room["turn"] = player_color
+        room["roll_id"] = room.get("roll_id", 0) + 1
         room["events"].append({"text": f"{data.get('name', player_color)} rolled a {roll_val}.", "type": "Dice roll"})
+
+    elif action == "end_turn":
+        next_turn = data.get("next_turn")
+        active_colors = [c for c in ["red", "green", "yellow", "blue"] if room["players"].get(c) is not None]
+        if next_turn and next_turn in active_colors:
+            room["turn"] = next_turn
+        elif active_colors:
+            cur_turn = room.get("turn")
+            if cur_turn in active_colors:
+                idx = active_colors.index(cur_turn)
+                room["turn"] = active_colors[(idx + 1) % len(active_colors)]
+            else:
+                room["turn"] = active_colors[0]
+        room["dice"] = 0
+        room["turn_version"] = room.get("turn_version", 0) + 1
 
     elif action == "move_token":
         token_id = data.get("id")
         step = data.get("step")
         next_turn = data.get("next_turn")
         player_color = data.get("color")
-        room["turn"] = next_turn
+        active_colors = [c for c in ["red", "green", "yellow", "blue"] if room["players"].get(c) is not None]
+        if next_turn and next_turn in active_colors:
+            room["turn"] = next_turn
         room["dice"] = 0
+        room["turn_version"] = room.get("turn_version", 0) + 1
         if "token_state" not in room:
             room["token_state"] = {}
         if player_color not in room["token_state"]:

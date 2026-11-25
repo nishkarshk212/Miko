@@ -97,6 +97,8 @@ async def cmd_ludo(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 ],
                 "turn": "red",
                 "dice": 0,
+                "roll_id": 0,
+                "turn_version": 1,
             }
     except Exception as e:
         print(f"Ludo room init notice: {e}")
