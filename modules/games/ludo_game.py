@@ -34,35 +34,21 @@ def build_ludo_keyboard(
     bot_username: Optional[str] = None,
 ) -> InlineKeyboardMarkup:
     play_url = get_ludo_url(mode="bot", user_id=user_id, name=user_name)
-    pvp_url = get_ludo_url(mode="2p", user_id=user_id, name=user_name)
     bot_uname = bot_username or "im_Radhabot"
 
     if is_private:
-        # In 1-on-1 private chat, web_app buttons work directly
-        btn_play = InlineKeyboardButton("🎲 Play Ludo", web_app=WebAppInfo(url=play_url))
-        btn_bot = InlineKeyboardButton("🤖 vs Bot Alpha", web_app=WebAppInfo(url=play_url))
-        btn_pvp = InlineKeyboardButton("👥 2P Pass & Play", web_app=WebAppInfo(url=pvp_url))
+        # In 1-on-1 private chat, web_app buttons work directly and display the 🔲 Mini App icon
+        btn_play = InlineKeyboardButton("Play Ludo", web_app=WebAppInfo(url=play_url))
     else:
-        # In groups/supergroups, Telegram Bot API rejects web_app buttons with 'Button_type_invalid'
-        # Instead, use Telegram's official Mini App launch link or direct game URL
-        app_direct_link = f"https://t.me/{bot_uname}?startapp=ludo"
-        btn_play = InlineKeyboardButton("🎲 Play Ludo", url=app_direct_link)
-        btn_bot = InlineKeyboardButton("🤖 vs Bot Alpha", url=play_url)
-        btn_pvp = InlineKeyboardButton("👥 2P Pass & Play", url=pvp_url)
+        # In groups/supergroups, direct Telegram Mini App link
+        app_direct_link = f"https://t.me/{bot_uname}/ludo?startapp=ludo"
+        btn_play = InlineKeyboardButton("Play Ludo", url=app_direct_link)
 
-    keyboard = [
-        [btn_play],
-        [btn_bot, btn_pvp],
-        [
-            InlineKeyboardButton("📜 How to Play", callback_data="ludo_rules"),
-            InlineKeyboardButton("🏆 Leaderboard", callback_data="lb_overall"),
-        ]
-    ]
-    return InlineKeyboardMarkup(keyboard)
+    return InlineKeyboardMarkup([[btn_play]])
 
 
 async def cmd_ludo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Command: /ludo - Sends the Ludo Mini Web Telegram Game card."""
+    """Command: /ludo - Sends the Ludo Mini Web Telegram Game card matching exact Nova layout."""
     msg = update.effective_message
     user = update.effective_user
     chat = update.effective_chat
@@ -70,29 +56,38 @@ async def cmd_ludo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     name = user.first_name or "Player"
-    clean_name = html.escape(name)
     is_private = (chat.type == "private") if chat else False
     bot_uname = (context.bot.username if context.bot else None) or "im_Radhabot"
 
     caption = (
-        "<blockquote>🎲 <b>ludo</b>\n"
+        "<b>ludo</b>\n"
         "<i>ludo</i>\n\n"
-        "Roll the dice, race your tokens home, capture rivals, and climb the leaderboard in a fast Telegram Ludo match.</blockquote>\n\n"
-        f"👤 <b>Player:</b> {clean_name}\n"
-        "✨ <i>Tap <b>Play Ludo</b> below to start the game directly in Telegram!</i>"
+        "Roll the dice, race your tokens home, capture rivals, and climb the leaderboard in a fast Telegram Ludo match."
     )
 
     reply_markup = build_ludo_keyboard(user.id, name, is_private=is_private, bot_username=bot_uname)
 
+    # Local banner path
+    local_banner = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "web", "ludo", "card_preview.jpg")
+
     try:
-        # Send with photo if accessible
-        await msg.reply_photo(
-            photo=LUDO_COVER_PHOTO,
-            caption=caption,
-            parse_mode="HTML",
-            reply_markup=reply_markup,
-            auto_delete=False,
-        )
+        if os.path.exists(local_banner):
+            with open(local_banner, "rb") as photo_f:
+                await msg.reply_photo(
+                    photo=photo_f,
+                    caption=caption,
+                    parse_mode="HTML",
+                    reply_markup=reply_markup,
+                    auto_delete=False,
+                )
+        else:
+            await msg.reply_photo(
+                photo=LUDO_COVER_PHOTO,
+                caption=caption,
+                parse_mode="HTML",
+                reply_markup=reply_markup,
+                auto_delete=False,
+            )
     except Exception as e:
         print(f"Ludo reply_photo notice ({e}), falling back to text")
         # Fallback to rich text card
