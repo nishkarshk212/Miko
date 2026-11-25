@@ -10,10 +10,18 @@ CHESS_COVER_PHOTO = "https://images.unsplash.com/photo-1529699211952-734e80c4d42
 
 def build_chess_keyboard(user_id: int, name: str, is_private: bool = False, bot_username: str = "im_Radhabot", room_code: str = None) -> InlineKeyboardMarkup:
     """Builds the Play Chess Mini Web App button."""
-    import time
     start_param = room_code if room_code else "chess"
+    bot_uname = bot_username or "im_Radhabot"
     chess_url = f"https://addition-ruby-skip-road.trycloudflare.com/chess?room={start_param}&user_id={user_id}&name={name}&v={int(time.time())}"
-    btn_play = InlineKeyboardButton("Play Chess ♟️", web_app=WebAppInfo(url=chess_url))
+    
+    if is_private:
+        # In 1-on-1 private chat, web_app buttons work directly
+        btn_play = InlineKeyboardButton("Play Chess ♟️", web_app=WebAppInfo(url=chess_url))
+    else:
+        # In groups/supergroups, direct Telegram Mini App link (avoids Telegram Button_type_invalid error)
+        direct_app_url = f"https://t.me/{bot_uname}/chess?startapp={start_param}"
+        btn_play = InlineKeyboardButton("Play Chess ♟️", url=direct_app_url)
+
     return InlineKeyboardMarkup([[btn_play]])
 
 
@@ -89,13 +97,19 @@ async def cmd_chess(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 auto_delete=False,
             )
     except Exception as e:
-        print(f"Chess reply_photo notice ({e}), falling back to text")
-        sent_msg = await msg.reply_text(
-            caption,
-            parse_mode="HTML",
-            reply_markup=reply_markup,
-            auto_delete=False,
-        )
+        print(f"Chess reply_photo notice ({e}), falling back to direct link text")
+        safe_markup = InlineKeyboardMarkup([[
+            InlineKeyboardButton("Play Chess ♟️", url=f"https://t.me/{bot_uname}/chess?startapp={room_code}")
+        ]])
+        try:
+            sent_msg = await msg.reply_text(
+                caption,
+                parse_mode="HTML",
+                reply_markup=safe_markup,
+                auto_delete=False,
+            )
+        except Exception as te:
+            print(f"Chess reply_text error: {te}")
 
     # Auto-pin in group / supergroup chats
     if sent_msg and not is_private and chat:

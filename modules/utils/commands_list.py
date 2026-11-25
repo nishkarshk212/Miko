@@ -4,6 +4,10 @@ ADVAY_NAME = "Λᴅᴠᴀʏ"
 
 BOT_COMMANDS = [
     BotCommand("start", "Talk To Radha"),
+    BotCommand("ludo", "🎲 Play Ludo Multiplayer Mini App"),
+    BotCommand("chess", "♟️ Play Chess Multiplayer Mini App"),
+    BotCommand("game", "Check All Radha Mini Games"),
+    BotCommand("leaderboard", "View Word & Game Leaderboards"),
     BotCommand("pay", "Baka Premium Access Portal"),
     BotCommand("spay", "Buy VIP Premium with Stars (/spay user_id)"),
     BotCommand("gifts", "View Your NFT Collectible Gifts"),
@@ -19,7 +23,6 @@ BOT_COMMANDS = [
     BotCommand("mypowers", "Check Your Active Powers"),
     BotCommand("daily", "Claim Free Daily Cash"),
     BotCommand("task", "Check Your Daily Tasks"),
-    BotCommand("ludo", "Play Ludo Game"),
     BotCommand("claim", "Claim Group Reward"),
     BotCommand("coupons", "Know About Coupon Commands"),
     BotCommand("economy", "All Global Economy Commands"),

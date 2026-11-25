@@ -37,8 +37,17 @@ def build_ludo_keyboard(
     room_code: Optional[str] = None,
 ) -> InlineKeyboardMarkup:
     play_url = get_ludo_url(mode="pvp" if room_code else "bot", user_id=user_id, name=user_name, room=room_code)
-    # Native Mini Web App button with WebAppInfo works in both private and groups in modern Telegram
-    btn_play = InlineKeyboardButton("Play Ludo 🎲", web_app=WebAppInfo(url=play_url))
+    bot_uname = bot_username or "im_Radhabot"
+    start_param = room_code if room_code else "ludo"
+
+    if is_private:
+        # In 1-on-1 private chat, web_app buttons work directly
+        btn_play = InlineKeyboardButton("Play Ludo 🎲", web_app=WebAppInfo(url=play_url))
+    else:
+        # In groups/supergroups, direct Telegram Mini App link
+        app_direct_link = f"https://t.me/{bot_uname}/ludo?startapp={start_param}"
+        btn_play = InlineKeyboardButton("Play Ludo 🎲", url=app_direct_link)
+
     return InlineKeyboardMarkup([[btn_play]])
 
 
@@ -130,14 +139,19 @@ async def cmd_ludo(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 auto_delete=False,
             )
     except Exception as e:
-        print(f"Ludo reply_photo notice ({e}), falling back to text")
-        # Fallback to rich text card
-        sent_msg = await msg.reply_text(
-            caption,
-            parse_mode="HTML",
-            reply_markup=reply_markup,
-            auto_delete=False,
-        )
+        print(f"Ludo reply_photo notice ({e}), falling back to direct link text")
+        safe_markup = InlineKeyboardMarkup([[
+            InlineKeyboardButton("Play Ludo 🎲", url=f"https://t.me/{bot_uname}/ludo?startapp={room_code}")
+        ]])
+        try:
+            sent_msg = await msg.reply_text(
+                caption,
+                parse_mode="HTML",
+                reply_markup=safe_markup,
+                auto_delete=False,
+            )
+        except Exception as te:
+            print(f"Ludo reply_text error: {te}")
 
     # Auto-pin Ludo message in group / supergroup
     if sent_msg and not is_private and chat:
