@@ -2745,7 +2745,8 @@
               }
               const pName = getPlayerDisplayName(room.turn);
               updateTurnUI(`${pName} rolled a ${currentDiceValue}!`);
-              evaluateMovesAfterRoll();
+              turnSecondsLeft = 5;
+        evaluateMovesAfterRoll();
             }, 550);
           }
         }
@@ -3250,14 +3251,14 @@
       [7, 0],
       [6, 0]
     ];
-    const SAFE_SQUARES = [1, 9, 14, 22, 27, 35, 40, 48];
+    const SAFE_SQUARES = [0, 8, 13, 21, 26, 34, 39, 47];
     const HOME_COLUMNS = {
       red:    [[7, 1], [7, 2], [7, 3], [7, 4], [7, 5]],
       green:  [[1, 7], [2, 7], [3, 7], [4, 7], [5, 7]],
       yellow: [[7, 13], [7, 12], [7, 11], [7, 10], [7, 9]],
       blue:   [[13, 7], [12, 7], [11, 7], [10, 7], [9, 7]]
     };
-    const START_OFFSETS = { red: 1, green: 14, yellow: 27, blue: 40 };
+    const START_OFFSETS = { red: 0, green: 13, yellow: 26, blue: 39 };
 
     const boardGrid = document.getElementById("boardGrid");
     const cellMap = {};
@@ -3286,8 +3287,11 @@
     }
 
     SAFE_SQUARES.forEach(idx => {
-      const [r, c] = TRACK_COORDS[idx];
-      if (cellMap[`${r}_${c}`]) cellMap[`${r}_${c}`].classList.add("star-cell");
+      const coord = TRACK_COORDS[idx];
+      if (coord) {
+        const [r, c] = coord;
+        if (cellMap[`${r}_${c}`]) cellMap[`${r}_${c}`].classList.add("star-cell");
+      }
     });
 
     /* =========================================================================
@@ -3553,6 +3557,7 @@
           return;
         }
 
+        turnSecondsLeft = 5;
         evaluateMovesAfterRoll();
       }, 550);
     }
@@ -3691,8 +3696,15 @@
           return;
         }
 
-        if (roll === 6 || captured) {
+        const isHomeFinish = (tok.step >= 56);
+        const getsExtraRoll = (roll === 6 || captured || isHomeFinish) && (consecutiveSixes < 3);
+
+        if (getsExtraRoll) {
           hasRolled = false;
+          isRolling = false;
+          isMovingToken = false;
+          currentDiceValue = 0;
+          startTurnTimer();
           if (isPlayerBot(color) && isHost) {
             updateTurnBanner(`${pName} gets an extra roll!`);
             setTimeout(() => executeDiceRoll(), 900);
@@ -3702,6 +3714,7 @@
             updateTurnUI(`${pName} gets an extra roll! Waiting for roll...`);
           }
         } else {
+          stopTurnTimer();
           setTimeout(() => endTurn(), 400);
         }
       } finally {
@@ -3710,6 +3723,7 @@
     }
 
     function endTurn() {
+      stopTurnTimer();
       document.querySelectorAll(".token").forEach(t => t.classList.remove("can-move"));
       hasRolled = false;
       isRolling = false;
@@ -3766,6 +3780,7 @@
     }
 
     function handleVictory(winnerColor) {
+      stopTurnTimer();
       playSound('win');
       triggerHaptic('success');
 
@@ -3836,6 +3851,102 @@
       updateTurnUI();
     }
 
+    
+    /* =========================================================================
+       5-Second Inactivity Auto-Kick System
+       ========================================================================= */
+    let turnTimerInterval = null;
+    let turnSecondsLeft = 5;
+
+    function startTurnTimer() {
+      stopTurnTimer();
+      turnSecondsLeft = 5;
+      updateTimerBadge();
+
+      turnTimerInterval = setInterval(() => {
+        turnSecondsLeft--;
+        updateTimerBadge();
+
+        if (turnSecondsLeft <= 0) {
+          stopTurnTimer();
+          handleTurnTimeout();
+        }
+      }, 1000);
+    }
+
+    function stopTurnTimer() {
+      if (turnTimerInterval) {
+        clearInterval(turnTimerInterval);
+        turnTimerInterval = null;
+      }
+    }
+
+    function updateTimerBadge() {
+      const curPlayer = getCurrentPlayer();
+      if (!curPlayer) return;
+      const curName = getPlayerDisplayName(curPlayer);
+      const isMyTurn = (curPlayer === myColor);
+
+      const banner = document.getElementById("turnMessage");
+      if (!banner) return;
+
+      if (isMyTurn) {
+        if (!hasRolled) {
+          banner.textContent = `${curName}'s turn - roll dice ⏳ ${turnSecondsLeft}s`;
+        } else {
+          banner.textContent = `${curName}'s turn - pick a goti ⏳ ${turnSecondsLeft}s`;
+        }
+      } else {
+        if (isPlayerBot(curPlayer)) {
+          banner.textContent = `${curName}'s turn (thinking...) ⏳ ${turnSecondsLeft}s`;
+        } else {
+          banner.textContent = `${curName}'s turn - waiting ⏳ ${turnSecondsLeft}s`;
+        }
+      }
+    }
+
+    function handleTurnTimeout() {
+      const curPlayer = getCurrentPlayer();
+      if (!curPlayer) return;
+      const pName = getPlayerDisplayName(curPlayer);
+
+      if (curPlayer === myColor) {
+        // Local user was inactive for 5 seconds
+        showToast("⚠️ Kicked from match for 5s inactivity!");
+        if (currentRoomCode) {
+          fetch("/api/ludo/room/action", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              code: currentRoomCode,
+              action: "kick_inactive",
+              color: curPlayer,
+              user_id: currentUser.id
+            })
+          }).catch(() => {});
+        }
+        setTimeout(() => switchView("viewLobby"), 800);
+      } else {
+        // Opponent was inactive for 5 seconds -> notify server to convert to bot/kick
+        updateTurnBanner(`⚠️ ${pName} auto-kicked for 5s inactivity!`);
+        if (isHost || isPlayerBot(curPlayer)) {
+          if (currentRoomCode) {
+            fetch("/api/ludo/room/action", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                code: currentRoomCode,
+                action: "kick_inactive",
+                color: curPlayer
+              })
+            }).catch(() => {});
+          }
+        }
+        // Advance turn so no one is stuck
+        endTurn();
+      }
+    }
+
     function updateTurnUI(customMsg) {
       const curPlayer = getCurrentPlayer();
       const curName = getPlayerDisplayName(curPlayer);
@@ -3858,6 +3969,7 @@
       if (dot) dot.style.background = `var(--${curPlayer}-color, #E25858)`;
 
       // 3. Turn banner message
+      startTurnTimer();
       if (customMsg) {
         updateTurnBanner(customMsg);
       } else {

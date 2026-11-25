@@ -692,6 +692,25 @@ async def handle_ludo_room_action(request: web.Request) -> web.Response:
         if "voice" in room and user_id in room["voice"]:
             room["voice"][user_id]["speaking"] = speaking
 
+        elif action == "kick_inactive":
+        kicked_color = data.get("color")
+        if kicked_color in room["players"] and room["players"][kicked_color] is not None:
+            kicked_name = room["players"][kicked_color].get("name", "Player")
+            room["players"][kicked_color] = {
+                "id": f"bot_{kicked_color}",
+                "name": f"Bot ({kicked_name})",
+                "avatar": "🤖",
+                "is_bot": True,
+                "is_host": False
+            }
+            room["events"].append({"text": f"{kicked_name} was auto-kicked for 5s inactivity.", "type": "Room event"})
+            active_colors = [c for c in ["red", "green", "yellow", "blue"] if room["players"].get(c) is not None]
+            if room.get("turn") == kicked_color and active_colors:
+                idx = active_colors.index(kicked_color)
+                room["turn"] = active_colors[(idx + 1) % len(active_colors)]
+            room["dice"] = 0
+            room["turn_version"] = room.get("turn_version", 0) + 1
+
     elif action == "voice_clip":
         clip = data.get("audio")
         sender = data.get("name", "Player")
