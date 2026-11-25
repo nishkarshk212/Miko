@@ -104,207 +104,6 @@
     }
 
     /* =========================================================================
-       LANDING SCREEN: 3 CLEAN OPTIONS (Play with Bot, Create Room, Join Room)
-       ========================================================================= */
-    #viewMenu {
-      width: 100%;
-      height: 100%;
-      max-height: 100dvh;
-      display: none;
-      flex-direction: column;
-      justify-content: space-between;
-      align-items: center;
-      padding: 16px 12px 18px;
-      box-sizing: border-box;
-      background: radial-gradient(circle at 50% 20%, #1e4572 0%, #102747 60%, #08162b 100%);
-      border-radius: 20px;
-      color: #FFFFFF;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-    }
-    #viewMenu.active { display: flex; }
-
-    #viewMenu::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background-image: 
-        radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
-        linear-gradient(45deg, rgba(255, 255, 255, 0.02) 25%, transparent 25%, transparent 75%, rgba(255, 255, 255, 0.02) 75%);
-      background-size: 20px 20px, 40px 40px;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .menu-top-bar {
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      position: relative;
-      z-index: 2;
-    }
-
-    .menu-top-right {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .menu-hero-area {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      margin: 10px 0 14px;
-      position: relative;
-      z-index: 2;
-    }
-
-    .menu-crown {
-      font-size: 38px;
-      filter: drop-shadow(0 4px 14px rgba(245, 197, 66, 0.7));
-      animation: floatCrown 2.5s ease-in-out infinite alternate;
-    }
-    @keyframes floatCrown {
-      0% { transform: translateY(0); }
-      100% { transform: translateY(-7px); }
-    }
-
-    .menu-title {
-      font-family: 'Outfit', sans-serif;
-      font-size: 32px;
-      font-weight: 900;
-      letter-spacing: 1px;
-      background: linear-gradient(180deg, #FFFFFF 25%, #F5C542 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-top: 4px;
-      margin-bottom: 4px;
-    }
-
-    .menu-subtitle {
-      font-size: 13.5px;
-      color: #A9BDD6;
-      font-weight: 600;
-    }
-
-    /* 3 Big Mode Option Cards */
-    .mode-cards-container {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 13px;
-      margin: 8px 0;
-      position: relative;
-      z-index: 2;
-    }
-
-    .mode-card {
-      width: 100%;
-      background: rgba(255, 255, 255, 0.08);
-      border: 1.5px solid rgba(255, 255, 255, 0.16);
-      border-radius: 18px;
-      padding: 14px 16px;
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      cursor: pointer;
-      backdrop-filter: blur(8px);
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
-      transition: transform 0.15s ease, background 0.2s ease, border-color 0.2s ease;
-      position: relative;
-    }
-    .mode-card:active {
-      transform: scale(0.97);
-    }
-
-    .mode-card.card-bot {
-      background: linear-gradient(135deg, rgba(75, 198, 115, 0.22) 0%, rgba(255, 255, 255, 0.06) 100%);
-      border-color: rgba(75, 198, 115, 0.5);
-    }
-    .mode-card.card-create {
-      background: linear-gradient(135deg, rgba(77, 139, 250, 0.22) 0%, rgba(255, 255, 255, 0.06) 100%);
-      border-color: rgba(77, 139, 250, 0.5);
-    }
-    .mode-card.card-join {
-      background: linear-gradient(135deg, rgba(248, 186, 58, 0.22) 0%, rgba(255, 255, 255, 0.06) 100%);
-      border-color: rgba(248, 186, 58, 0.5);
-    }
-
-    .mode-card-icon-wrap {
-      width: 48px;
-      height: 48px;
-      border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      flex-shrink: 0;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    }
-    .mode-card-icon-wrap.bg-green { background: linear-gradient(135deg, #4BC673, #2E9450); }
-    .mode-card-icon-wrap.bg-blue { background: linear-gradient(135deg, #4D8BFA, #2863CE); }
-    .mode-card-icon-wrap.bg-yellow { background: linear-gradient(135deg, #F8BA3A, #D6971A); }
-
-    .mode-card-body {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-    }
-
-    .mode-card-title {
-      font-family: 'Outfit', sans-serif;
-      font-size: 17.5px;
-      font-weight: 800;
-      color: #FFFFFF;
-      letter-spacing: 0.3px;
-    }
-
-    .mode-card-desc {
-      font-size: 12px;
-      color: #BFD0E5;
-      font-weight: 500;
-    }
-
-    .mode-card-arrow {
-      font-size: 18px;
-      color: #FFFFFF;
-      opacity: 0.7;
-      font-weight: 900;
-    }
-
-    .menu-profile-pill {
-      background: rgba(0, 0, 0, 0.45);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 24px;
-      padding: 6px 14px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      position: relative;
-      z-index: 2;
-    }
-    .menu-avatar-small {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      background: #F5C542;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      overflow: hidden;
-      flex-shrink: 0;
-    }
-    .menu-avatar-small img { width: 100%; height: 100%; object-fit: cover; }
-    .menu-user-info { display: flex; flex-direction: column; }
-    .menu-user-name { font-size: 12px; font-weight: 800; color: #FFFFFF; }
-    .menu-user-tag { font-size: 10px; color: #4BC673; font-weight: 600; }
-
-    /* =========================================================================
        SCREEN 1: LOBBY / "PICK YOUR CORNER" (Matching Image 1)
        ========================================================================= */
     .lobby-header-row {
@@ -595,319 +394,133 @@
     }
 
     /* =========================================================================
-       SCREEN 2: ACTIVE GAMEPLAY (Exact Ludo King Styling)
+       SCREEN 2: ACTIVE GAMEPLAY (Matching Image 2)
        ========================================================================= */
-    #viewGame {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      max-height: 100dvh;
-      display: none;
-      flex-direction: column;
-      justify-content: space-between;
-      align-items: center;
-      background: radial-gradient(circle at 50% 50%, #19508d 0%, #0e305e 65%, #081d3c 100%);
-      background-size: cover;
-      border-radius: 18px;
-      overflow: hidden;
-      padding: 6px 6px 8px;
-      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.4);
-    }
-    #viewGame.active { display: flex; }
-
-    /* Geometric wallpaper pattern on board screen */
-    #viewGame::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background-image: 
-        radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
-        linear-gradient(45deg, rgba(255, 255, 255, 0.02) 25%, transparent 25%, transparent 75%, rgba(255, 255, 255, 0.02) 75%),
-        linear-gradient(45deg, rgba(255, 255, 255, 0.02) 25%, transparent 25%, transparent 75%, rgba(255, 255, 255, 0.02) 75%);
-      background-size: 20px 20px, 40px 40px, 40px 40px;
-      background-position: 0 0, 0 0, 20px 20px;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    /* HUD Stations Row (Top & Bottom) */
-    .lk-stations-row {
+    .top-controls {
       width: 100%;
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      position: relative;
-      z-index: 5;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 10px;
     }
 
-    .lk-station {
+    .ctrl-pill {
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 6px 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      box-shadow: var(--pill-shadow);
+      color: var(--text-dark);
+      border: 1px solid rgba(0, 0, 0, 0.04);
+      cursor: pointer;
+    }
+
+    .ctrl-icon-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--card-bg);
       display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      position: relative;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--pill-shadow);
+      cursor: pointer;
+      border: 1px solid rgba(0, 0, 0, 0.04);
+      font-size: 15px;
+      color: var(--text-dark);
+      transition: transform 0.1s ease;
     }
-    .lk-station.green-station, .lk-station.yellow-station {
-      align-items: flex-end;
+    .ctrl-icon-btn:active { transform: scale(0.92); }
+
+    .turn-banner {
+      background: var(--card-bg);
+      padding: 7px 18px;
+      border-radius: 24px;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+      margin-bottom: 10px;
+      border: 1px solid rgba(0, 0, 0, 0.03);
     }
 
-    .lk-station-main {
+    .turn-banner .pulse-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--red-color);
+      animation: pulseAnim 1.4s infinite;
+    }
+
+    @keyframes pulseAnim {
+      0% { transform: scale(0.9); opacity: 0.8; }
+      50% { transform: scale(1.3); opacity: 1; }
+      100% { transform: scale(0.9); opacity: 0.8; }
+    }
+
+    /* Player Slots Grid */
+    .players-container, .bottom-players {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin: 2px 0;
+    }
+
+    .player-card {
+      background: var(--card-bg);
+      border-radius: 14px;
+      padding: 4px 8px;
       display: flex;
       align-items: center;
       gap: 6px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+      border: 2px solid transparent;
       position: relative;
+      transition: border-color 0.25s, transform 0.15s;
     }
 
-    /* Coin Badges (Ludo King gold coin pill) */
-    .lk-coin-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 3px;
-      font-size: 11px;
-      font-weight: 800;
-      color: #FFFFFF;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.8);
-      margin-bottom: 2px;
-      padding: 0 4px;
-    }
-    .lk-coin-badge.btm-coin {
-      margin-top: 2px;
-      margin-bottom: 0;
+    .player-card.active-turn {
+      border-color: var(--text-dark);
+      transform: scale(1.02);
     }
 
-    /* Avatars with Ludo King Gold Frame */
-    .lk-avatar-frame {
-      width: 44px;
-      height: 44px;
-      border-radius: 9px;
-      border: 2px solid #F5C542;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.5), inset 0 0 4px rgba(255,255,255,0.4);
-      background: #1C2333;
-      position: relative;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-    .lk-avatar-frame img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    .lk-avatar-frame.me-avatar {
-      border-color: #F5C542;
-      box-shadow: 0 0 10px rgba(245, 197, 66, 0.6), 0 3px 8px rgba(0,0,0,0.5);
-    }
-    .lk-chat-bubble {
-      position: absolute;
-      top: -12px;
-      left: -8px;
-      background: #FFFFFF;
-      color: #222;
-      font-size: 11px;
-      padding: 2px 4px;
-      border-radius: 6px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-      cursor: pointer;
-      z-index: 10;
-    }
-
-    /* Pink Dice Box (Corner Station Rolling Area) */
-    .lk-dice-box {
-      width: 44px;
-      height: 44px;
-      border-radius: 10px;
-      background: linear-gradient(180deg, #F9DADB 0%, #ECC5C7 100%);
-      border: 1.5px solid #D69FA4;
-      box-shadow: inset 0 2px 4px rgba(255,255,255,0.7), 0 3px 8px rgba(0,0,0,0.35);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      position: relative;
-      flex-shrink: 0;
-      transition: transform 0.15s, box-shadow 0.15s;
-    }
-    .lk-dice-box:active {
-      transform: scale(0.94);
-    }
-    .lk-dice-box.active-glow {
-      border: 2px solid #FF3B30;
-      box-shadow: 0 0 12px rgba(255, 59, 48, 0.7), inset 0 2px 4px rgba(255,255,255,0.8);
-      animation: dicePulse 1.2s infinite alternate;
-    }
-    @keyframes dicePulse {
-      0% { transform: scale(1); }
-      100% { transform: scale(1.05); }
-    }
-
-    /* 3D White Dice Cube */
-    .lk-dice-cube {
-      width: 32px;
-      height: 32px;
-      background: #FFFFFF;
-      border-radius: 7px;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.25), inset 0 1px 2px rgba(255,255,255,0.8);
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      grid-template-rows: repeat(3, 1fr);
-      padding: 3px;
-      box-sizing: border-box;
-      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-    .lk-dice-cube.rolling {
-      animation: lkDiceRoll 0.6s cubic-bezier(0.25, 1, 0.5, 1);
-    }
-    @keyframes lkDiceRoll {
-      0% { transform: rotate(0deg) scale(0.85); }
-      30% { transform: rotate(180deg) scale(1.2); }
-      70% { transform: rotate(320deg) scale(0.95); }
-      100% { transform: rotate(360deg) scale(1); }
-    }
-    .lk-dice-cube .pip {
-      width: 5.5px;
-      height: 5.5px;
-      background: #1A1A1A;
-      border-radius: 50%;
-      align-self: center;
-      justify-self: center;
-      opacity: 0;
-    }
-    .lk-dice-cube .pip.active { opacity: 1; }
-
-    /* Yellow Animated Pointer Arrow (Points to Active Dice) */
-    .lk-turn-pointer {
-      display: none;
-      font-size: 20px;
-      color: #FFCC00;
-      text-shadow: 0 0 6px #FF8800, 0 2px 4px rgba(0,0,0,0.5);
-      position: absolute;
-      z-index: 15;
-      pointer-events: none;
-    }
-    .lk-turn-pointer.active {
-      display: block;
-    }
-    .lk-turn-pointer.left-pointer {
-      right: -24px;
-      animation: pointLeftBounce 0.7s infinite alternate ease-in-out;
-    }
-    .lk-turn-pointer.right-pointer {
-      left: -24px;
-      animation: pointRightBounce 0.7s infinite alternate ease-in-out;
-    }
-    @keyframes pointLeftBounce {
-      0% { transform: translateX(0); }
-      100% { transform: translateX(6px); }
-    }
-    @keyframes pointRightBounce {
-      0% { transform: translateX(0); }
-      100% { transform: translateX(-6px); }
-    }
-
-    /* Gift Button */
-    .lk-gift-btn {
+    .player-avatar {
       width: 26px;
       height: 26px;
-      background: radial-gradient(circle, #E52B2B 0%, #A30D0D 100%);
-      border: 1.5px solid #FFD700;
-      border-radius: 6px;
+      border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 13px;
-      cursor: pointer;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+      background: #F0ECE4;
       flex-shrink: 0;
-    }
-    .lk-gift-btn:active { transform: scale(0.9); }
-
-    /* Connection Dots (•••••) */
-    .lk-conn-dots {
-      display: flex;
-      gap: 3px;
-      margin-top: 3px;
-      padding: 0 4px;
-    }
-    .lk-conn-dots span {
-      width: 4.5px;
-      height: 4.5px;
-      border-radius: 50%;
-      background: #00E676;
-      box-shadow: 0 0 4px #00E676;
-    }
-
-    /* Top Center Controls Bar */
-    .lk-center-bar {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      background: rgba(0, 0, 0, 0.4);
-      padding: 3px 8px;
-      border-radius: 16px;
-      backdrop-filter: blur(4px);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-    }
-    .lk-top-pill {
-      color: #FFFFFF;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 2px;
-      padding: 2px 4px;
-    }
-    .lk-top-pill:active { transform: scale(0.9); }
-
-    /* Center Middle Turn Banner */
-    .lk-mid-banner {
-      background: rgba(0, 0, 0, 0.65);
-      color: #FFFFFF;
-      font-size: 11px;
-      font-weight: 700;
-      padding: 4px 12px;
-      border-radius: 14px;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      text-align: center;
-      max-width: 170px;
-      white-space: nowrap;
       overflow: hidden;
-      text-overflow: ellipsis;
     }
+    .player-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
-    /* Bottom-Right Fullscreen Icon */
-    .lk-fullscreen-btn {
-      position: absolute;
-      right: 8px;
-      bottom: 6px;
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
-      border: 1.5px solid #F5C542;
-      background: rgba(0, 0, 0, 0.4);
-      color: #F5C542;
-      font-size: 15px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      z-index: 20;
-    }
+    .player-info { display: flex; flex-direction: column; overflow: hidden; }
+    .player-name { font-size: 11px; font-weight: 700; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+    .player-progress { font-size: 9.5px; color: var(--text-muted); font-weight: 600; }
 
-    /* =========================================================================
-       LUDO KING BOARD AREA
-       ========================================================================= */
+    /* Ludo Board Area (Responsive Phone Scaling) */
     .board-container {
-      width: min(92vw, 360px, 44dvh);
+      width: min(90vw, 360px, 42dvh);
       aspect-ratio: 1 / 1;
-      background: #FFFFFF;
-      border: 3px solid #07172C;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 5px;
+      box-shadow: 0 10px 25px rgba(180, 150, 120, 0.12);
       position: relative;
       margin: 2px auto;
       flex-shrink: 0;
-      z-index: 3;
     }
 
     .ludo-board {
@@ -916,9 +529,11 @@
       display: grid;
       grid-template-columns: repeat(15, 1fr);
       grid-template-rows: repeat(15, 1fr);
-      background: #000000;
-      gap: 1px;
+      gap: 1.5px;
+      background: #F1ECE2;
+      border-radius: 16px;
       overflow: hidden;
+      padding: 1.5px;
     }
 
     .cell {
@@ -926,141 +541,222 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #FFFFFF;
+      background: var(--card-bg);
+      border-radius: 2px;
     }
 
-    /* Tracks */
-    .cell.home-red { background: #E72D2D !important; }
-    .cell.home-green { background: #1DA848 !important; }
-    .cell.home-yellow { background: #F4B400 !important; }
-    .cell.home-blue { background: #1877F2 !important; }
+    .cell.path-red { background: #FFD4D4; }
+    .cell.path-green { background: #D4F7DD; }
+    .cell.path-yellow { background: #FFF0CC; }
+    .cell.path-blue { background: #D6EAFF; }
 
-    .cell.path-red { background: #E72D2D !important; }
-    .cell.path-green { background: #1DA848 !important; }
-    .cell.path-yellow { background: #F4B400 !important; }
-    .cell.path-blue { background: #1877F2 !important; }
+    .cell.home-red { background: #E74C3C; }
+    .cell.home-green { background: #27AE60; }
+    .cell.home-yellow { background: #F39C12; }
+    .cell.home-blue { background: #2980B9; }
 
-    /* Safe Stars: Outline star matching Ludo King */
     .cell.star-cell::after {
-      content: '☆';
-      font-size: 15px;
-      font-weight: 900;
-      color: #222222;
-      position: absolute;
-      line-height: 1;
-    }
-
-    /* Entry Arrows */
-    .entry-arrow {
-      font-size: 12px;
-      font-weight: 900;
-      line-height: 1;
+      content: '★';
+      font-size: 11px;
+      color: #F8BA3A;
       position: absolute;
     }
-    .arrow-red { color: #E72D2D; }
-    .arrow-green { color: #1DA848; }
-    .arrow-yellow { color: #F4B400; }
-    .arrow-blue { color: #1877F2; }
 
-    /* =========================================================================
-       4 BASES (Ludo King: Solid Outer Color, Crisp White Inner, Dark Token Spots)
-       ========================================================================= */
+    /* Bases (Ludo King Style: Solid Outer, Crisp White Inner, Ringed Slots) */
     .base-box {
+      border-radius: 14px;
+      padding: 5px;
       display: flex;
-      flex-direction: column;
       align-items: center;
-      justify-content: space-between;
+      justify-content: center;
       position: relative;
-      padding: 3px;
-      box-sizing: border-box;
-      z-index: 2;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.12);
     }
 
-    .base-red { grid-column: 1 / 7; grid-row: 1 / 7; background: #D62828; }
-    .base-green { grid-column: 10 / 16; grid-row: 1 / 7; background: #1E9E49; }
-    .base-blue { grid-column: 1 / 7; grid-row: 10 / 16; background: #0066CC; }
-    .base-yellow { grid-column: 10 / 16; grid-row: 10 / 16; background: #F2A900; }
-
-    /* Name banner directly embedded on base header / footer */
-    .base-player-banner {
-      width: 100%;
-      text-align: center;
-      font-size: 10.5px;
-      font-weight: 800;
-      color: #FFFFFF;
-      letter-spacing: 0.3px;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.8);
-      padding: 1px 0;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .yellow-banner {
-      color: #111111;
-      text-shadow: none;
-    }
+    .base-green { grid-column: 1 / 7; grid-row: 1 / 7; background: #27AE60; }
+    .base-yellow { grid-column: 10 / 16; grid-row: 1 / 7; background: #F39C12; }
+    .base-red { grid-column: 1 / 7; grid-row: 10 / 16; background: #E74C3C; }
+    .base-blue { grid-column: 10 / 16; grid-row: 10 / 16; background: #2980B9; }
 
     .base-inner {
       width: 82%;
-      height: 76%;
+      height: 82%;
       background: #FFFFFF;
+      border-radius: 12px;
       display: grid;
       grid-template-columns: 1fr 1fr;
       grid-template-rows: 1fr 1fr;
-      padding: 4px;
-      gap: 4px;
-      box-sizing: border-box;
+      padding: 5px;
+      gap: 5px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
     }
 
-    /* Dark circular recessed slot plates with colored metallic borders */
     .base-slot {
+      background: #FFFFFF;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       position: relative;
-      box-shadow: inset 0 2px 4px rgba(0,0,0,0.7);
+      border: 2px solid;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.08);
     }
-    .slot-red { background: #2B0505; border: 2.5px solid #E72D2D; }
-    .slot-green { background: #06230C; border: 2.5px solid #1DA848; }
-    .slot-yellow { background: #2E2003; border: 2.5px solid #F4B400; }
-    .slot-blue { background: #061935; border: 2.5px solid #1877F2; }
+    .base-green .base-slot { border-color: #27AE60; background: #F0FAF2; }
+    .base-yellow .base-slot { border-color: #F39C12; background: #FEF9EE; }
+    .base-red .base-slot { border-color: #E74C3C; background: #FDF1F0; }
+    .base-blue .base-slot { border-color: #2980B9; background: #EEF6FC; }
 
-    /* Center Finish Quadrants */
+    /* Center Finish Triangle Alignments (Matches Home Paths) */
     .center-finish {
       grid-column: 7 / 10;
       grid-row: 7 / 10;
       position: relative;
-      background: #FFFFFF;
+      background: #FFF;
+      border-radius: 4px;
       overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
-    .tri-red { position: absolute; inset: 0; clip-path: polygon(0% 0%, 50% 50%, 0% 100%); background: #E72D2D; }
-    .tri-green { position: absolute; inset: 0; clip-path: polygon(0% 0%, 100% 0%, 50% 50%); background: #1DA848; }
-    .tri-yellow { position: absolute; inset: 0; clip-path: polygon(100% 0%, 100% 100%, 50% 50%); background: #F4B400; }
-    .tri-blue { position: absolute; inset: 0; clip-path: polygon(0% 100%, 100% 100%, 50% 50%); background: #1877F2; }
+    .tri-red { position: absolute; top: 0; bottom: 0; left: 0; width: 50%; clip-path: polygon(0% 0%, 100% 50%, 0% 100%); background: #E74C3C; }
+    .tri-green { position: absolute; top: 0; left: 0; right: 0; height: 50%; clip-path: polygon(0% 0%, 50% 100%, 100% 0%); background: #27AE60; }
+    .tri-yellow { position: absolute; top: 0; bottom: 0; right: 0; width: 50%; clip-path: polygon(100% 0%, 0% 50%, 100% 100%); background: #F39C12; }
+    .tri-blue { position: absolute; bottom: 0; left: 0; right: 0; height: 50%; clip-path: polygon(0% 100%, 50% 0%, 100% 100%); background: #2980B9; }
 
-    /* =========================================================================
-       3D TEARDROP TOKENS (Ludo King Map-Pin Gotis)
-       ========================================================================= */
+    .center-emblem {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #FFFFFF;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.22);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      z-index: 3;
+    }
+
+    /* 3D Gotis / Pawns (Ludo King Style) */
     .token {
-      width: 90%;
-      height: 90%;
+      width: 78%;
+      height: 78%;
       position: relative;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      z-index: 10;
+      z-index: 8;
     }
 
     .token.can-move {
-      animation: bounceToken 0.65s infinite alternate;
-      z-index: 14;
+      animation: bounceToken 0.7s infinite alternate;
+      z-index: 12;
     }
     @keyframes bounceToken {
-      0% { transform: scale(1) translateY(0); filter: drop-shadow(0 0 4px #FFE066); }
-      100% { transform: scale(1.22) translateY(-4px); filter: drop-shadow(0 0 10px #FFCC00); }
+      0% { transform: scale(1) translateY(0); filter: drop-shadow(0 0 3px #F8BA3A); }
+      100% { transform: scale(1.18) translateY(-4px); filter: drop-shadow(0 0 8px #F8BA3A); }
+    }
+
+    /* Dice Tray (Scaled for Phone Viewport) */
+    .roll-area {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      margin-top: 2px;
+      margin-bottom: 2px;
+      flex-shrink: 0;
+    }
+
+    .tray-deco-bg {
+      position: absolute;
+      bottom: -4px;
+      width: 90%;
+      height: 48px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.85;
+    }
+    .deco-leaf { width: 36px; height: 42px; background: #B6DEC2; border-radius: 36px 0 36px 0; transform: rotate(-15deg); }
+    .deco-leaf.right { transform: rotate(15deg) scaleX(-1); }
+    .deco-cloud { width: 44px; height: 22px; background: #E8F4F8; border-radius: 22px; }
+
+    .roll-btn-top {
+      background: var(--card-bg);
+      padding: 4px 16px;
+      border-radius: 14px;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--text-dark);
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.04);
+      margin-bottom: 6px;
+      z-index: 2;
+    }
+
+    .dice-tray {
+      width: 115px;
+      height: 46px;
+      background: linear-gradient(180deg, #FA6A6A, #E44848);
+      border-radius: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 16px rgba(228, 72, 72, 0.35), inset 0 2px 4px rgba(255, 255, 255, 0.4);
+      position: relative;
+      cursor: pointer;
+      z-index: 2;
+    }
+    .dice-tray:active { transform: scale(0.96); }
+
+    .dice-tray-label {
+      position: absolute;
+      bottom: 3.5px;
+      font-size: 9px;
+      font-weight: 800;
+      color: #FFFFFF;
+      letter-spacing: 1px;
+    }
+
+    .dice-cube {
+      width: 40px;
+      height: 40px;
+      background: #FFFFFF;
+      border-radius: 9px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.22);
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      padding: 4.5px;
+      position: absolute;
+      top: -18px;
+      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .dice-cube.rolling {
+      animation: diceRollAnim 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+    @keyframes diceRollAnim {
+      0% { transform: translateY(-16px) rotate(0deg) scale(0.85); }
+      30% { transform: translateY(-36px) rotate(180deg) scale(1.15); }
+      70% { transform: translateY(-12px) rotate(320deg) scale(0.95); }
+      100% { transform: translateY(0) rotate(360deg) scale(1); }
+    }
+
+    .pip { width: 6px; height: 6px; background: #2D2825; border-radius: 50%; align-self: center; justify-self: center; opacity: 0; }
+    .pip.active { opacity: 1; }
+
+    .bottom-players {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 8px;
+      margin-bottom: 10px;
     }
 
     /* =========================================================================
@@ -1499,10 +1195,10 @@
 
   <div class="app-wrapper">
     <!-- =========================================================================
-         SCREEN 1: GAME MODE MENU (Only 3 Clean Options: Play with Bot, Create Room, Join Room)
+         SCREEN 1: LOBBY / "PICK YOUR CORNER" (Matching Image 1)
          ========================================================================= -->
-    <div class="view-screen active" id="viewMenu">
-      <div class="menu-top-bar">
+    <div class="view-screen active" id="viewLobby">
+      <div class="lobby-header-row">
         <div class="ludo-logo-pill">
           <div class="logo-dots">
             <span class="logo-dot" style="background:#F66060;"></span>
@@ -1512,231 +1208,235 @@
           </div>
           <span>LUDO</span>
         </div>
-        <div class="menu-top-right">
+
+        <div class="lobby-header-right">
           <div class="help-icon-btn" onclick="openModal('rulesModal')">?</div>
-          <div class="help-icon-btn" onclick="openModal('settingsModal')">⚙️</div>
+          <div class="room-code-badge" onclick="openModal('roomModal')" title="Room Code & Settings">
+            <span id="roomCodeText">0Q62UQ</span>
+            <span>📋</span>
+          </div>
         </div>
       </div>
 
-      <div class="menu-hero-area">
-        <div class="menu-crown">👑</div>
-        <h1 class="menu-title">LUDO KING</h1>
-        <p class="menu-subtitle">Select a mode to start playing</p>
+      <div class="room-type-badge">
+        <span>🔒</span>
+        <span id="seatedBadge">Private room • 1/4 seated</span>
       </div>
 
-      <!-- ONLY 3 OPTIONS SHOWN -->
-      <div class="mode-cards-container">
-        <!-- Option 1: Play with Bot -->
-        <div class="mode-card card-bot" onclick="startPlayWithBot()">
-          <div class="mode-card-icon-wrap bg-green">
-            <span class="mode-icon">🤖</span>
-          </div>
-          <div class="mode-card-body">
-            <div class="mode-card-title">Play with Bot</div>
-            <div class="mode-card-desc">Instant 1v1 match against smart AI</div>
-          </div>
-          <div class="mode-card-arrow">➔</div>
+      <div class="lobby-title-area">
+        <span class="lobby-crown">👑</span>
+        <div class="lobby-subtitle">✨ Choose your color ✨</div>
+        <h2 class="lobby-title">Pick your corner</h2>
+      </div>
+
+      <!-- 4 Corners Tray -->
+      <div class="corner-picker-board">
+        <!-- Green Corner -->
+        <div class="corner-box green" id="cornerBoxGreen" onclick="toggleCorner('green')">
+          <div class="corner-circle-btn green-btn" id="cornerBtnGreen">+</div>
+          <span class="corner-name" id="cornerNameGreen">Green</span>
+          <span class="corner-status" id="cornerStatusGreen">Choose ✨</span>
         </div>
 
-        <!-- Option 2: Create Room -->
-        <div class="mode-card card-create" onclick="openCreateRoomModal()">
-          <div class="mode-card-icon-wrap bg-blue">
-            <span class="mode-icon">➕</span>
-          </div>
-          <div class="mode-card-body">
-            <div class="mode-card-title">Create Room</div>
-            <div class="mode-card-desc">Host private match & invite a friend</div>
-          </div>
-          <div class="mode-card-arrow">➔</div>
+        <!-- Yellow Corner -->
+        <div class="corner-box yellow" id="cornerBoxYellow" onclick="toggleCorner('yellow')">
+          <div class="corner-circle-btn yellow-btn" id="cornerBtnYellow">+</div>
+          <span class="corner-name" id="cornerNameYellow">Yellow</span>
+          <span class="corner-status" id="cornerStatusYellow">Choose ✨</span>
         </div>
 
-        <!-- Option 3: Join Room -->
-        <div class="mode-card card-join" onclick="openJoinRoomModal()">
-          <div class="mode-card-icon-wrap bg-yellow">
-            <span class="mode-icon">🔑</span>
+        <!-- Red Corner (Selected by User by default) -->
+        <div class="corner-box red occupied" id="cornerBoxRed" onclick="toggleCorner('red')">
+          <div class="corner-avatar" id="cornerAvatarRed" style="background:var(--red-light);">
+            <span>🧑</span>
+            <span class="corner-crown-badge">👑</span>
           </div>
-          <div class="mode-card-body">
-            <div class="mode-card-title">Join Room</div>
-            <div class="mode-card-desc">Enter 6-digit code to join match</div>
-          </div>
-          <div class="mode-card-arrow">➔</div>
+          <span class="corner-name" id="cornerNameRed">You</span>
+          <span class="corner-status" style="color:var(--red-color);" id="cornerStatusRed">Your color ✨</span>
+        </div>
+
+        <!-- Blue Corner -->
+        <div class="corner-box blue" id="cornerBoxBlue" onclick="toggleCorner('blue')">
+          <div class="corner-circle-btn blue-btn" id="cornerBtnBlue">+</div>
+          <span class="corner-name" id="cornerNameBlue">Blue</span>
+          <span class="corner-status" id="cornerStatusBlue">Choose ✨</span>
         </div>
       </div>
 
-      <!-- Player Profile Footer -->
-      <div class="menu-profile-pill">
-        <div class="menu-avatar-small" id="menuUserAvatar">🧑</div>
-        <div class="menu-user-info">
-          <span class="menu-user-name" id="menuUserName">Player</span>
-          <span class="menu-user-tag">● Online</span>
+      <div class="lobby-info-pill">
+        <span>📶 <span id="lobbyNeedSub">One more player needed</span></span>
+        <span>|</span>
+        <span style="cursor:pointer;" onclick="openModal('roomModal')">&lt;/&gt; Invite code</span>
+        <span>|</span>
+        <span style="cursor:pointer; color:var(--blue-color); font-weight:800;" onclick="openModal('roomModal')">🔑 Join code</span>
+      </div>
+
+      <!-- Action Card -->
+      <div class="lobby-action-card">
+        <div class="lobby-status-row">
+          <span id="lobbyNeedText">🚩 One more player needed</span>
+          <span>Minimum 2 players</span>
         </div>
+        <div class="lobby-btn-row">
+          <button class="lobby-btn add-bot-btn" id="addBotBtn" onclick="addBotToLobby()">
+            <span>👤+</span> Add bot
+          </button>
+          <button class="lobby-btn start-match-btn disabled" id="startMatchBtn" onclick="startMatchFromLobby()">
+            <span>▶</span> Start match
+          </button>
+        </div>
+      </div>
+
+      <!-- Decorative bottom leaves & clouds -->
+      <div class="tray-deco-bg" style="position:relative; width:100%; margin-top:10px;">
+        <div class="deco-leaf"></div>
+        <div class="deco-cloud"></div>
+        <div class="deco-leaf right"></div>
       </div>
     </div>
 
     <!-- =========================================================================
-         SCREEN 2: ACTIVE LUDO GAMEPLAY (Exact Ludo King Styling & Layout)
+         SCREEN 2: ACTIVE LUDO GAMEPLAY (Matching Image 2)
          ========================================================================= -->
     <div class="view-screen" id="viewGame">
-      <!-- TOP HUD STATIONS ROW -->
-      <div class="lk-stations-row top-stations">
-        <!-- Red Station (Top-Left) -->
-        <div class="lk-station red-station" id="stationRed">
-          <div class="lk-coin-badge top-coin">🪙 <span id="coinRed">925</span></div>
-          <div class="lk-station-main">
-            <div class="lk-avatar-frame" id="avatarRed">
-              <img src="https://api.dicebear.com/7.x/bottts/svg?seed=SpikeDom" alt="Red">
-            </div>
-            <div class="lk-dice-box" id="diceBoxRed" onclick="handleDiceClick('red')">
-              <div class="lk-dice-cube" id="diceCubeRed">
-                <div class="pip p1" id="pRed1"></div><div class="pip p2" id="pRed2"></div><div class="pip p3" id="pRed3"></div>
-                <div class="pip p4" id="pRed4"></div><div class="pip p5 active" id="pRed5"></div><div class="pip p6" id="pRed6"></div>
-                <div class="pip p7" id="pRed7"></div><div class="pip p8" id="pRed8"></div><div class="pip p9" id="pRed9"></div>
-              </div>
-            </div>
-            <div class="lk-gift-btn" onclick="sendGift('red')">🎁</div>
-            <div class="lk-turn-pointer left-pointer" id="pointerRed">▶</div>
-          </div>
-          <div class="lk-conn-dots"><span></span><span></span><span></span><span></span><span></span></div>
+      <div class="top-controls">
+        <div class="ctrl-pill" onclick="switchView('viewLobby')">
+          <span style="width:8px; height:8px; border-radius:50%; background:var(--green-color);"></span>
+          <span>0</span>
         </div>
-
-        <!-- Center Controls Bar -->
-        <div class="lk-center-bar">
-          <div class="lk-top-pill" onclick="switchView('viewMenu')" title="Menu">‹</div>
-          <div class="lk-top-pill" onclick="openModal('spectatorsModal')" title="Spectators">👁️ <span id="specCountDisplay">0</span></div>
-          <div class="lk-top-pill" onclick="toggleSound()" title="Sound"><span id="soundIcon">🔊</span></div>
-          <div class="lk-top-pill" onclick="openModal('chatModal')" title="Chat">💬</div>
-          <div class="lk-top-pill" onclick="openModal('moveLogModal')" title="Log">📜</div>
-          <div class="lk-top-pill" onclick="openModal('settingsModal')" title="Settings">⚙️</div>
+        <div class="ctrl-pill" onclick="openModal('spectatorsModal')">
+          <span>👁️</span>
+          <span id="specCountDisplay">0</span>
         </div>
-
-        <!-- Green Station (Top-Right) -->
-        <div class="lk-station green-station" id="stationGreen">
-          <div class="lk-coin-badge top-coin"><span id="coinGreen">2,450</span> 🪙</div>
-          <div class="lk-station-main">
-            <div class="lk-turn-pointer right-pointer" id="pointerGreen">◀</div>
-            <div class="lk-gift-btn" onclick="sendGift('green')">🎁</div>
-            <div class="lk-dice-box" id="diceBoxGreen" onclick="handleDiceClick('green')">
-              <div class="lk-dice-cube" id="diceCubeGreen">
-                <div class="pip p1" id="pGreen1"></div><div class="pip p2" id="pGreen2"></div><div class="pip p3" id="pGreen3"></div>
-                <div class="pip p4" id="pGreen4"></div><div class="pip p5 active" id="pGreen5"></div><div class="pip p6" id="pGreen6"></div>
-                <div class="pip p7" id="pGreen7"></div><div class="pip p8" id="pGreen8"></div><div class="pip p9" id="pGreen9"></div>
-              </div>
-            </div>
-            <div class="lk-avatar-frame" id="avatarGreen">
-              <img src="https://api.dicebear.com/7.x/bottts/svg?seed=SolarToady" alt="Green">
-            </div>
-          </div>
-          <div class="lk-conn-dots"><span></span><span></span><span></span><span></span><span></span></div>
+        <div class="ctrl-icon-btn" onclick="toggleSound()">
+          <span id="soundIcon">🔊</span>
+        </div>
+        <div class="ctrl-icon-btn" onclick="openModal('chatModal')">
+          <span>💬</span>
+        </div>
+        <div class="ctrl-icon-btn" onclick="openModal('moveLogModal')">
+          <span>📜</span>
+        </div>
+        <div class="ctrl-icon-btn" onclick="openModal('settingsModal')">
+          <span>⚙️</span>
         </div>
       </div>
 
-      <!-- LUDO KING BOARD CONTAINER -->
+      <div class="turn-banner" id="turnBanner">
+        <div class="pulse-dot" id="turnDot"></div>
+        <span id="turnMessage">Your turn - roll the dice</span>
+      </div>
+
+      <div class="players-container">
+        <div class="player-card" id="cardGreen">
+          <div class="player-avatar" style="border: 2px solid var(--green-color);" id="avatarGreen">
+            <span>🤖</span>
+          </div>
+          <div class="player-info">
+            <span class="player-name" id="nameGreen">Bot Alpha</span>
+            <span class="player-progress" id="scoreGreen">0/4</span>
+          </div>
+        </div>
+        <div class="player-card" id="cardYellow">
+          <div class="player-avatar" style="border: 2px solid var(--yellow-color);" id="avatarYellow">
+            <span>👤</span>
+          </div>
+          <div class="player-info">
+            <span class="player-name" id="nameYellow">Open seat</span>
+            <span class="player-progress" id="scoreYellow">0/4</span>
+          </div>
+        </div>
+      </div>
+
       <div class="board-container">
         <div class="ludo-board" id="boardGrid">
-          <!-- Top-Left Base: Red Base with SpikeDom Header -->
-          <div class="base-box base-red" id="baseBoxRed">
-            <div class="base-player-banner red-banner" id="bannerRed">SpikeDom</div>
+          <div class="base-box base-green">
             <div class="base-inner">
-              <div class="base-slot slot-red" id="base_red_0"></div>
-              <div class="base-slot slot-red" id="base_red_1"></div>
-              <div class="base-slot slot-red" id="base_red_2"></div>
-              <div class="base-slot slot-red" id="base_red_3"></div>
+              <div class="base-slot" id="base_green_0"></div>
+              <div class="base-slot" id="base_green_1"></div>
+              <div class="base-slot" id="base_green_2"></div>
+              <div class="base-slot" id="base_green_3"></div>
             </div>
           </div>
-
-          <!-- Top-Right Base: Green Base with SolarToady Header -->
-          <div class="base-box base-green" id="baseBoxGreen">
-            <div class="base-player-banner green-banner" id="bannerGreen">SolarToady</div>
+          <div class="base-box base-yellow">
             <div class="base-inner">
-              <div class="base-slot slot-green" id="base_green_0"></div>
-              <div class="base-slot slot-green" id="base_green_1"></div>
-              <div class="base-slot slot-green" id="base_green_2"></div>
-              <div class="base-slot slot-green" id="base_green_3"></div>
+              <div class="base-slot" id="base_yellow_0"></div>
+              <div class="base-slot" id="base_yellow_1"></div>
+              <div class="base-slot" id="base_yellow_2"></div>
+              <div class="base-slot" id="base_yellow_3"></div>
             </div>
           </div>
-
-          <!-- Bottom-Left Base: Blue Base with Nishkarsh Footer -->
-          <div class="base-box base-blue" id="baseBoxBlue">
+          <div class="base-box base-red">
             <div class="base-inner">
-              <div class="base-slot slot-blue" id="base_blue_0"></div>
-              <div class="base-slot slot-blue" id="base_blue_1"></div>
-              <div class="base-slot slot-blue" id="base_blue_2"></div>
-              <div class="base-slot slot-blue" id="base_blue_3"></div>
+              <div class="base-slot" id="base_red_0"></div>
+              <div class="base-slot" id="base_red_1"></div>
+              <div class="base-slot" id="base_red_2"></div>
+              <div class="base-slot" id="base_red_3"></div>
             </div>
-            <div class="base-player-banner blue-banner" id="bannerBlue">Nishkarsh</div>
           </div>
-
-          <!-- Bottom-Right Base: Yellow Base with ReconVenus Footer -->
-          <div class="base-box base-yellow" id="baseBoxYellow">
+          <div class="base-box base-blue">
             <div class="base-inner">
-              <div class="base-slot slot-yellow" id="base_yellow_0"></div>
-              <div class="base-slot slot-yellow" id="base_yellow_1"></div>
-              <div class="base-slot slot-yellow" id="base_yellow_2"></div>
-              <div class="base-slot slot-yellow" id="base_yellow_3"></div>
+              <div class="base-slot" id="base_blue_0"></div>
+              <div class="base-slot" id="base_blue_1"></div>
+              <div class="base-slot" id="base_blue_2"></div>
+              <div class="base-slot" id="base_blue_3"></div>
             </div>
-            <div class="base-player-banner yellow-banner" id="bannerYellow">ReconVenus</div>
           </div>
-
-          <!-- Center Finish Quadrants -->
           <div class="center-finish">
             <div class="tri-red"></div>
             <div class="tri-green"></div>
             <div class="tri-yellow"></div>
             <div class="tri-blue"></div>
+            <div class="center-emblem">👑</div>
           </div>
         </div>
       </div>
 
-      <!-- BOTTOM HUD STATIONS ROW -->
-      <div class="lk-stations-row bottom-stations">
-        <!-- Blue Station (Bottom-Left - User Nishkarsh) -->
-        <div class="lk-station blue-station active-player" id="stationBlue">
-          <div class="lk-station-main">
-            <div class="lk-avatar-frame me-avatar" id="avatarBlue">
-              <span class="lk-chat-bubble" onclick="openModal('chatModal')">💬</span>
-              <img id="avatarImgBlue" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Nishkarsh" alt="Blue">
-            </div>
-            <div class="lk-dice-box active-glow" id="diceBoxBlue" onclick="handleDiceClick('blue')">
-              <div class="lk-dice-cube" id="diceCubeBlue">
-                <div class="pip p1" id="pBlue1"></div><div class="pip p2" id="pBlue2"></div><div class="pip p3" id="pBlue3"></div>
-                <div class="pip p4" id="pBlue4"></div><div class="pip p5 active" id="pBlue5"></div><div class="pip p6" id="pBlue6"></div>
-                <div class="pip p7" id="pBlue7"></div><div class="pip p8" id="pBlue8"></div><div class="pip p9" id="pBlue9"></div>
-              </div>
-            </div>
-            <div class="lk-turn-pointer left-pointer active" id="pointerBlue">▶</div>
+      <div class="bottom-players">
+        <div class="player-card active-turn" id="cardRed">
+          <div class="player-avatar" style="border: 2px solid var(--red-color);" id="avatarRed">
+            <span>🧑</span>
           </div>
-          <div class="lk-conn-dots"><span></span><span></span><span></span><span></span><span></span></div>
-          <div class="lk-coin-badge btm-coin">🪙 <span id="coinBlue">1,760</span></div>
-        </div>
-
-        <!-- Center Middle Turn Banner -->
-        <div class="lk-mid-banner" id="turnBanner">
-          <span id="turnMessage">Your turn - roll the dice</span>
-        </div>
-
-        <!-- Yellow Station (Bottom-Right) -->
-        <div class="lk-station yellow-station" id="stationYellow">
-          <div class="lk-station-main">
-            <div class="lk-turn-pointer right-pointer" id="pointerYellow">◀</div>
-            <div class="lk-gift-btn" onclick="sendGift('yellow')">🎁</div>
-            <div class="lk-dice-box" id="diceBoxYellow" onclick="handleDiceClick('yellow')">
-              <div class="lk-dice-cube" id="diceCubeYellow">
-                <div class="pip p1" id="pYellow1"></div><div class="pip p2" id="pYellow2"></div><div class="pip p3" id="pYellow3"></div>
-                <div class="pip p4" id="pYellow4"></div><div class="pip p5 active" id="pYellow5"></div><div class="pip p6" id="pYellow6"></div>
-                <div class="pip p7" id="pYellow7"></div><div class="pip p8" id="pYellow8"></div><div class="pip p9" id="pYellow9"></div>
-              </div>
-            </div>
-            <div class="lk-avatar-frame" id="avatarYellow">
-              <img src="https://api.dicebear.com/7.x/bottts/svg?seed=ReconVenus" alt="Yellow">
-            </div>
+          <div class="player-info">
+            <span class="player-name" id="nameRed">You</span>
+            <span class="player-progress" id="scoreRed">0/4</span>
           </div>
-          <div class="lk-conn-dots"><span></span><span></span><span></span><span></span><span></span></div>
-          <div class="lk-coin-badge btm-coin"><span id="coinYellow">700</span> 🪙</div>
+        </div>
+        <div class="player-card" id="cardBlue">
+          <div class="player-avatar" style="border: 2px solid var(--blue-color);" id="avatarBlue">
+            <span>👤</span>
+          </div>
+          <div class="player-info">
+            <span class="player-name" id="nameBlue">Open seat</span>
+            <span class="player-progress" id="scoreBlue">0/4</span>
+          </div>
         </div>
       </div>
 
-      <!-- Fullscreen Toggle Button -->
-      <div class="lk-fullscreen-btn" onclick="toggleFullscreen()" title="Fullscreen">⛶</div>
+      <div class="roll-area">
+        <div class="tray-deco-bg">
+          <div class="deco-leaf"></div>
+          <div class="deco-cloud"></div>
+          <div class="deco-leaf right"></div>
+        </div>
+
+        <div class="roll-btn-top" id="rollTopBtn" onclick="rollDice()">ROLL THE DICE</div>
+
+        <div class="dice-tray" id="diceTray" onclick="rollDice()">
+          <div class="dice-cube" id="diceCube">
+            <div class="pip" id="p1"></div>
+            <div class="pip" id="p2"></div>
+            <div class="pip" id="p3"></div>
+            <div class="pip" id="p4"></div>
+            <div class="pip" id="p5"></div>
+            <div class="pip" id="p6"></div>
+            <div class="pip" id="p7"></div>
+            <div class="pip" id="p8"></div>
+            <div class="pip" id="p9"></div>
+          </div>
+          <span class="dice-tray-label">ROLL</span>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1917,61 +1617,43 @@
     </div>
   </div>
 
-  <!-- Modal 5: Create Room Modal -->
-  <div class="app-modal-overlay" id="createRoomModal">
+  <!-- Modal 5: Room Code & Join (Create & Join Room) -->
+  <div class="app-modal-overlay" id="roomModal">
     <div class="app-modal-card" style="padding-top:28px;">
       <div class="modal-top-tab">
-        <span style="color:#4D8BFA;">➕</span> Create Room
+        <span style="color:#4D8BFA;">🔑</span> Room Code
       </div>
-      <div class="modal-close-round" onclick="closeModal('createRoomModal')">✕</div>
+      <div class="modal-close-round" onclick="closeModal('roomModal')">✕</div>
 
       <div style="font-size:13px; font-weight:700; color:var(--text-muted); margin-top:8px; margin-bottom:14px; text-align:center;">
-        Share code or invite link with a friend (2-Player Match)
+        Share with friends or join an existing room
       </div>
 
       <!-- Current Room Box -->
-      <div style="width:100%; background:#F8F3EC; border-radius:18px; padding:12px 14px; display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border:1px solid rgba(0,0,0,0.05);">
+      <div style="width:100%; background:#F8F3EC; border-radius:18px; padding:12px 14px; display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border:1px solid rgba(0,0,0,0.05);">
         <div>
-          <div style="font-size:10.5px; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Room Code</div>
-          <div style="font-size:20px; font-weight:900; letter-spacing:2px; color:var(--text-dark);" id="createRoomCodeText">0Q62UQ</div>
+          <div style="font-size:10.5px; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Current Room</div>
+          <div style="font-size:19px; font-weight:900; letter-spacing:2px; color:var(--text-dark);" id="modalRoomCodeText">0Q62UQ</div>
         </div>
         <button class="lobby-btn" style="flex:none; padding:8px 14px; background:#4BC673; color:#fff; border-radius:12px; font-size:12.5px;" onclick="copyRoomCode()">
           <span>📋</span> Copy Link
         </button>
       </div>
 
-      <!-- Status row -->
-      <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.03); border-radius:12px; padding:8px 12px; margin-bottom:16px;">
-        <span style="font-size:12px; font-weight:700; color:#4BC673;" id="createRoomStatusText">● Waiting for Player 2 (1/2)</span>
-        <button class="lobby-btn" style="padding:6px 10px; font-size:11px; background:#EAE5DD; color:#333;" onclick="fillRoomWithBot()">🤖 Add Bot</button>
+      <!-- Join Another Room Input -->
+      <div style="width:100%; margin-bottom:14px;">
+        <label style="font-size:11px; font-weight:800; color:var(--text-dark); display:block; margin-bottom:6px; letter-spacing:0.5px;">JOIN WITH ROOM CODE</label>
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="inputRoomCode" placeholder="Enter 6-char code" maxlength="8" style="flex:1; border:1px solid #E6D8C8; border-radius:14px; padding:10px 14px; font-size:14px; font-weight:800; text-transform:uppercase; outline:none; background:#FFF; letter-spacing:1.5px; color:var(--text-dark);" onkeyup="this.value = this.value.toUpperCase()">
+          <button class="lobby-btn" style="flex:none; padding:10px 18px; background:var(--blue-color); color:#fff; border-radius:14px;" onclick="submitJoinRoom()">
+            Join
+          </button>
+        </div>
       </div>
 
-      <!-- Start button -->
-      <button class="lobby-btn start-match-btn" id="btnStartRoomMatch" style="width:100%; padding:12px; font-size:14px;" onclick="startRoomMatch()">
-        <span>▶</span> Start Match
-      </button>
-    </div>
-  </div>
-
-  <!-- Modal 6: Join Room Modal -->
-  <div class="app-modal-overlay" id="joinRoomModal">
-    <div class="app-modal-card" style="padding-top:28px;">
-      <div class="modal-top-tab">
-        <span style="color:#F8BA3A;">🔑</span> Join Room
-      </div>
-      <div class="modal-close-round" onclick="closeModal('joinRoomModal')">✕</div>
-
-      <div style="font-size:13px; font-weight:700; color:var(--text-muted); margin-top:8px; margin-bottom:16px; text-align:center;">
-        Enter the 6-character room code to join
-      </div>
-
-      <div style="width:100%; margin-bottom:16px;">
-        <label style="font-size:11px; font-weight:800; color:var(--text-dark); display:block; margin-bottom:6px; letter-spacing:0.5px;">ROOM CODE</label>
-        <input type="text" id="inputJoinRoomCode" placeholder="E.G. 0Q62UQ" maxlength="8" style="width:100%; border:2px solid #E6D8C8; border-radius:14px; padding:12px 14px; font-size:16px; font-weight:900; text-transform:uppercase; outline:none; background:#FFF; letter-spacing:2px; color:var(--text-dark); text-align:center; box-sizing:border-box;" onkeyup="this.value = this.value.toUpperCase()">
-      </div>
-
-      <button class="lobby-btn" style="width:100%; padding:12px; background:var(--blue-color); color:#fff; border-radius:14px; font-size:14px;" onclick="submitJoinRoom()">
-        <span>🚀</span> Join Match
+      <!-- Create New Room Button -->
+      <button class="lobby-btn add-bot-btn" style="width:100%; margin-top:4px;" onclick="createNewRoom()">
+        <span>➕</span> Create New Room
       </button>
     </div>
   </div>
@@ -2013,7 +1695,7 @@
       <button class="res-close-btn" onclick="closeGameAction()">
         <span>➔</span> Close game
       </button>
-      <button class="res-playagain-btn" onclick="switchView('viewMenu')">
+      <button class="res-playagain-btn" onclick="switchView('viewLobby')">
         <span>🔄</span> Play Again
       </button>
     </div>
@@ -2044,15 +1726,11 @@
       if (params.get("user_id")) currentUser.id = params.get("user_id");
     }
 
-    const bannerBlue = document.getElementById("bannerBlue");
-    if (bannerBlue) bannerBlue.textContent = currentUser.name;
-    const menuUserName = document.getElementById("menuUserName");
-    if (menuUserName) menuUserName.textContent = currentUser.name;
+    document.getElementById("cornerNameRed").textContent = currentUser.name;
+    document.getElementById("nameRed").textContent = currentUser.name;
     if (currentUser.photo_url) {
-      const avBlue = document.getElementById("avatarImgBlue");
-      if (avBlue) avBlue.src = currentUser.photo_url;
-      const menuAvatar = document.getElementById("menuUserAvatar");
-      if (menuAvatar) menuAvatar.innerHTML = `<img src="${currentUser.photo_url}" alt="user">`;
+      document.getElementById("cornerAvatarRed").innerHTML = `<img src="${currentUser.photo_url}" alt="avatar"><span class="corner-crown-badge">👑</span>`;
+      document.getElementById("avatarRed").innerHTML = `<img src="${currentUser.photo_url}" alt="avatar">`;
     }
 
     /* Screen Views */
@@ -2138,13 +1816,6 @@
     let currentRoomCode = "0Q62UQ";
     let isHost = true;
     let roomPollInterval = null;
-    let myColor = 'blue';
-    let lobbySeats = {
-      blue:   { type: 'me',  name: currentUser.name, avatar: currentUser.photo_url },
-      green:  { type: 'bot', name: "Bot Alpha" },
-      red:    null,
-      yellow: null
-    };
 
     function showToast(msg) {
       if (tg && tg.showPopup) {
@@ -2156,7 +1827,7 @@
 
     /* Room Code Copy & Share */
     function copyRoomCode() {
-      const code = currentRoomCode || "0Q62UQ";
+      const code = currentRoomCode || document.getElementById("roomCodeText").textContent;
       const botUname = "im_Radhabot";
       const inviteLink = `https://t.me/${botUname}/ludo?startapp=${code}`;
       navigator.clipboard.writeText(inviteLink).then(() => {
@@ -2164,136 +1835,6 @@
       }).catch(() => {
         showToast(`Room code: ${code}`);
       });
-    }
-
-    /* =========================================================================
-       3 CLEAN GAME MODES: Play with Bot, Create Room, Join Room
-       ========================================================================= */
-    function isPlayerBot(color) {
-      const seat = lobbySeats[color];
-      return Boolean(seat && seat.type === 'bot');
-    }
-
-    function startPlayWithBot() {
-      // 2-Player match: You (Blue) vs Bot Alpha (Green)
-      activePlayers = ['blue', 'green'];
-      myColor = 'blue';
-      lobbySeats = {
-        blue:   { type: 'me',  name: currentUser.name, avatar: currentUser.photo_url },
-        green:  { type: 'bot', name: "Bot Alpha" },
-        red:    null,
-        yellow: null
-      };
-
-      // Set base banners
-      const bBlue = document.getElementById("bannerBlue");
-      if (bBlue) bBlue.textContent = currentUser.name || "Nishkarsh";
-      const bGreen = document.getElementById("bannerGreen");
-      if (bGreen) bGreen.textContent = "Bot Alpha";
-      const bRed = document.getElementById("bannerRed");
-      if (bRed) bRed.textContent = "Empty";
-      const bYellow = document.getElementById("bannerYellow");
-      if (bYellow) bYellow.textContent = "Empty";
-
-      // Hide inactive stations (Red & Yellow) and dim bases
-      PLAYERS.forEach(c => {
-        const station = document.getElementById(`station${capitalize(c)}`);
-        const base = document.getElementById(`base${capitalize(c)}`);
-        if (activePlayers.includes(c)) {
-          if (station) {
-            station.style.visibility = "visible";
-            station.style.pointerEvents = "auto";
-          }
-          if (base) base.style.opacity = "1";
-        } else {
-          if (station) {
-            station.style.visibility = "hidden";
-            station.style.pointerEvents = "none";
-          }
-          if (base) base.style.opacity = "0.35";
-        }
-      });
-
-      switchView("viewGame");
-      restartGame();
-    }
-
-    function openCreateRoomModal() {
-      createNewRoom(false);
-      openModal("createRoomModal");
-      const code = currentRoomCode || "0Q62UQ";
-      const cEl = document.getElementById("createRoomCodeText");
-      if (cEl) cEl.textContent = code;
-      const sEl = document.getElementById("createRoomStatusText");
-      if (sEl) sEl.textContent = "● Waiting for Player 2 (1/2)";
-    }
-
-    function openJoinRoomModal() {
-      openModal("joinRoomModal");
-      const inp = document.getElementById("inputJoinRoomCode");
-      if (inp) {
-        inp.value = "";
-        setTimeout(() => inp.focus(), 250);
-      }
-    }
-
-    function fillRoomWithBot() {
-      lobbySeats['green'] = { type: 'bot', name: "Bot Alpha" };
-      activePlayers = ['blue', 'green'];
-      const sEl = document.getElementById("createRoomStatusText");
-      if (sEl) sEl.textContent = "● Ready! (2/2 Players)";
-      showToast("Bot Alpha joined room as Player 2!");
-    }
-
-    function startRoomMatch() {
-      closeModal("createRoomModal");
-      closeModal("joinRoomModal");
-
-      // 2 players only: Host (Blue) vs Guest/Bot (Green)
-      if (!lobbySeats['green']) {
-        lobbySeats['green'] = { type: 'bot', name: "Bot Alpha" };
-      }
-      if (!lobbySeats['blue']) {
-        lobbySeats['blue'] = { type: 'me', name: currentUser.name, avatar: currentUser.photo_url };
-      }
-      activePlayers = ['blue', 'green'];
-
-      const bBlue = document.getElementById("bannerBlue");
-      if (bBlue) bBlue.textContent = lobbySeats['blue']?.name || currentUser.name;
-      const bGreen = document.getElementById("bannerGreen");
-      if (bGreen) bGreen.textContent = lobbySeats['green']?.name || "Player 2";
-      const bRed = document.getElementById("bannerRed");
-      if (bRed) bRed.textContent = "Empty";
-      const bYellow = document.getElementById("bannerYellow");
-      if (bYellow) bYellow.textContent = "Empty";
-
-      // Hide inactive stations (Red & Yellow) and dim bases
-      PLAYERS.forEach(c => {
-        const station = document.getElementById(`station${capitalize(c)}`);
-        const base = document.getElementById(`base${capitalize(c)}`);
-        if (activePlayers.includes(c)) {
-          if (station) {
-            station.style.visibility = "visible";
-            station.style.pointerEvents = "auto";
-          }
-          if (base) base.style.opacity = "1";
-        } else {
-          if (station) {
-            station.style.visibility = "hidden";
-            station.style.pointerEvents = "none";
-          }
-          if (base) base.style.opacity = "0.35";
-        }
-      });
-
-      switchView("viewGame");
-      restartGame();
-
-      fetch("/api/ludo/room/action", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: currentRoomCode, action: "start_game" })
-      }).catch(() => {});
     }
 
     async function createNewRoom(showNotice = true) {
@@ -2305,30 +1846,34 @@
             user_id: currentUser.id,
             name: currentUser.name,
             avatar: currentUser.photo_url,
-            color: 'blue'
+            color: myColor
           })
         });
         const data = await res.json();
         if (data.success && data.room) {
           applyRoomData(data.room);
           isHost = true;
-          const cEl = document.getElementById("createRoomCodeText");
-          if (cEl) cEl.textContent = data.room.code;
-          if (showNotice) showToast(`Room created: ${data.room.code}`);
+          if (showNotice) {
+            closeModal('roomModal');
+            showToast(`New room created: ${data.room.code}`);
+          }
         }
       } catch (e) {
         const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
         let c = "";
         for (let i = 0; i < 6; i++) c += chars.charAt(Math.floor(Math.random() * chars.length));
         currentRoomCode = c;
-        const cEl = document.getElementById("createRoomCodeText");
-        if (cEl) cEl.textContent = c;
-        if (showNotice) showToast(`Room: ${c}`);
+        document.getElementById("roomCodeText").textContent = c;
+        document.getElementById("modalRoomCodeText").textContent = c;
+        if (showNotice) {
+          closeModal('roomModal');
+          showToast(`New room: ${c}`);
+        }
       }
     }
 
     async function submitJoinRoom(targetCode) {
-      const code = (targetCode || document.getElementById("inputJoinRoomCode")?.value || "").trim().toUpperCase();
+      const code = (targetCode || document.getElementById("inputRoomCode").value || "").trim().toUpperCase();
       if (!code) {
         showToast("Please enter a room code");
         return;
@@ -2342,65 +1887,83 @@
             user_id: currentUser.id,
             name: currentUser.name,
             avatar: currentUser.photo_url,
-            color: 'green' // joiner is 2nd player
+            color: myColor
           })
         });
         const data = await res.json();
         if (data.success && data.room) {
-          closeModal('joinRoomModal');
-          showToast(`Joined room: ${code}`);
           applyRoomData(data.room);
-          startRoomMatch();
+          closeModal('roomModal');
+          showToast(`Joined room: ${code}`);
         } else {
           showToast(data.error || "Could not join room");
         }
       } catch (e) {
         currentRoomCode = code;
-        closeModal('joinRoomModal');
+        document.getElementById("roomCodeText").textContent = code;
+        document.getElementById("modalRoomCodeText").textContent = code;
+        closeModal('roomModal');
         showToast(`Joined room: ${code}`);
-        startRoomMatch();
       }
     }
 
     function applyRoomData(room) {
       if (!room) return;
       currentRoomCode = room.code;
-      const cEl = document.getElementById("createRoomCodeText");
-      if (cEl) cEl.textContent = room.code;
+      const rEl = document.getElementById("roomCodeText");
+      if (rEl) rEl.textContent = room.code;
+      const mEl = document.getElementById("modalRoomCodeText");
+      if (mEl) mEl.textContent = room.code;
+      const specCode = document.getElementById("specRoomCode");
+      if (specCode) specCode.textContent = room.code;
+
+      // Determine Host / Leader status
+      if (room.host_id && currentUser.id) {
+        isHost = (String(room.host_id) === String(currentUser.id));
+      } else if (!room.host_id) {
+        isHost = true;
+      }
 
       const players = room.players || {};
+
+      // Identify my seated color
+      ['red', 'green', 'yellow', 'blue'].forEach(c => {
+        const p = players[c];
+        if (p && String(p.id) === String(currentUser.id)) {
+          myColor = c;
+        }
+      });
+
+      // Update seats map
       ['green', 'yellow', 'red', 'blue'].forEach(c => {
         const p = players[c];
         if (p) {
-          if (p.id == currentUser.id) {
-            lobbySeats[c] = { type: 'me', name: currentUser.name };
-            myColor = c;
+          const isMe = (String(p.id) === String(currentUser.id));
+          const isLeader = Boolean(p.is_host || String(p.id) === String(room.host_id));
+          if (isMe) {
+            lobbySeats[c] = { type: 'me', name: currentUser.name, isHost: isLeader };
           } else if (p.is_bot) {
-            lobbySeats[c] = { type: 'bot', name: p.name || "Bot Alpha" };
+            lobbySeats[c] = { type: 'bot', name: p.name || "Bot Alpha", isHost: false };
           } else {
-            lobbySeats[c] = { type: 'player', name: p.name || "Player", avatar: p.avatar };
+            lobbySeats[c] = { type: 'player', name: p.name || "Player", avatar: p.avatar, isHost: isLeader };
           }
         } else {
           lobbySeats[c] = null;
         }
       });
 
-      const seatedCount = Object.keys(lobbySeats).filter(c => lobbySeats[c] !== null).length;
-      const sEl = document.getElementById("createRoomStatusText");
-      if (sEl) {
-        if (seatedCount >= 2) sEl.textContent = "● Ready! (2/2 Players)";
-        else sEl.textContent = "● Waiting for Player 2 (1/2)";
+      updateLobbyCornerUI();
+
+      // If room status is 'playing', start match for all players!
+      if (room.status === 'playing' && document.getElementById("viewLobby").classList.contains("active")) {
+        startMatchFromLobby(false);
       }
 
-      if (room.status === 'playing' && !document.getElementById("viewGame").classList.contains("active")) {
-        startRoomMatch();
-      }
-
-      // Synchronize in-game action if gameplay is active
+      // Synchronize in-game remote dice & tokens
       if (document.getElementById("viewGame").classList.contains("active")) {
         if (room.turn && room.turn !== myColor && room.dice && room.dice !== currentDiceValue && !isRolling && !hasRolled) {
           currentDiceValue = room.dice;
-          setDiceFace(currentDiceValue, room.turn);
+          setDiceFace(currentDiceValue);
           hasRolled = true;
           evaluateMovesAfterRoll();
         }
@@ -2446,11 +2009,326 @@
       if (code && code.length >= 4 && code !== "LUDO") {
         currentRoomCode = code;
         submitJoinRoom(code);
+      } else {
+        createNewRoom(false);
       }
     }
 
     /* =========================================================================
-       BOARD GENERATION & CELL MAPPING (Ludo King Exact Alignment)
+       Settings: Theme & Audio/Vibe Switches
+       ========================================================================= */
+    let sfxEnabled = true;
+    let musicEnabled = false;
+    let vibeEnabled = true;
+    let ambientOsc = null;
+
+    function setBoardTheme(theme) {
+      if (theme === 'moonlit') {
+        document.body.classList.add("theme-moonlit");
+        document.getElementById("themeMoonlit").style.borderColor = "var(--red-color)";
+        document.getElementById("themeSunlit").style.borderColor = "transparent";
+      } else {
+        document.body.classList.remove("theme-moonlit");
+        document.getElementById("themeSunlit").style.borderColor = "var(--red-color)";
+        document.getElementById("themeMoonlit").style.borderColor = "transparent";
+      }
+    }
+
+    function toggleSwitch(which) {
+      if (which === 'sound') {
+        sfxEnabled = !sfxEnabled;
+        document.getElementById("swSound").classList.toggle("on", sfxEnabled);
+        document.getElementById("soundIcon").textContent = sfxEnabled ? "🔊" : "🔇";
+      } else if (which === 'music') {
+        musicEnabled = !musicEnabled;
+        document.getElementById("swMusic").classList.toggle("on", musicEnabled);
+        toggleAmbientMusic(musicEnabled);
+      } else if (which === 'vibe') {
+        vibeEnabled = !vibeEnabled;
+        document.getElementById("swVibe").classList.toggle("on", vibeEnabled);
+      }
+    }
+
+    function toggleSound() {
+      toggleSwitch('sound');
+    }
+
+    /* Audio Context */
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+
+    function getAudioCtx() {
+      if (!audioCtx) audioCtx = new AudioContext();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      return audioCtx;
+    }
+
+    function playSound(type) {
+      if (!sfxEnabled) return;
+      try {
+        const ctx = getAudioCtx();
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+
+        if (type === 'roll') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(150, now);
+          osc.frequency.exponentialRampToValueAtTime(320, now + 0.15);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+          osc.start(now); osc.stop(now + 0.15);
+        } else if (type === 'move') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(440, now);
+          osc.frequency.exponentialRampToValueAtTime(620, now + 0.08);
+          gain.gain.setValueAtTime(0.25, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+          osc.start(now); osc.stop(now + 0.08);
+        } else if (type === 'capture') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(320, now);
+          osc.frequency.exponentialRampToValueAtTime(100, now + 0.25);
+          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+          osc.start(now); osc.stop(now + 0.25);
+        } else if (type === 'win') {
+          [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => {
+            const o = ctx.createOscillator();
+            const g = ctx.createGain();
+            o.connect(g); g.connect(ctx.destination);
+            o.type = 'sine';
+            o.frequency.setValueAtTime(f, now + i * 0.1);
+            g.gain.setValueAtTime(0.3, now + i * 0.1);
+            g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.25);
+            o.start(now + i * 0.1); o.stop(now + i * 0.1 + 0.25);
+          });
+        }
+      } catch(e) {}
+    }
+
+    function toggleAmbientMusic(enable) {
+      try {
+        if (!enable) {
+          if (ambientOsc) { ambientOsc.stop(); ambientOsc = null; }
+          return;
+        }
+        const ctx = getAudioCtx();
+        ambientOsc = ctx.createOscillator();
+        const g = ctx.createGain();
+        ambientOsc.type = 'sine';
+        ambientOsc.frequency.setValueAtTime(220, ctx.currentTime);
+        g.gain.setValueAtTime(0.04, ctx.currentTime);
+        ambientOsc.connect(g);
+        g.connect(ctx.destination);
+        ambientOsc.start();
+      } catch(e) {}
+    }
+
+    function triggerHaptic(type = 'light') {
+      if (!vibeEnabled || !tg || !tg.HapticFeedback) return;
+      try {
+        if (type === 'success') tg.HapticFeedback.notificationOccurred('success');
+        else if (type === 'medium') tg.HapticFeedback.impactOccurred('medium');
+        else tg.HapticFeedback.impactOccurred('light');
+      } catch(e) {}
+    }
+
+    /* =========================================================================
+       LOBBY CORNER PICKER STATE (Image 1)
+       ========================================================================= */
+    let myColor = 'red';
+    let lobbySeats = {
+      red: { type: 'me', name: currentUser.name },
+      green: null,
+      yellow: null,
+      blue: null
+    };
+
+    function toggleCorner(color) {
+      if (myColor === color) return; // already me
+      // Move me to this corner
+      lobbySeats[myColor] = null;
+      myColor = color;
+      lobbySeats[color] = { type: 'me', name: currentUser.name };
+      updateLobbyCornerUI();
+      fetch("/api/ludo/room/action", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code: currentRoomCode,
+          action: "select_corner",
+          user_id: currentUser.id,
+          color: color,
+          name: currentUser.name,
+          avatar: currentUser.photo_url
+        })
+      }).catch(() => {});
+    }
+
+    function addBotToLobby() {
+      // Find first empty seat
+      const emptyColor = ['green', 'yellow', 'blue', 'red'].find(c => !lobbySeats[c]);
+      if (emptyColor) {
+        lobbySeats[emptyColor] = { type: 'bot', name: "Bot Alpha" };
+        addLogEvent(`Bot Alpha was added to the room.`, "Room event");
+        updateLobbyCornerUI();
+        fetch("/api/ludo/room/action", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code: currentRoomCode, action: "add_bot", user_id: currentUser.id })
+        }).catch(() => {});
+      }
+    }
+
+    function updateLobbyCornerUI() {
+      let seatedCount = 0;
+      ['green', 'yellow', 'red', 'blue'].forEach(c => {
+        const box = document.getElementById(`cornerBox${capitalize(c)}`);
+        const seat = lobbySeats[c];
+        if (!box) return;
+
+        if (seat) {
+          seatedCount++;
+          box.classList.add("occupied");
+          const isLeader = Boolean(seat.isHost);
+          const crownBadge = isLeader ? '<span class="corner-crown-badge">👑</span>' : '';
+          const statusText = seat.type === 'me'
+            ? (isLeader ? 'Leader ✨' : 'Your color ✨')
+            : (isLeader ? 'Leader 👑' : 'Ready');
+
+          if (seat.type === 'me') {
+            box.innerHTML = `
+              <div class="corner-avatar" style="background:var(--${c}-light);">
+                ${currentUser.photo_url ? `<img src="${currentUser.photo_url}">` : '<span>🧑</span>'}
+                ${crownBadge}
+              </div>
+              <span class="corner-name">${currentUser.name}</span>
+              <span class="corner-status" style="color:var(--${c}-color);">${statusText}</span>
+            `;
+          } else if (seat.type === 'bot') {
+            box.innerHTML = `
+              <div class="corner-avatar" style="background:var(--${c}-light);">
+                <span>🤖</span>
+              </div>
+              <span class="corner-name">${seat.name}</span>
+              <span class="corner-status" style="color:var(--${c}-color);">Ready</span>
+            `;
+          } else if (seat.type === 'player') {
+            box.innerHTML = `
+              <div class="corner-avatar" style="background:var(--${c}-light);">
+                ${seat.avatar ? `<img src="${seat.avatar}">` : '<span>👤</span>'}
+                ${crownBadge}
+              </div>
+              <span class="corner-name">${seat.name}</span>
+              <span class="corner-status" style="color:var(--${c}-color);">${statusText}</span>
+            `;
+          }
+        } else {
+          box.classList.remove("occupied");
+          box.innerHTML = `
+            <div class="corner-circle-btn ${c}-btn">+</div>
+            <span class="corner-name">${capitalize(c)}</span>
+            <span class="corner-status">Choose ✨</span>
+          `;
+        }
+      });
+
+      const sBadge = document.getElementById("seatedBadge");
+      if (sBadge) sBadge.textContent = `Private room • ${seatedCount}/4 seated`;
+
+      const canStart = (seatedCount >= 2);
+      const addBotBtn = document.getElementById("addBotBtn");
+      const startBtn = document.getElementById("startMatchBtn");
+      const needText = document.getElementById("lobbyNeedText");
+      const needSub = document.getElementById("lobbyNeedSub");
+
+      if (isHost) {
+        if (addBotBtn) {
+          addBotBtn.style.display = "inline-flex";
+          addBotBtn.disabled = (seatedCount >= 4);
+        }
+        if (startBtn) {
+          startBtn.style.display = "inline-flex";
+          startBtn.classList.toggle("disabled", !canStart);
+          startBtn.disabled = !canStart;
+          startBtn.innerHTML = '<span>▶</span> Start match';
+        }
+        if (needText) needText.textContent = canStart ? "✅ Ready to start!" : "🚩 One more player needed";
+        if (needSub) needSub.textContent = canStart ? "Ready to start" : "One more player needed";
+      } else {
+        // Joined guest player
+        if (addBotBtn) {
+          addBotBtn.style.display = "none";
+        }
+        if (startBtn) {
+          startBtn.style.display = "inline-flex";
+          startBtn.classList.add("disabled");
+          startBtn.disabled = true;
+          startBtn.innerHTML = '<span>⏳</span> Waiting for leader to start...';
+        }
+        if (needText) needText.textContent = canStart ? "⏳ Waiting for leader to start match..." : "🚩 One more player needed";
+        if (needSub) needSub.textContent = canStart ? "Waiting for leader..." : "One more player needed";
+      }
+    }
+
+    function startMatchFromLobby(sendServerAction = true) {
+      if (!isHost && sendServerAction) {
+        showToast("Only the room leader can start the match!");
+        return;
+      }
+      const seated = Object.keys(lobbySeats).filter(c => lobbySeats[c] !== null);
+      if (seated.length < 2) {
+        addBotToLobby();
+      }
+      activePlayers = Object.keys(lobbySeats).filter(c => lobbySeats[c] !== null);
+      addLogEvent(`The game has started.`, "Room event");
+
+      if (sendServerAction) {
+        fetch("/api/ludo/room/action", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code: currentRoomCode, action: "start_game", user_id: currentUser.id })
+        }).catch(() => {});
+      }
+
+      // Update in-game player card names & icons
+      ['green', 'yellow', 'red', 'blue'].forEach(c => {
+        const seat = lobbySeats[c];
+        const nameEl = document.getElementById(`name${capitalize(c)}`);
+        const avEl = document.getElementById(`avatar${capitalize(c)}`);
+        const card = document.getElementById(`card${capitalize(c)}`);
+        const base = document.getElementById(`base${capitalize(c)}`);
+
+        if (activePlayers.includes(c)) {
+          if (card) card.style.opacity = "1";
+          if (base) base.style.opacity = "1";
+          if (seat) {
+            if (nameEl) nameEl.textContent = seat.name;
+            if (avEl) {
+              if (seat.type === 'bot') avEl.innerHTML = "<span>🤖</span>";
+              else if (seat.type === 'me') {
+                avEl.innerHTML = currentUser.photo_url ? `<img src="${currentUser.photo_url}">` : "<span>🧑</span>";
+              } else if (seat.type === 'player') {
+                avEl.innerHTML = seat.avatar ? `<img src="${seat.avatar}">` : "<span>👤</span>";
+              }
+            }
+          }
+        } else {
+          if (card) card.style.opacity = "0.35";
+          if (base) base.style.opacity = "0.35";
+          if (nameEl) nameEl.textContent = "Open seat";
+          if (avEl) avEl.innerHTML = "<span>👤</span>";
+        }
+      });
+
+      restartGame();
+      switchView("viewGame");
+    }
+
+    /* =========================================================================
+       BOARD GENERATION & CELL MAPPING
        ========================================================================= */
     const TRACK_COORDS = [
       [6, 1], [6, 2], [6, 3], [6, 4], [6, 5],
@@ -2467,16 +2345,14 @@
       [7, 0],
       [6, 0]
     ];
-    // Start tiles (0, 13, 26, 39) + Safe Star tiles (47: [8,2], 8: [2,6], 21: [6,12], 34: [12,8])
-    const SAFE_SQUARES = [0, 8, 13, 21, 26, 34, 39, 47];
-    const STAR_INDICES = [8, 21, 34, 47];
+    const SAFE_SQUARES = [1, 9, 14, 22, 27, 35, 40, 48];
     const HOME_COLUMNS = {
       red:    [[7, 1], [7, 2], [7, 3], [7, 4], [7, 5]],
       green:  [[1, 7], [2, 7], [3, 7], [4, 7], [5, 7]],
       yellow: [[7, 13], [7, 12], [7, 11], [7, 10], [7, 9]],
       blue:   [[13, 7], [12, 7], [11, 7], [10, 7], [9, 7]]
     };
-    const START_OFFSETS = { red: 0, green: 13, yellow: 26, blue: 39 };
+    const START_OFFSETS = { red: 1, green: 14, yellow: 27, blue: 40 };
 
     const boardGrid = document.getElementById("boardGrid");
     const cellMap = {};
@@ -2490,40 +2366,32 @@
         cell.style.gridRow = `${r + 1}`;
         cell.style.gridColumn = `${c + 1}`;
 
-        // Home paths
         if (r === 7 && c >= 1 && c <= 5) cell.classList.add("home-red");
         else if (c === 7 && r >= 1 && r <= 5) cell.classList.add("home-green");
         else if (r === 7 && c >= 9 && c <= 13) cell.classList.add("home-yellow");
         else if (c === 7 && r >= 9 && r <= 13) cell.classList.add("home-blue");
-        // Start entry tiles
         else if (r === 6 && c === 1) cell.classList.add("path-red");
         else if (r === 1 && c === 8) cell.classList.add("path-green");
         else if (r === 8 && c === 13) cell.classList.add("path-yellow");
         else if (r === 13 && c === 6) cell.classList.add("path-blue");
-
-        // Ludo King Entry Arrows
-        if (r === 7 && c === 0) cell.innerHTML = `<span class="entry-arrow arrow-red">➔</span>`;
-        else if (r === 0 && c === 7) cell.innerHTML = `<span class="entry-arrow arrow-green">↓</span>`;
-        else if (r === 7 && c === 14) cell.innerHTML = `<span class="entry-arrow arrow-yellow">←</span>`;
-        else if (r === 14 && c === 7) cell.innerHTML = `<span class="entry-arrow arrow-blue">↑</span>`;
 
         cellMap[`${r}_${c}`] = cell;
         boardGrid.appendChild(cell);
       }
     }
 
-    STAR_INDICES.forEach(idx => {
+    SAFE_SQUARES.forEach(idx => {
       const [r, c] = TRACK_COORDS[idx];
       if (cellMap[`${r}_${c}`]) cellMap[`${r}_${c}`].classList.add("star-cell");
     });
 
     /* =========================================================================
-       GAME STATE & LUDO KING TEARDROP TOKENS ENGINE
+       GAME STATE & TOKENS ENGINE
        ========================================================================= */
     const PLAYERS = ['red', 'green', 'yellow', 'blue'];
-    let activePlayers = ['blue', 'green']; // 2-player match by default (Blue vs Green)
-    let currentTurnIndex = 0; // Blue (You) starts!
-    let currentDiceValue = 4;
+    let activePlayers = ['red', 'green'];
+    let currentTurnIndex = 0;
+    let currentDiceValue = 0;
     let hasRolled = false;
     let isRolling = false;
     let consecutiveSixes = 0;
@@ -2537,42 +2405,42 @@
 
     const tokenElements = {};
 
-    /* Ludo King Iconic Teardrop / Map-Pin 3D Goti SVG */
-    function createTeardropGotiSVG(color) {
-      const themes = {
-        red:    { gemMain: '#E52B2B', gemLight: '#FF7373', gemDark: '#8F0E0E', stroke: '#BD1C1C' },
-        green:  { gemMain: '#1EA849', gemLight: '#6CE690', gemDark: '#0C5B23', stroke: '#158337' },
-        yellow: { gemMain: '#F5B700', gemLight: '#FFE373', gemDark: '#946A00', stroke: '#BF8A00' },
-        blue:   { gemMain: '#1A77F2', gemLight: '#75B2FF', gemDark: '#0E4491', stroke: '#1155B2' }
+    function createPawnSVG(color) {
+      const colors = {
+        red: { light: '#FFA3A3', main: '#E74C3C', shadow: '#961B0E' },
+        green: { light: '#98F5B4', main: '#27AE60', shadow: '#145A32' },
+        yellow: { light: '#FFE485', main: '#F39C12', shadow: '#935116' },
+        blue: { light: '#99CBFF', main: '#2980B9', shadow: '#1B4F72' },
       };
-      const t = themes[color] || themes.red;
+      const c = colors[color] || colors.red;
       return `
-        <svg viewBox="0 0 28 34" class="lk-goti-svg" style="width:100%; height:100%; overflow:visible; display:block;">
+        <svg viewBox="0 0 24 32" class="pawn-svg" style="width:100%; height:100%; overflow:visible; display:block;">
           <defs>
-            <filter id="lkGotiDrop_${color}" x="-25%" y="-15%" width="150%" height="150%">
-              <feDropShadow dx="0.5" dy="2.5" stdDeviation="1.5" flood-color="rgba(0,0,0,0.5)"/>
-            </filter>
-            <radialGradient id="lkGemGrad_${color}" cx="35%" cy="30%" r="70%">
-              <stop offset="0%" stop-color="${t.gemLight}"/>
-              <stop offset="45%" stop-color="${t.gemMain}"/>
-              <stop offset="90%" stop-color="${t.gemDark}"/>
+            <radialGradient id="phead_${color}" cx="35%" cy="30%" r="65%">
+              <stop offset="0%" stop-color="${c.light}"/>
+              <stop offset="60%" stop-color="${c.main}"/>
+              <stop offset="100%" stop-color="${c.shadow}"/>
             </radialGradient>
-            <linearGradient id="lkShellGrad_${color}" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stop-color="#FFFFFF"/>
-              <stop offset="70%" stop-color="#EDEDED"/>
-              <stop offset="100%" stop-color="#CCCCCC"/>
+            <linearGradient id="pbody_${color}" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="${c.light}"/>
+              <stop offset="45%" stop-color="${c.main}"/>
+              <stop offset="100%" stop-color="${c.shadow}"/>
             </linearGradient>
+            <linearGradient id="pbase_${color}" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="${c.main}"/>
+              <stop offset="100%" stop-color="${c.shadow}"/>
+            </linearGradient>
+            <filter id="pdrop_${color}" x="-30%" y="-20%" width="160%" height="150%">
+              <feDropShadow dx="0" dy="2.2" stdDeviation="1.5" flood-color="rgba(0,0,0,0.4)"/>
+            </filter>
           </defs>
-          <g filter="url(#lkGotiDrop_${color})">
-            <!-- Contoured Teardrop Shell -->
-            <path d="M 14 32 C 11.2 27.5 5 18.5 5 12.8 A 9 9 0 0 1 23 12.8 C 23 18.5 16.8 27.5 14 32 Z" 
-                  fill="url(#lkShellGrad_${color})" stroke="#D0D0D0" stroke-width="0.8"/>
-            <!-- Inset colored metallic ring -->
-            <circle cx="14" cy="13" r="6.8" fill="none" stroke="${t.stroke}" stroke-width="0.6" opacity="0.6"/>
-            <!-- Shiny radial gem -->
-            <circle cx="14" cy="13" r="6.2" fill="url(#lkGemGrad_${color})"/>
-            <!-- Gloss Reflection Highlight -->
-            <ellipse cx="12" cy="10.5" rx="2.4" ry="1.3" fill="#FFFFFF" opacity="0.85" transform="rotate(-30 12 10.5)"/>
+          <g filter="url(#pdrop_${color})">
+            <ellipse cx="12" cy="27" rx="8.5" ry="3.2" fill="url(#pbase_${color})"/>
+            <ellipse cx="12" cy="25.5" rx="7.2" ry="2.2" fill="${c.light}" opacity="0.65"/>
+            <path d="M 6.8 25.5 C 7.5 19, 9.2 13.5, 9.8 12.5 L 14.2 12.5 C 14.8 13.5, 16.5 19, 17.2 25.5 Z" fill="url(#pbody_${color})"/>
+            <ellipse cx="12" cy="12.5" rx="3.8" ry="1.2" fill="${c.light}"/>
+            <circle cx="12" cy="7" r="5.2" fill="url(#phead_${color})"/>
+            <ellipse cx="10.2" cy="5.2" rx="1.6" ry="1" fill="#FFFFFF" opacity="0.85" transform="rotate(-25 10.2 5.2)"/>
           </g>
         </svg>
       `;
@@ -2595,7 +2463,7 @@
           tok.className = `token token-${color}`;
           tok.dataset.color = color;
           tok.dataset.id = i;
-          tok.innerHTML = createTeardropGotiSVG(color);
+          tok.innerHTML = createPawnSVG(color);
           tok.addEventListener("click", () => handleTokenClick(color, i));
           tokenElements[color].push(tok);
         }
@@ -2609,23 +2477,14 @@
       6: ['p1', 'p3', 'p4', 'p6', 'p7', 'p9']
     };
 
-    function setDiceFace(val, color = 'blue') {
-      const cap = capitalize(color);
-      for (let i = 1; i <= 9; i++) {
-        const p = document.getElementById(`p${cap}${i}`);
-        if (p) p.classList.remove("active");
-      }
-      if (pipMap[val]) {
-        pipMap[val].forEach(pName => {
-          const pIdx = pName.replace('p', '');
-          const p = document.getElementById(`p${cap}${pIdx}`);
-          if (p) p.classList.add("active");
-        });
-      }
+    function setDiceFace(val) {
+      document.querySelectorAll(".pip").forEach(p => p.classList.remove("active"));
+      if (pipMap[val]) pipMap[val].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add("active");
+      });
     }
-    // Initialize faces
-    PLAYERS.forEach(c => setDiceFace(1, c));
-    setDiceFace(4, 'blue'); // initial face shown in screenshot
+    setDiceFace(1);
 
     function getCellCoordsForToken(color, step) {
       if (step === -1) return null;
@@ -2703,38 +2562,29 @@
 
     function getCurrentPlayer() { return activePlayers[currentTurnIndex]; }
     function isHumanTurn() { return getCurrentPlayer() === myColor; }
-    function isRemoteRoom() {
-      return Boolean(currentRoomCode && Object.keys(lobbySeats).filter(c => lobbySeats[c]?.type === 'player').length > 1);
-    }
 
-    function handleDiceClick(color) {
-      if (isRolling || hasRolled) return;
-      if (color !== getCurrentPlayer()) return;
-      // Do not allow manual click on an AI Bot seat
-      if (isPlayerBot(color)) return;
-      // In remote room, only player controlling this color can roll
-      if (isRemoteRoom() && color !== myColor) return;
-      executeDiceRoll();
+    function isPlayerBot(color) {
+      return Boolean(lobbySeats[color]?.type === 'bot');
     }
 
     function rollDice() {
+      if (isRolling || hasRolled) return;
+      if (getCurrentPlayer() !== myColor) return;
       executeDiceRoll();
     }
 
     function executeDiceRoll() {
       const curPlayer = getCurrentPlayer();
-      const cap = capitalize(curPlayer);
       isRolling = true;
       playSound('roll');
       triggerHaptic('medium');
 
-      const cube = document.getElementById(`diceCube${cap}`);
+      const cube = document.getElementById("diceCube");
       if (cube) cube.classList.add("rolling");
 
       let rollCounter = 0;
       const interval = setInterval(() => {
-        const randVal = Math.floor(Math.random() * 6) + 1;
-        setDiceFace(randVal, curPlayer);
+        setDiceFace(Math.floor(Math.random() * 6) + 1);
         rollCounter++;
         if (rollCounter > 5) clearInterval(interval);
       }, 70);
@@ -2742,7 +2592,7 @@
       setTimeout(() => {
         if (cube) cube.classList.remove("rolling");
         currentDiceValue = Math.floor(Math.random() * 6) + 1;
-        setDiceFace(currentDiceValue, curPlayer);
+        setDiceFace(currentDiceValue);
         isRolling = false;
         hasRolled = true;
 
@@ -2794,19 +2644,19 @@
 
       if (isPlayerBot(color)) {
         const botName = lobbySeats[color]?.name || capitalize(color);
-        updateTurnBanner(`${botName} (Bot) rolled a ${currentDiceValue}!`);
+        updateTurnBanner(`${botName} rolled a ${currentDiceValue}!`);
         setTimeout(() => chooseBotMove(color, validTokens), 750);
       } else {
-        // Human player turn (never auto-pick unless single move)
+        // Human player
         const isMe = (color === myColor);
         const pName = isMe ? "You" : (lobbySeats[color]?.name || capitalize(color));
-        updateTurnBanner(`${pName} rolled a ${currentDiceValue}! Tap a glowing goti.`);
+        updateTurnBanner(`${pName} rolled a ${currentDiceValue}! Tap a glowing token.`);
         validTokens.forEach(tok => {
           if (tokenElements[color] && tokenElements[color][tok.id]) {
             tokenElements[color][tok.id].classList.add("can-move");
           }
         });
-        if (validTokens.length === 1 && (isMe || !isRemoteRoom())) {
+        if (validTokens.length === 1 && isMe) {
           setTimeout(() => handleTokenClick(color, validTokens[0].id), 450);
         }
       }
@@ -2814,8 +2664,7 @@
 
     function handleTokenClick(color, id) {
       if (!hasRolled || isRolling || color !== getCurrentPlayer()) return;
-      if (isPlayerBot(color)) return;
-      if (isRemoteRoom() && color !== myColor) return;
+      if (color !== myColor && !isPlayerBot(color)) return;
 
       const tok = tokenState[color][id];
       if (!canTokenMove(color, tok, currentDiceValue)) return;
@@ -2836,7 +2685,7 @@
       renderAllTokens();
 
       const pName = lobbySeats[color]?.name || capitalize(color);
-      addLogEvent(isBaseExit ? `${pName} released a goti onto the track.` : `${pName} advanced a goti +${roll} steps.`, "Token move");
+      addLogEvent(isBaseExit ? `${pName} released a token onto track.` : `${pName} advanced a token +${roll} steps.`, "Token move");
 
       if (currentRoomCode) {
         fetch("/api/ludo/room/action", {
@@ -2867,8 +2716,8 @@
                     playSound('capture');
                     triggerHaptic('success');
                     const oppName = lobbySeats[oppColor]?.name || capitalize(oppColor);
-                    updateTurnBanner(`Boom! ${pName} captured ${oppName}'s goti!`);
-                    addLogEvent(`${pName} captured ${oppName}'s goti! 💥`, "Capture");
+                    updateTurnBanner(`Boom! ${pName} captured ${oppName}'s token!`);
+                    addLogEvent(`${pName} captured ${oppName}'s token! 💥`, "Capture");
                   }
                 }
               });
@@ -2887,9 +2736,7 @@
       if (roll === 6 || captured) {
         hasRolled = false;
         updateTurnBanner(`${pName} gets an extra roll!`);
-        if (isPlayerBot(color)) {
-          setTimeout(() => executeDiceRoll(), 900);
-        }
+        if (isPlayerBot(color)) setTimeout(() => executeDiceRoll(), 900);
       } else {
         setTimeout(() => endTurn(), 400);
       }
@@ -2900,57 +2747,24 @@
       hasRolled = false;
       consecutiveSixes = 0;
       currentTurnIndex = (currentTurnIndex + 1) % activePlayers.length;
-      updateTurnCardUI();
 
       const nextPlayer = getCurrentPlayer();
       const nextName = lobbySeats[nextPlayer]?.name || capitalize(nextPlayer);
 
       if (isPlayerBot(nextPlayer)) {
-        updateTurnBanner(`${nextName} (Bot) is thinking...`);
+        updateTurnBanner(`${nextName} is thinking...`);
         setTimeout(() => executeDiceRoll(), 1000);
       } else {
-        // Human player turn! STRICTLY NEVER AUTO-ROLL!
         if (nextPlayer === myColor) {
-          updateTurnBanner("Your turn - tap your dice to roll!");
+          updateTurnBanner("Your turn - roll the dice");
         } else {
           updateTurnBanner(`${nextName}'s turn - roll the dice`);
         }
       }
     }
 
-    function updateTurnCardUI() {
-      const cur = getCurrentPlayer();
-      PLAYERS.forEach(c => {
-        const cap = capitalize(c);
-        const box = document.getElementById(`diceBox${cap}`);
-        const pointer = document.getElementById(`pointer${cap}`);
-        const isCur = (c === cur);
-        if (box) box.classList.toggle("active-glow", isCur);
-        if (pointer) pointer.classList.toggle("active", isCur);
-      });
-    }
-
     function updateTurnBanner(msg) {
       document.getElementById("turnMessage").textContent = msg;
-    }
-
-    function sendGift(color) {
-      const gifts = ['🎁', '💎', '🚀', '⭐', '🔥', '👑'];
-      const g = gifts[Math.floor(Math.random() * gifts.length)];
-      playSound('move');
-      showToast(`Sent ${g} to ${capitalize(color)}!`);
-    }
-
-    function toggleFullscreen() {
-      if (!document.fullscreenElement) {
-        if (document.documentElement.requestFullscreen) {
-          document.documentElement.requestFullscreen().catch(() => {});
-        }
-      } else {
-        if (document.exitFullscreen) {
-          document.exitFullscreen().catch(() => {});
-        }
-      }
     }
 
     function chooseBotMove(color, validTokens) {
@@ -2977,9 +2791,6 @@
       moveToken(color, validTokens[0].id, currentDiceValue);
     }
 
-    /* =========================================================================
-       MATCH RESULTS SCREEN (Image from Previous Turn)
-       ========================================================================= */
     function handleVictory(winnerColor) {
       playSound('win');
       triggerHaptic('success');
@@ -3028,7 +2839,7 @@
       if (tg && tg.close) {
         try { tg.close(); return; } catch(e) {}
       }
-      switchView("viewMenu");
+      switchView("viewLobby");
     }
 
     function restartGame() {
@@ -3042,17 +2853,16 @@
       hasRolled = false;
       isRolling = false;
       renderAllTokens();
-      updateTurnCardUI();
 
       const nextPlayer = getCurrentPlayer();
       const nextName = lobbySeats[nextPlayer]?.name || capitalize(nextPlayer);
 
       if (isPlayerBot(nextPlayer)) {
-        updateTurnBanner(`${nextName} (Bot) is thinking...`);
+        updateTurnBanner(`${nextName} is thinking...`);
         setTimeout(() => executeDiceRoll(), 1000);
       } else {
         if (nextPlayer === myColor) {
-          updateTurnBanner("Your turn - tap your dice to roll!");
+          updateTurnBanner("Your turn - roll the dice");
         } else {
           updateTurnBanner(`${nextName}'s turn - roll the dice`);
         }
@@ -3095,6 +2905,7 @@
 
     // Initialize
     initTokenElements();
+    updateLobbyCornerUI();
     detectInitialRoom();
     roomPollInterval = setInterval(pollRoomState, 2000);
   </script>

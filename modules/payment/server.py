@@ -571,6 +571,13 @@ async def handle_ludo_room_action(request: web.Request) -> web.Response:
 
     room = LUDO_ROOMS[code]
     action = data.get("action")
+    user_id = data.get("user_id")
+    host_id = room.get("host_id")
+
+    # Only room leader can add bot or start the match
+    if action in ["add_bot", "remove_bot", "start_game"]:
+        if user_id and host_id and str(user_id) != str(host_id):
+            return web.json_response({"success": False, "error": "Only the room leader can perform this action"}, status=403)
 
     if action == "add_bot":
         for c in ["green", "yellow", "blue"]:

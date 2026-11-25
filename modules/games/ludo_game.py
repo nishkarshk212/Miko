@@ -63,18 +63,52 @@ async def cmd_ludo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     is_private = (chat.type == "private") if chat else False
     bot_uname = (context.bot.username if context.bot else None) or "im_Radhabot"
 
-    # Optional room code (e.g. /ludo 0Q62UQ)
+    # Room code: if provided use it, otherwise automatically generate a new room code
     room_code = None
     if context.args and len(context.args) > 0:
         room_code = context.args[0].strip().upper()
 
+    if not room_code:
+        import random
+        chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+        room_code = "".join(random.choices(chars, k=6))
+
+    # Pre-register room in LUDO_ROOMS so this user is the Host / Leader
+    try:
+        from modules.payment.server import LUDO_ROOMS
+        import time
+        if room_code not in LUDO_ROOMS:
+            LUDO_ROOMS[room_code] = {
+                "code": room_code,
+                "host_id": user.id,
+                "status": "lobby",
+                "seated": 1,
+                "created_at": time.time(),
+                "players": {
+                    "red": {"id": user.id, "name": name, "avatar": "", "is_bot": False, "is_host": True},
+                    "green": None,
+                    "yellow": None,
+                    "blue": None,
+                },
+                "chat": [],
+                "events": [
+                    {"text": f"{name} created room {room_code}.", "type": "Room event"},
+                    {"text": f"{name} is the room leader.", "type": "Room event"}
+                ],
+                "turn": "red",
+                "dice": 0,
+            }
+    except Exception as e:
+        print(f"Ludo room init notice: {e}")
+
     caption = (
         "<b>ludo</b>\n"
         "<i>ludo</i>\n\n"
-        "Roll the dice, race your tokens home, capture rivals, and climb the leaderboard in a fast Telegram Ludo match."
+        "Roll the dice, race your tokens home, capture rivals, and climb the leaderboard in a fast Telegram Ludo match.\n\n"
+        f"🔑 <b>Room:</b> <code>{room_code}</code>\n"
+        f"👑 <b>Leader:</b> {html.escape(name)}\n\n"
+        "✨ <i>Tap Play Ludo below to join this lobby!</i>"
     )
-    if room_code:
-        caption += f"\n\n🔑 <b>Room:</b> <code>{room_code}</code>\n✨ <i>Tap Play Ludo to join this room!</i>"
 
     reply_markup = build_ludo_keyboard(user.id, name, is_private=is_private, bot_username=bot_uname, room_code=room_code)
 
