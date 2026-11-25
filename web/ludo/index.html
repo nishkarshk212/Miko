@@ -1598,7 +1598,7 @@
       <div class="top-controls">
         <div class="ctrl-pill" onclick="switchView('viewLobby')">
           <span style="width:8px; height:8px; border-radius:50%; background:var(--green-color);"></span>
-          <span>0</span>
+          <span id="onlineCountDisplay">2</span>
         </div>
         <div class="ctrl-pill" onclick="openModal('spectatorsModal')">
           <span>👁️</span>
@@ -2708,16 +2708,44 @@
 
       updateLobbyCornerUI();
 
+      // Update in-game player card names & avatars
+      ['green', 'yellow', 'red', 'blue'].forEach(c => {
+        const seat = lobbySeats[c];
+        const nameEl = document.getElementById(`name${capitalize(c)}`);
+        const avEl = document.getElementById(`avatar${capitalize(c)}`);
+        const card = document.getElementById(`card${capitalize(c)}`);
+        if (seat) {
+          if (nameEl) nameEl.textContent = seat.name;
+          if (avEl) {
+            if (seat.type === 'bot') avEl.innerHTML = "<span>🤖</span>";
+            else if (seat.type === 'me') {
+              avEl.innerHTML = currentUser.photo_url ? `<img src="${currentUser.photo_url}">` : "<span>🧑</span>";
+            } else if (seat.type === 'player') {
+              avEl.innerHTML = seat.avatar ? `<img src="${seat.avatar}">` : "<span>👤</span>";
+            }
+          }
+          if (card) card.style.opacity = "1";
+        }
+      });
+
       // If room status is 'playing', start match for all players!
       if (room.status === 'playing' && document.getElementById("viewLobby").classList.contains("active")) {
         startMatchFromLobby(false, room.turn);
       }
 
+      // Update top-bar online seated count
+      const onlineDisplay = document.getElementById("onlineCountDisplay");
+      if (onlineDisplay) {
+        onlineDisplay.textContent = room.seated || Object.values(players).filter(Boolean).length || "1";
+      }
+
       // Synchronize in-game remote state (turns, dice, gotis)
       if (document.getElementById("viewGame").classList.contains("active")) {
-        // 1. Sync authoritative turn from room
+        // 1. Authoritative sync of turn from room
         if (room.turn && ['red', 'green', 'yellow', 'blue'].includes(room.turn)) {
-          if (room.turn !== currentTurn && !isRolling && !isMovingToken) {
+          const turnChanged = (room.turn !== currentTurn);
+          const rollChanged = (Boolean(room.has_rolled) !== hasRolled);
+          if (turnChanged || rollChanged) {
             currentTurn = room.turn;
             hasRolled = Boolean(room.has_rolled);
             updateTurnUI();
@@ -3564,25 +3592,11 @@
               name: pName,
               user_id: currentUser.id
             })
+          }).then(r => r.json()).then(data => {
+            if (data && data.room) {
+              applyRoomData(data.room);
+            }
           }).catch(() => {});
-        }
-
-        if (consecutiveSixes >= 3) {
-          updateTurnBanner("3 Sixes! Turn forfeited.");
-          setTimeout(() => endTurn(), 1000);
-          return;
-        }
-
-        turnSecondsLeft = 5;
-        evaluateMovesAfterRoll();
-      }, 550);
-    }
-
-        if (currentDiceValue === 6) {
-          consecutiveSixes++;
-          triggerScreenFX("SIX! 🎲");
-        } else {
-          consecutiveSixes = 0;
         }
 
         if (consecutiveSixes >= 3) {
@@ -3603,24 +3617,30 @@
     }
 
     function evaluateMovesAfterRoll() {
-      const color = getCurrentPlayer();
+      const color = currentTurn;
+      const isMyTurn = (color === myColor);
+      const isBot = isPlayerBot(color);
+      const canControl = isMyTurn || (isBot && isHost);
       const validTokens = tokenState[color].filter(tok => canTokenMove(color, tok, currentDiceValue));
 
       if (validTokens.length === 0) {
-        updateTurnBanner(`${capitalize(color)} rolled a ${currentDiceValue}. No moves available!`);
-        setTimeout(() => endTurn(), 1000);
+        const pName = getPlayerDisplayName(color);
+        updateTurnBanner(`${pName} rolled a ${currentDiceValue}. No moves available!`);
+        if (canControl) {
+          setTimeout(() => endTurn(), 1000);
+        }
         return;
       }
 
       const pName = getPlayerDisplayName(color);
-      if (isPlayerBot(color)) {
+      if (isBot) {
         updateTurnBanner(`${pName} rolled a ${currentDiceValue}!`);
         if (isHost) {
           setTimeout(() => chooseBotMove(color, validTokens), 750);
         }
       } else {
         // Human player
-        if (color === myColor) {
+        if (isMyTurn) {
           updateTurnBanner(`${pName} rolled a ${currentDiceValue}! Tap a glowing goti.`);
           validTokens.forEach(tok => {
             if (tokenElements[color] && tokenElements[color][tok.id]) {
@@ -3780,7 +3800,8 @@
       isRolling = false;
       consecutiveSixes = 0;
 
-      const nextPlayer = getNextTurnColor(currentTurn);
+      const curColor = currentTurn;
+      const nextPlayer = getNextTurnColor(curColor);
 
       if (currentRoomCode) {
         fetch("/api/ludo/room/action", {
@@ -3790,13 +3811,12 @@
             code: currentRoomCode,
             action: "end_turn",
             next_turn: nextPlayer,
-            color: currentTurn,
+            color: curColor,
             user_id: currentUser.id
           })
         }).then(r => r.json()).then(data => {
-          if (data && data.success && data.room) {
-            currentTurn = data.room.turn;
-            updateTurnUI();
+          if (data && data.room) {
+            applyRoomData(data.room);
           }
         }).catch(() => {
           currentTurn = nextPlayer;

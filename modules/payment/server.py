@@ -746,8 +746,18 @@ async def handle_ludo_room_action(request: web.Request) -> web.Response:
 
     elif action == "roll_dice":
         player_color = data.get("color")
-        if room.get("turn") != player_color:
-            return web.json_response({"success": False, "error": f"It is currently {room.get('turn')}'s turn", "room": room})
+        cur_turn = room.get("turn")
+        if cur_turn != player_color:
+            return web.json_response({"success": False, "error": f"It is currently {cur_turn}'s turn", "room": room})
+        
+        expected_player = room.get("players", {}).get(cur_turn)
+        if expected_player:
+            if expected_player.get("is_bot"):
+                if user_id and str(user_id) != str(room.get("host_id")):
+                    return web.json_response({"success": False, "error": "Only host can roll for bot", "room": room})
+            elif user_id and expected_player.get("id") and str(user_id) != str(expected_player.get("id")):
+                return web.json_response({"success": False, "error": "Not your turn to roll", "room": room})
+
         roll_val = int(data.get("value", 1))
         room["dice"] = roll_val
         room["has_rolled"] = True
@@ -757,23 +767,48 @@ async def handle_ludo_room_action(request: web.Request) -> web.Response:
         room["events"].append({"text": f"{data.get('name', player_color)} rolled a {roll_val}.", "type": "Dice roll"})
 
     elif action == "end_turn":
+        player_color = data.get("color")
+        cur_turn = room.get("turn")
+        if player_color and player_color != cur_turn:
+            return web.json_response({"success": False, "error": f"Cannot end turn for {player_color}, currently {cur_turn}", "room": room})
+
+        expected_player = room.get("players", {}).get(cur_turn)
+        if expected_player:
+            if expected_player.get("is_bot"):
+                if user_id and str(user_id) != str(room.get("host_id")):
+                    return web.json_response({"success": False, "error": "Only host can advance bot turn", "room": room})
+            elif user_id and expected_player.get("id") and str(user_id) != str(expected_player.get("id")):
+                return web.json_response({"success": False, "error": "Not your turn to end", "room": room})
+
         next_turn = data.get("next_turn")
         active_colors = [c for c in ["red", "green", "yellow", "blue"] if room["players"].get(c) is not None]
-        if next_turn and next_turn in active_colors:
+        if next_turn and next_turn in active_colors and next_turn != cur_turn:
             room["turn"] = next_turn
         else:
-            room["turn"] = get_next_ludo_turn(room, room.get("turn", "red"))
+            room["turn"] = get_next_ludo_turn(room, cur_turn or "red")
         room["dice"] = 0
         room["has_rolled"] = False
         room["turn_version"] = room.get("turn_version", 0) + 1
         room["turn_start_time"] = time.time()
 
     elif action == "move_token":
+        player_color = data.get("color")
+        cur_turn = room.get("turn")
+        if cur_turn != player_color:
+            return web.json_response({"success": False, "error": f"It is currently {cur_turn}'s turn", "room": room})
+
+        expected_player = room.get("players", {}).get(cur_turn)
+        if expected_player:
+            if expected_player.get("is_bot"):
+                if user_id and str(user_id) != str(room.get("host_id")):
+                    return web.json_response({"success": False, "error": "Only host can move bot goti", "room": room})
+            elif user_id and expected_player.get("id") and str(user_id) != str(expected_player.get("id")):
+                return web.json_response({"success": False, "error": "Not your turn to move", "room": room})
+
         token_id = data.get("id")
         step = data.get("step")
         extra_roll = bool(data.get("extra_roll", False))
         next_turn = data.get("next_turn")
-        player_color = data.get("color")
         if "token_state" not in room:
             room["token_state"] = {}
         if player_color not in room["token_state"]:
@@ -788,7 +823,7 @@ async def handle_ludo_room_action(request: web.Request) -> web.Response:
             room["turn_start_time"] = time.time()
         else:
             active_colors = [c for c in ["red", "green", "yellow", "blue"] if room["players"].get(c) is not None]
-            if next_turn and next_turn in active_colors:
+            if next_turn and next_turn in active_colors and next_turn != cur_turn:
                 room["turn"] = next_turn
             else:
                 room["turn"] = get_next_ludo_turn(room, player_color or room.get("turn", "red"))

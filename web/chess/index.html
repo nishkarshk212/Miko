@@ -252,6 +252,9 @@
       font-size: 38px;
       line-height: 1;
       z-index: 4;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-select: none;
       transition: transform 0.12s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       filter: drop-shadow(0 2px 3px rgba(0,0,0,0.28));
     }
@@ -545,6 +548,21 @@
     </div>
   </div>
 
+  <!-- Game Mode Selector Modal -->
+  <div class="modal-overlay" id="modeModal">
+    <div class="modal-card">
+      <div class="modal-close" onclick="closeModal('modeModal')">✕</div>
+      <div style="font-size: 32px; margin-bottom: 6px;">⚙️</div>
+      <div class="modal-title">Game Mode</div>
+      <div class="modal-sub">Choose how you want to play chess:</div>
+      <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:14px;">
+        <button class="action-btn primary" style="padding:12px; font-size:14px; text-align:left; justify-content:flex-start;" onclick="setGameMode('bot')">🤖 Play vs Bot (AI)</button>
+        <button class="action-btn" style="padding:12px; font-size:14px; text-align:left; justify-content:flex-start;" onclick="setGameMode('online')">👥 2-Player Online Room</button>
+        <button class="action-btn" style="padding:12px; font-size:14px; text-align:left; justify-content:flex-start;" onclick="setGameMode('pass')">📱 Pass &amp; Play (Same Device)</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast -->
   <div class="toast-box" id="toastBox">Message</div>
 
@@ -625,17 +643,69 @@
     let currentUser = { id: 0, name: "You", photo_url: "" };
     let currentRoomCode = "CHESS1";
     let isVsBot = false; // default multiplayer when room code present
+    let isPassAndPlay = false;
+    let hasOpponentJoined = false;
     let myColor = 'w';   // 'w' (White) or 'b' (Black)
     let lastProcessedVersion = 0;
     let roomPollInterval = null;
 
     if (tg) {
-      tg.ready();
-      tg.expand();
+      try {
+        tg.ready();
+        tg.expand();
+      } catch(e) {}
       if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
         currentUser.id = tg.initDataUnsafe.user.id;
         currentUser.name = tg.initDataUnsafe.user.first_name || "Player";
         currentUser.photo_url = tg.initDataUnsafe.user.photo_url || "";
+      }
+    }
+
+    if (!currentUser.id) {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("user_id")) currentUser.id = params.get("user_id");
+      if (params.get("name")) currentUser.name = params.get("name");
+      if (!currentUser.id) {
+        let stored = localStorage.getItem("chess_user_id");
+        if (!stored) {
+          stored = String(Math.floor(Math.random() * 899999) + 100000);
+          localStorage.setItem("chess_user_id", stored);
+        }
+        currentUser.id = stored;
+        currentUser.name = localStorage.getItem("chess_user_name") || "Player";
+      }
+    }
+
+    function openModeModal() {
+      openModal('modeModal');
+    }
+    function closeModeModal() {
+      closeModal('modeModal');
+    }
+    function setGameMode(mode) {
+      closeModeModal();
+      if (mode === 'bot') {
+        isVsBot = true;
+        isPassAndPlay = false;
+        myColor = 'w';
+        isFlipped = false;
+        document.getElementById("nameOpponent").textContent = "Bot Alpha";
+        document.getElementById("avOpponent").innerHTML = "<span>🤖</span>";
+        showToast("Switched to Bot Alpha mode!");
+        newGame();
+      } else if (mode === 'pass') {
+        isVsBot = false;
+        isPassAndPlay = true;
+        isFlipped = false;
+        document.getElementById("nameOpponent").textContent = "Player 2";
+        document.getElementById("avOpponent").innerHTML = "<span>👤</span>";
+        showToast("Switched to Pass & Play mode!");
+        newGame();
+      } else {
+        isVsBot = false;
+        isPassAndPlay = false;
+        showToast("Multiplayer Room active!");
+        openModal('roomModal');
       }
     }
 
@@ -682,6 +752,7 @@
       currentRoomCode = room.code;
       document.getElementById("roomCodeDisplay").textContent = room.code;
 
+      hasOpponentJoined = Boolean(room.white_player && room.black_player);
       const isMeWhite = String(room.white_player?.id) === String(currentUser.id);
       const isMeBlack = room.black_player && (String(room.black_player.id) === String(currentUser.id));
 
@@ -839,7 +910,15 @@
             squareEl.appendChild(fileLabel);
           }
 
-          squareEl.addEventListener("click", () => handleSquareClick(r, c));
+          let lastTapTime = 0;
+          const handleTap = (e) => {
+            const now = Date.now();
+            if (now - lastTapTime < 180) return;
+            lastTapTime = now;
+            handleSquareClick(r, c);
+          };
+          squareEl.addEventListener("pointerdown", handleTap);
+          squareEl.addEventListener("click", handleTap);
           boardGridEl.appendChild(squareEl);
         }
       }
@@ -849,8 +928,8 @@
 
     function handleSquareClick(r, c) {
       if (isGameOver) return;
-      // In multiplayer room, each player can only move their own color
-      if (!isVsBot && currentTurn !== myColor) {
+      // In multiplayer room, each player can only move their own color once opponent joined
+      if (!isVsBot && !isPassAndPlay && hasOpponentJoined && currentTurn !== myColor) {
         showToast(`Wait for opponent's turn (${currentTurn === 'w' ? 'White' : 'Black'})`);
         return;
       }
