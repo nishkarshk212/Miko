@@ -9,17 +9,11 @@ CHESS_COVER_PHOTO = "https://images.unsplash.com/photo-1529699211952-734e80c4d42
 
 
 def build_chess_keyboard(user_id: int, name: str, is_private: bool = False, bot_username: str = "im_Radhabot", room_code: str = None) -> InlineKeyboardMarkup:
-    """Builds the Play Chess WebApp button."""
+    """Builds the Play Chess Mini Web App button."""
+    import time
     start_param = room_code if room_code else "chess"
-    if is_private:
-        # In private chat, open WebApp directly inside Telegram
-        app_url = f"https://addition-ruby-skip-road.trycloudflare.com/chess?room={start_param}"
-        btn_play = InlineKeyboardButton("Play Chess ♟️", web_app=WebAppInfo(url=app_url))
-    else:
-        # In groups/supergroups, direct Telegram Mini App link
-        app_direct_link = f"https://t.me/{bot_username}/chess?startapp={start_param}"
-        btn_play = InlineKeyboardButton("Play Chess ♟️", url=app_direct_link)
-
+    chess_url = f"https://addition-ruby-skip-road.trycloudflare.com/chess?room={start_param}&user_id={user_id}&name={name}&v={int(time.time())}"
+    btn_play = InlineKeyboardButton("Play Chess ♟️", web_app=WebAppInfo(url=chess_url))
     return InlineKeyboardMarkup([[btn_play]])
 
 

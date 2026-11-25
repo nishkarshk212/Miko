@@ -37,17 +37,8 @@ def build_ludo_keyboard(
     room_code: Optional[str] = None,
 ) -> InlineKeyboardMarkup:
     play_url = get_ludo_url(mode="pvp" if room_code else "bot", user_id=user_id, name=user_name, room=room_code)
-    bot_uname = bot_username or "im_Radhabot"
-
-    if is_private:
-        # In 1-on-1 private chat, web_app buttons work directly and display the 🔲 Mini App icon
-        btn_play = InlineKeyboardButton("Play Ludo", web_app=WebAppInfo(url=play_url))
-    else:
-        # In groups/supergroups, direct Telegram Mini App link
-        start_param = room_code if room_code else "ludo"
-        app_direct_link = f"https://t.me/{bot_uname}/ludo?startapp={start_param}"
-        btn_play = InlineKeyboardButton("Play Ludo", url=app_direct_link)
-
+    # Native Mini Web App button with WebAppInfo works in both private and groups in modern Telegram
+    btn_play = InlineKeyboardButton("Play Ludo 🎲", web_app=WebAppInfo(url=play_url))
     return InlineKeyboardMarkup([[btn_play]])
 
 

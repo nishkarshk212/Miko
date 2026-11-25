@@ -2689,7 +2689,7 @@
       });
 
       // Update seats map
-      ['green', 'yellow', 'red', 'blue'].forEach(c => {
+      ['red', 'green', 'yellow', 'blue'].forEach(c => {
         const p = players[c];
         if (p) {
           const isMe = (String(p.id) === String(currentUser.id));
@@ -2716,11 +2716,10 @@
       // Synchronize in-game remote state (turns, dice, gotis)
       if (document.getElementById("viewGame").classList.contains("active")) {
         // 1. Sync authoritative turn from room
-        if (room.turn && activePlayers.includes(room.turn)) {
-          const sIdx = activePlayers.indexOf(room.turn);
-          if (sIdx !== -1 && sIdx !== currentTurnIndex && !isRolling && !isMovingToken) {
-            currentTurnIndex = sIdx;
-            hasRolled = false;
+        if (room.turn && ['red', 'green', 'yellow', 'blue'].includes(room.turn)) {
+          if (room.turn !== currentTurn && !isRolling && !isMovingToken) {
+            currentTurn = room.turn;
+            hasRolled = Boolean(room.has_rolled);
             updateTurnUI();
           }
         }
@@ -2910,6 +2909,9 @@
     /* High-Fidelity Audio Synthesizer */
     const soundSystem = {
       ctx: null,
+      init() {
+        return this.getContext();
+      },
       getContext() {
         try {
           const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -2918,6 +2920,9 @@
           if (this.ctx.state === 'suspended') this.ctx.resume();
           return this.ctx;
         } catch(e) {
+          return null;
+        }
+      },
           return null;
         }
       },
@@ -3183,11 +3188,11 @@
         showToast("Only the room leader can start the match!");
         return;
       }
-      const seated = Object.keys(lobbySeats).filter(c => lobbySeats[c] !== null);
+      const seated = ['red', 'green', 'yellow', 'blue'].filter(c => lobbySeats[c] !== null);
       if (seated.length < 2) {
         addBotToLobby();
       }
-      activePlayers = Object.keys(lobbySeats).filter(c => lobbySeats[c] !== null);
+      activePlayers = ['red', 'green', 'yellow', 'blue'].filter(c => lobbySeats[c] !== null);
       if (activePlayers.length === 0) activePlayers = ['red', 'green'];
       addLogEvent(`The game has started.`, "Room event");
 
@@ -3299,6 +3304,7 @@
        ========================================================================= */
     const PLAYERS = ['red', 'green', 'yellow', 'blue'];
     let activePlayers = ['red', 'green'];
+    let currentTurn = 'red';
     let currentTurnIndex = 0;
     let currentDiceValue = 0;
     let lastProcessedRollId = 0;
@@ -3490,24 +3496,33 @@
     }
 
 
-    function getCurrentPlayer() { return activePlayers[currentTurnIndex]; }
-    function isHumanTurn() { return getCurrentPlayer() === myColor; }
+    function getCurrentPlayer() { return currentTurn; }
+    function isHumanTurn() { return currentTurn === myColor; }
 
     function isPlayerBot(color) {
       return Boolean(lobbySeats[color]?.type === 'bot');
     }
 
+    function getNextTurnColor(color) {
+      const active = ['red', 'green', 'yellow', 'blue'].filter(c => lobbySeats[c] !== null);
+      if (!active.length) return 'red';
+      const idx = active.indexOf(color);
+      return active[(idx + 1) % active.length];
+    }
+
     function rollDice() {
       if (isRolling || hasRolled) return;
-      if (getCurrentPlayer() !== myColor) return;
+      if (currentTurn !== myColor) return;
       executeDiceRoll();
     }
 
     function executeDiceRoll() {
-      const curPlayer = getCurrentPlayer();
+      const curPlayer = currentTurn;
       if (isPlayerBot(curPlayer) && !isHost) return;
       isRolling = true;
-      playSound('roll');
+      hasRolled = true;
+      stopTurnTimer();
+      soundSystem.play('roll');
       triggerHaptic('medium');
 
       const cube = document.getElementById("diceCube");
@@ -3525,7 +3540,14 @@
         currentDiceValue = Math.floor(Math.random() * 6) + 1;
         setDiceFace(currentDiceValue);
         isRolling = false;
-        hasRolled = true;
+
+        if (currentDiceValue === 6) {
+          consecutiveSixes++;
+          soundSystem.play('six');
+          triggerScreenFX("SIX! 🎲");
+        } else {
+          consecutiveSixes = 0;
+        }
 
         const pName = lobbySeats[curPlayer]?.name || capitalize(curPlayer);
         addLogEvent(`${pName} rolled a ${currentDiceValue}.`, "Dice roll");
@@ -3539,10 +3561,22 @@
               action: "roll_dice",
               color: curPlayer,
               value: currentDiceValue,
-              name: pName
+              name: pName,
+              user_id: currentUser.id
             })
           }).catch(() => {});
         }
+
+        if (consecutiveSixes >= 3) {
+          updateTurnBanner("3 Sixes! Turn forfeited.");
+          setTimeout(() => endTurn(), 1000);
+          return;
+        }
+
+        turnSecondsLeft = 5;
+        evaluateMovesAfterRoll();
+      }, 550);
+    }
 
         if (currentDiceValue === 6) {
           consecutiveSixes++;
@@ -3699,6 +3733,23 @@
         const isHomeFinish = (tok.step >= 56);
         const getsExtraRoll = (roll === 6 || captured || isHomeFinish) && (consecutiveSixes < 3);
 
+        if (currentRoomCode) {
+          fetch("/api/ludo/room/action", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              code: currentRoomCode,
+              action: "move_token",
+              color: color,
+              id: id,
+              step: tok.step,
+              name: pName,
+              extra_roll: getsExtraRoll,
+              next_turn: getsExtraRoll ? color : getNextTurnColor(color)
+            })
+          }).catch(() => {});
+        }
+
         if (getsExtraRoll) {
           hasRolled = false;
           isRolling = false;
@@ -3728,10 +3779,8 @@
       hasRolled = false;
       isRolling = false;
       consecutiveSixes = 0;
-      currentTurnIndex = (currentTurnIndex + 1) % activePlayers.length;
 
-      const nextPlayer = getCurrentPlayer();
-      updateTurnUI();
+      const nextPlayer = getNextTurnColor(currentTurn);
 
       if (currentRoomCode) {
         fetch("/api/ludo/room/action", {
@@ -3741,13 +3790,24 @@
             code: currentRoomCode,
             action: "end_turn",
             next_turn: nextPlayer,
+            color: currentTurn,
             user_id: currentUser.id
           })
-        }).catch(() => {});
-      }
-
-      if (isPlayerBot(nextPlayer) && isHost) {
-        setTimeout(() => executeDiceRoll(), 1000);
+        }).then(r => r.json()).then(data => {
+          if (data && data.success && data.room) {
+            currentTurn = data.room.turn;
+            updateTurnUI();
+          }
+        }).catch(() => {
+          currentTurn = nextPlayer;
+          updateTurnUI();
+        });
+      } else {
+        currentTurn = nextPlayer;
+        updateTurnUI();
+        if (isPlayerBot(nextPlayer)) {
+          setTimeout(() => executeDiceRoll(), 1000);
+        }
       }
     }
 
@@ -3834,17 +3894,18 @@
     function restartGame(initialTurnColor) {
       document.getElementById("resultsOverlay").classList.remove("open");
       initTokenElements();
-      activePlayers.forEach(c => {
-        tokenState[c].forEach(t => t.step = -1);
+      ['red', 'green', 'yellow', 'blue'].forEach(c => {
+        if (tokenState[c]) {
+          tokenState[c].forEach(t => t.step = -1);
+        }
       });
 
-      // Synchronize initial turn: use provided turn or first active player
+      // Synchronize initial turn: use provided turn or host color
       let startColor = initialTurnColor;
-      if (!startColor || !activePlayers.includes(startColor)) {
+      if (!startColor || !['red', 'green', 'yellow', 'blue'].includes(startColor)) {
         startColor = activePlayers[0] || 'red';
       }
-      const startIdx = activePlayers.indexOf(startColor);
-      currentTurnIndex = (startIdx !== -1) ? startIdx : 0;
+      currentTurn = startColor;
       hasRolled = false;
       isRolling = false;
       renderAllTokens();
@@ -3882,7 +3943,7 @@
     }
 
     function updateTimerBadge() {
-      const curPlayer = getCurrentPlayer();
+      const curPlayer = currentTurn;
       if (!curPlayer) return;
       const curName = getPlayerDisplayName(curPlayer);
       const isMyTurn = (curPlayer === myColor);
@@ -3892,21 +3953,21 @@
 
       if (isMyTurn) {
         if (!hasRolled) {
-          banner.textContent = `${curName}'s turn - roll dice ⏳ ${turnSecondsLeft}s`;
+          banner.textContent = `${curName}'s turn – roll dice ⏳ ${turnSecondsLeft}s`;
         } else {
-          banner.textContent = `${curName}'s turn - pick a goti ⏳ ${turnSecondsLeft}s`;
+          banner.textContent = `${curName}'s turn – pick a goti ⏳ ${turnSecondsLeft}s`;
         }
       } else {
         if (isPlayerBot(curPlayer)) {
           banner.textContent = `${curName}'s turn (thinking...) ⏳ ${turnSecondsLeft}s`;
         } else {
-          banner.textContent = `${curName}'s turn - waiting ⏳ ${turnSecondsLeft}s`;
+          banner.textContent = `${curName}'s turn – waiting ⏳ ${turnSecondsLeft}s`;
         }
       }
     }
 
     function handleTurnTimeout() {
-      const curPlayer = getCurrentPlayer();
+      const curPlayer = currentTurn;
       if (!curPlayer) return;
       const pName = getPlayerDisplayName(curPlayer);
 
@@ -3927,9 +3988,9 @@
         }
         setTimeout(() => switchView("viewLobby"), 800);
       } else {
-        // Opponent was inactive for 5 seconds -> notify server to convert to bot/kick
-        updateTurnBanner(`⚠️ ${pName} auto-kicked for 5s inactivity!`);
-        if (isHost || isPlayerBot(curPlayer)) {
+        // Opponent was inactive for 5s -> only room host notifies server to convert to bot
+        if (isHost) {
+          updateTurnBanner(`⚠️ ${pName} auto-kicked for 5s inactivity!`);
           if (currentRoomCode) {
             fetch("/api/ludo/room/action", {
               method: "POST",
@@ -3942,18 +4003,16 @@
             }).catch(() => {});
           }
         }
-        // Advance turn so no one is stuck
-        endTurn();
       }
     }
 
     function updateTurnUI(customMsg) {
-      const curPlayer = getCurrentPlayer();
+      const curPlayer = currentTurn;
       const curName = getPlayerDisplayName(curPlayer);
       const isMyTurn = (curPlayer === myColor);
 
       // 1. Highlight active player's card ONLY
-      ['green', 'yellow', 'red', 'blue'].forEach(c => {
+      ['red', 'green', 'yellow', 'blue'].forEach(c => {
         const card = document.getElementById(`card${capitalize(c)}`);
         if (card) {
           if (c === curPlayer) {
@@ -3976,9 +4035,9 @@
         if (isPlayerBot(curPlayer)) {
           updateTurnBanner(`${curName}'s turn (thinking...)`);
         } else if (isMyTurn) {
-          updateTurnBanner(`${curName}'s turn - roll the dice`);
+          updateTurnBanner(`${curName}'s turn – roll the dice`);
         } else {
-          updateTurnBanner(`${curName}'s turn - waiting for roll...`);
+          updateTurnBanner(`${curName}'s turn – waiting for roll...`);
         }
       }
 

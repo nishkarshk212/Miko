@@ -418,6 +418,17 @@ async def handle_ludo_banner(request: web.Request) -> web.Response:
 LUDO_ROOMS: dict[str, dict] = {}
 
 
+def get_next_ludo_turn(room: dict, current_color: str) -> str:
+    order = ["red", "green", "yellow", "blue"]
+    active = [c for c in order if room.get("players", {}).get(c) is not None]
+    if not active:
+        return "red"
+    if current_color in active:
+        idx = active.index(current_color)
+        return active[(idx + 1) % len(active)]
+    return active[0]
+
+
 async def handle_ludo_room_create(request: web.Request) -> web.Response:
     """POST /api/ludo/room/create"""
     try:
@@ -631,8 +642,10 @@ async def handle_ludo_room_action(request: web.Request) -> web.Response:
         first_turn = host_color if (host_color and host_color in active_colors) else (active_colors[0] if active_colors else "red")
         room["turn"] = first_turn
         room["dice"] = 0
+        room["has_rolled"] = False
         room["roll_id"] = 0
         room["turn_version"] = room.get("turn_version", 0) + 1
+        room["turn_start_time"] = time.time()
 
     elif action == "send_chat":
         sender = data.get("name", "Player")
@@ -704,12 +717,12 @@ async def handle_ludo_room_action(request: web.Request) -> web.Response:
                 "is_host": False
             }
             room["events"].append({"text": f"{kicked_name} was auto-kicked for 5s inactivity.", "type": "Room event"})
-            active_colors = [c for c in ["red", "green", "yellow", "blue"] if room["players"].get(c) is not None]
-            if room.get("turn") == kicked_color and active_colors:
-                idx = active_colors.index(kicked_color)
-                room["turn"] = active_colors[(idx + 1) % len(active_colors)]
+            if room.get("turn") == kicked_color:
+                room["turn"] = get_next_ludo_turn(room, kicked_color)
             room["dice"] = 0
+            room["has_rolled"] = False
             room["turn_version"] = room.get("turn_version", 0) + 1
+            room["turn_start_time"] = time.time()
 
     elif action == "voice_clip":
         clip = data.get("audio")
@@ -732,11 +745,15 @@ async def handle_ludo_room_action(request: web.Request) -> web.Response:
                 room["voice_clips"] = room["voice_clips"][-10:]
 
     elif action == "roll_dice":
-        roll_val = int(data.get("value", 1))
         player_color = data.get("color")
+        if room.get("turn") != player_color:
+            return web.json_response({"success": False, "error": f"It is currently {room.get('turn')}'s turn", "room": room})
+        roll_val = int(data.get("value", 1))
         room["dice"] = roll_val
-        room["turn"] = player_color
+        room["has_rolled"] = True
         room["roll_id"] = room.get("roll_id", 0) + 1
+        room["turn_version"] = room.get("turn_version", 0) + 1
+        room["turn_start_time"] = time.time()
         room["events"].append({"text": f"{data.get('name', player_color)} rolled a {roll_val}.", "type": "Dice roll"})
 
     elif action == "end_turn":
@@ -744,32 +761,41 @@ async def handle_ludo_room_action(request: web.Request) -> web.Response:
         active_colors = [c for c in ["red", "green", "yellow", "blue"] if room["players"].get(c) is not None]
         if next_turn and next_turn in active_colors:
             room["turn"] = next_turn
-        elif active_colors:
-            cur_turn = room.get("turn")
-            if cur_turn in active_colors:
-                idx = active_colors.index(cur_turn)
-                room["turn"] = active_colors[(idx + 1) % len(active_colors)]
-            else:
-                room["turn"] = active_colors[0]
+        else:
+            room["turn"] = get_next_ludo_turn(room, room.get("turn", "red"))
         room["dice"] = 0
+        room["has_rolled"] = False
         room["turn_version"] = room.get("turn_version", 0) + 1
+        room["turn_start_time"] = time.time()
 
     elif action == "move_token":
         token_id = data.get("id")
         step = data.get("step")
+        extra_roll = bool(data.get("extra_roll", False))
         next_turn = data.get("next_turn")
         player_color = data.get("color")
-        active_colors = [c for c in ["red", "green", "yellow", "blue"] if room["players"].get(c) is not None]
-        if next_turn and next_turn in active_colors:
-            room["turn"] = next_turn
-        room["dice"] = 0
-        room["turn_version"] = room.get("turn_version", 0) + 1
         if "token_state" not in room:
             room["token_state"] = {}
         if player_color not in room["token_state"]:
             room["token_state"][player_color] = {}
         room["token_state"][player_color][str(token_id)] = step
         room["events"].append({"text": f"{data.get('name', player_color)} moved goti #{token_id}.", "type": "Token move"})
+
+        if extra_roll:
+            room["dice"] = 0
+            room["has_rolled"] = False
+            room["turn_version"] = room.get("turn_version", 0) + 1
+            room["turn_start_time"] = time.time()
+        else:
+            active_colors = [c for c in ["red", "green", "yellow", "blue"] if room["players"].get(c) is not None]
+            if next_turn and next_turn in active_colors:
+                room["turn"] = next_turn
+            else:
+                room["turn"] = get_next_ludo_turn(room, player_color or room.get("turn", "red"))
+            room["dice"] = 0
+            room["has_rolled"] = False
+            room["turn_version"] = room.get("turn_version", 0) + 1
+            room["turn_start_time"] = time.time()
 
     return web.json_response({"success": True, "room": room})
 
