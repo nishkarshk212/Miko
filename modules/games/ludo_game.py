@@ -6,8 +6,8 @@ from typing import Optional
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import ContextTypes
 
-# Configurable Ludo Web App URL (Vercel, GitHub Pages, or VPS HTTPS)
-DEFAULT_LUDO_URL = os.getenv("LUDO_WEBAPP_URL", "https://mike-payment.vercel.app/ludo.html")
+# Configurable Ludo Web App URL (Live Cloudflare SSL Tunnel on VPS)
+DEFAULT_LUDO_URL = os.getenv("LUDO_WEBAPP_URL", "https://addition-ruby-skip-road.trycloudflare.com/ludo")
 
 LUDO_COVER_PHOTO = "https://cdn.imageurlgenerator.com/uploads/856e0adb-1891-441e-ae03-1987d6befbf6.jpg"
 
