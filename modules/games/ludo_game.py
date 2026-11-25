@@ -67,8 +67,10 @@ async def cmd_ludo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     reply_markup = build_ludo_keyboard(user.id, name, is_private=is_private, bot_username=bot_uname)
 
-    # Local banner path
-    local_banner = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "web", "ludo", "card_preview.jpg")
+    # Local banner path (high-res 640x360 3D Ludo cover)
+    local_banner = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "web", "ludo", "banner.jpg")
+    if not os.path.exists(local_banner):
+        local_banner = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "web", "ludo", "card_preview.jpg")
 
     try:
         if os.path.exists(local_banner):

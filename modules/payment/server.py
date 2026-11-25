@@ -394,6 +394,16 @@ async def handle_ludo_page(request: web.Request) -> web.Response:
     return web.Response(text="Ludo game not found", status=404)
 
 
+async def handle_ludo_banner(request: web.Request) -> web.Response:
+    banner_file = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "web", "ludo", "banner.jpg")
+    if not os.path.exists(banner_file):
+        banner_file = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "web", "ludo", "card_preview.jpg")
+    if os.path.exists(banner_file):
+        with open(banner_file, "rb") as f:
+            return web.Response(body=f.read(), content_type="image/jpeg")
+    return web.Response(text="Banner not found", status=404)
+
+
 def create_payment_app() -> web.Application:
     app = web.Application()
     async def cors_middleware(app, handler):
@@ -427,5 +437,7 @@ def create_payment_app() -> web.Application:
     app.router.add_get("/ludo/", handle_ludo_page)
     app.router.add_get("/ludo/index.html", handle_ludo_page)
     app.router.add_get("/ludo.html", handle_ludo_page)
+    app.router.add_get("/ludo/banner.jpg", handle_ludo_banner)
+    app.router.add_get("/ludo/card_preview.jpg", handle_ludo_banner)
     return app
 
